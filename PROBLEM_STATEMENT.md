@@ -17,7 +17,7 @@ Teams need a zero‑friction way to surface work done, highlight blockers, and a
 
 - Completely hands‑off (GenAI generated) summaries of repository content yet
 - Instant answers to (manager) questions without ping‑pong on Slack.
-- Integrated AI-driven search via meilsearchs' vector embeddings allowing
+- Integrated AI-driven search via meilsearchs' vector embeddings allowing semantic searching and bringing githubs search experience to this century.
 
 ## Some scenarios how our app will function
 
