@@ -17,9 +17,25 @@ For a deeper description of what we are building, please see our [problem statem
 
 TBD
 
-## Systems diagram and Usecases
+## Architecture of the systems
 
-![the usecases we are optimising for](docs/usecase.png)
+- <details><summary>High level systems architecture diagram</summary>
+  
+  TODO
+  
+  </details>
+- <details><summary>Usecase diagram</summary
+  
+  ![the usecases we are optimising for](docs/usecase.png)
+  
+  </details>
+- <details><summary>database layout diagram</summary>
+  
+  You can view the DBML diagram here:
+  <https://www.dbdiagram.io/d/681e071a5b2fc4582fec9d54>
+  
+  </details>
+
 
 ## Getting Started
 
