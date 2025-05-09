@@ -3,7 +3,9 @@
 As companies grow, answering the simple question “What’s happening right now?” becomes increasingly hard. Information is spread across tools, projects, and teams, making it difficult to get a clear, high-level view. 
 Weekly status reports and ad‑hoc “What’s going on?” questions drain developer time and still leave managers digging through GitHub with its barely working search functionality and pretty labour-intensive project management.
 
-Teams need a zero‑friction way to surface work done, highlight blockers, and answer follow‑up questions—all in one place, automatically.
+Teams need a zero‑friction way to surface work done, and answer follow‑up questions—all in one place, automatically.
+
+For a deeper description of what we are building, please see our [problem statement](docs/PROBLEM_STATEMENT.md).
 
 ## Progress reports
 
