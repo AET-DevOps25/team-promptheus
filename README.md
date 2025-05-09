@@ -31,8 +31,11 @@ TBD
   </details>
 - <details><summary>database layout diagram</summary>
   
-  You can view the DBML diagram here:
+  > [!TIP]
+  > You can view the DBML diagram interactively here:
   <https://www.dbdiagram.io/d/681e071a5b2fc4582fec9d54>
+
+  ![database layout diagram](docs/dbml_diagram.png)
   
   </details>
 
