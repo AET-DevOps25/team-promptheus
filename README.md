@@ -5,7 +5,7 @@ Weekly status reports and ad‑hoc “What’s going on?” questions drain deve
 
 Teams need a zero‑friction way to surface work done, highlight blockers, and answer follow‑up questions—all in one place, automatically.
 
-## Porgress reports
+## Progress reports
 
 | Week | Frank | Stefan | Wolfgang |
 |--------|--------|--------|--------|
