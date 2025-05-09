@@ -9,7 +9,7 @@ Teams need a zero‑friction way to surface work done, highlight blockers, and a
 
 | Week | Frank | Stefan | Wolfgang |
 |--------|--------|--------|--------|
-| 1 | Shared vision about GitHub summarisation | Shared vision about Books-recomender service | Collaborated on both |
+| 1 | Shared vision about GitHub summarisation | Shared vision about Books-recommender service | Collaborated on both |
 
 ## Screenshots
 
