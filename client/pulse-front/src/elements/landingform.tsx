@@ -1,5 +1,5 @@
 "use client"
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -17,9 +17,12 @@ import {
 import { Input } from "@/components/ui/input"
 
 const formSchema = z.object({
-  username: z.string().startsWith('ghp_', {
+  patstr: z.string().startsWith('ghp_', {
     message: "This is not a valid Github Token.",
   }),
+
+  repolink: z.string().url({ message: "Invalid url" })
+
 })
 
 
@@ -33,37 +36,67 @@ function ButtonMaker(){
 
 export function ProfileForm() {
   // ...
-  const [sendingtext, setsendingtext] = useState("S")
+
   const [patsubmitted, setPatSubmitting] = useState(0)  
 
-  // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
+      patstr: "",
     },
   })
  
-  // 2. Define a submit handler.
+
+
+
+  
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
 
     setPatSubmitting(1)
+    
+    console.log("Submitting PAT")
+    
+    const pack = {
+      pat : values.patstr,
+      repolink: values.repolink
+    };
+
+/*     const [linkdev, setLinkdev] = useState([]);
+    const [linkman, setLinkman] = useState([]); */
 
 
-    console.log(values)
+
+      fetch('http://localhost:8090/api/providePAT' , 
+        {
+          method: "POST",
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(pack)
+        }
+      ).then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      }).then(data => {
+        console.log(data);
+        setPatSubmitting(0);
+      });
+
+    
   }
 
   
-
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        
+        
         <FormField
           control={form.control}
-          name="username"
+          name="patstr"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Personal Access Token</FormLabel>
@@ -71,12 +104,31 @@ export function ProfileForm() {
                 <Input type="password" placeholder="Your token here..." {...field} />
               </FormControl>
               <FormDescription>
-                Add a PAT with which the repository can be accessed.
+                Add a PAT with which the referenced repository can be accessed.
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="repolink"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Github Repository Link</FormLabel>
+              <FormControl>
+                <Input type="text" placeholder="Repository link here..." {...field} />
+              </FormControl>
+              <FormDescription>
+                The link to the repository accessible with the provided token.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+
           {patsubmitted ? (
                 <Button disabled>
                 <Loader2 className="animate-spin" />
