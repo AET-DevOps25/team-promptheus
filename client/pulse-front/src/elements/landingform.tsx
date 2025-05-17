@@ -1,9 +1,9 @@
 "use client"
-
+import { useState } from 'react'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-
+import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -17,13 +17,24 @@ import {
 import { Input } from "@/components/ui/input"
 
 const formSchema = z.object({
-  username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+  username: z.string().startsWith('ghp_', {
+    message: "This is not a valid Github Token.",
   }),
 })
 
+
+
+
+function ButtonMaker(){
+  
+ 
+  
+}
+
 export function ProfileForm() {
   // ...
+  const [sendingtext, setsendingtext] = useState("S")
+  const [patsubmitted, setPatSubmitting] = useState(0)  
 
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
@@ -37,8 +48,14 @@ export function ProfileForm() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
+
+    setPatSubmitting(1)
+
+
     console.log(values)
   }
+
+  
 
 
   return (
@@ -49,18 +66,25 @@ export function ProfileForm() {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>Personal Access Token</FormLabel>
               <FormControl>
-                <Input placeholder="shadcn" {...field} />
+                <Input type="password" placeholder="Your token here..." {...field} />
               </FormControl>
               <FormDescription>
-                This is your public display name.
+                Add a PAT with which the repository can be accessed.
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+          {patsubmitted ? (
+                <Button disabled>
+                <Loader2 className="animate-spin" />
+                Setting up. Please wait...
+              </Button>
+              ) :
+              ( <Button type="submit">Start summarising</Button>)
+            }
       </form>
     </Form>
   )
