@@ -13,7 +13,7 @@ For a deeper description of what we are building, please see our [problem statem
 |--------|--------|--------|--------|
 | 1 | Shared vision about GitHub summarisation | Shared vision about Books-recommender service | Collaborated on both |
 
-further progres reports starting at week 2 are avaliable [on confluence](https://confluence.aet.cit.tum.de/spaces/DO25WR/pages/258581342/Team+Promptheus)
+further progress reports starting at week 2 are available [on confluence](https://confluence.aet.cit.tum.de/spaces/DO25WR/pages/258581342/Team+Promptheus)
 
 ## Screenshots
 
