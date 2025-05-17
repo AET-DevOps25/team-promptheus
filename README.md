@@ -44,7 +44,7 @@ TBD
 
 ## Getting Started
 
-To get a local demo environement running, you can run 
+To get a local demo environment running, you can run 
 ```shell
 docker compose up
 ```
