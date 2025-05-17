@@ -13,6 +13,8 @@ For a deeper description of what we are building, please see our [problem statem
 |--------|--------|--------|--------|
 | 1 | Shared vision about GitHub summarisation | Shared vision about Books-recommender service | Collaborated on both |
 
+further progres reports starting at week 2 are avaliable [on confluence](https://confluence.aet.cit.tum.de/spaces/DO25WR/pages/258581342/Team+Promptheus)
+
 ## Screenshots
 
 TBD
@@ -42,4 +44,9 @@ TBD
 
 ## Getting Started
 
-TBD
+To get a local demo environement running, you can run 
+```shell
+docker compose up
+```
+
+You can now head over to [`https://localhost:3000`](https://localhost:3000) to look at the website.
