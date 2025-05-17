@@ -1,0 +1,61 @@
+services:
+  meilisearch:
+    image: getmeili/meilisearch
+    restart: unless-stopped
+    ports:
+      - 7700:7700
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
+      MEILI_ENV: production
+    volumes:
+      - meilisearch-data:/data
+    healthcheck:
+      test: curl --silent http://localhost:7700/health
+      retries: 5
+      interval: 10s
+      start_period: 10s
+      start_interval: 500ms
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Berlin
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+    command:
+      - -c
+      - synchronous_commit=off
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}" ]
+      retries: 5
+      interval: 10s
+      start_interval: 500ms
+      start_period: 20s
+  server:
+    image: ghcr.io/aet-devops25/promptheus-server:latest
+    build:
+      context: server
+    volumes:
+      - ./server/flyway.conf:/conf/flyway.conf
+    restart: unless-stopped
+#  genai:
+#    image: ghcr.io/aet-devops25/promptheus-genai:latest
+#    build:
+#      context: genai
+#    restart: unless-stopped
+  frontend:
+    image: ghcr.io/aet-devops25/promptheus-frontend:latest
+    build:
+      context: frontend
+    ports:
+      - 3000
+    restart: unless-stopped
+volumes:
+  postgres-data:
+  meilisearch-data:
