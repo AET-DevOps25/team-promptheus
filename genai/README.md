@@ -58,7 +58,7 @@ The development environment uses Docker Compose to build and run the service wit
 2.  **Accessing the API:**
     - Health Check: `GET http://localhost:3003/health`
     - Predict Endpoint: `POST http://localhost:3003/predict` (see API Docs for payload)
-    - OpenAPI UI: `http://localhost:3003/ui`
+    - OpenAPI UI: `http://localhost:3003/scalar`
     - OpenAPI Spec: `http://localhost:3003/doc`
 
 3.  **Running Tests (inside the dev container):**
