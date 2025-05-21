@@ -44,11 +44,35 @@ services:
     volumes:
       - ./server/flyway.conf:/conf/flyway.conf
     restart: unless-stopped
-#  genai:
-#    image: ghcr.io/aet-devops25/promptheus-genai:latest
-#    build:
-#      context: genai
-#    restart: unless-stopped
+
+  genai:
+    image: ghcr.io/aet-devops25/promptheus-genai:latest
+    build:
+      context: ./genai
+    ports:
+      - "${GENAI_PORT:-3003}:${GENAI_PORT:-3003}"
+    command: npm run dev
+    develop:
+      watch:
+        - action: rebuild
+          path: ./genai/package.json
+          ignore:
+            - node_modules
+            - dist
+        - action: sync
+          path: ./genai
+          target: /usr/src/app
+          ignore:
+            - node_modules
+            - dist
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${GENAI_PORT:-3003}/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+
   frontend:
     image: ghcr.io/aet-devops25/promptheus-frontend:latest
     build:
