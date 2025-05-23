@@ -1,0 +1,90 @@
+package com.autoback.autoback.api;
+
+
+import com.autoback.autoback.CommunicationObjects.LinkConstruct;
+import com.autoback.autoback.CommunicationObjects.PATConstruct;
+import com.autoback.autoback.CommunicationObjects.UserCodeConstruct;
+import com.autoback.autoback.CommunicationObjects.UserConstruct;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+@Service
+public class ServiceRest {
+
+
+    private Map<String, String> repo2patmapping = new HashMap<>();
+    private Map<LinkConstruct, String> linkconstruct2repomapping = new HashMap<LinkConstruct, String>();
+
+    //@Value("parametername")
+    //private String testvalue;
+
+    public ServiceRest() {
+
+
+    }
+
+    public Optional<LinkConstruct> getLinkConstruct(PATConstruct patrequest) {
+
+        String repolink = patrequest.repolink();
+        String pat = patrequest.pat();
+
+        if (repo2patmapping.containsKey(repolink)) {
+            return Optional.empty();
+        }
+
+        //TODO: testing the repolink with the PAT
+
+        repo2patmapping.put(repolink, pat);
+
+        // TODO: handle this with the db
+        UUID uuid_dev = UUID.randomUUID();
+        String uuidstring_dev = uuid_dev.toString();
+        UUID uuid_man = UUID.randomUUID();
+        String uuidstring_man = uuid_man.toString();
+        LinkConstruct lc = new LinkConstruct(uuidstring_dev,uuidstring_man);
+
+        linkconstruct2repomapping.put(lc, repolink);
+
+        return Optional.of(lc);
+
+    }
+
+    public Optional<UserConstruct> getUserConstruct(UserCodeConstruct userrequest) {
+
+        String usercode = userrequest.usercode();
+
+        if (!(usercode.contains("_"))) {
+            return Optional.empty();
+        } else {
+
+            String rgx = "_";
+            String[] components = usercode.split(rgx);
+
+            if (repo2patmapping.containsKey(components[0])){
+                // repo uuid exists.
+                String reponame = "somereponame";
+                String role = components[1];
+                if (role.equals("100") || role.equals("200") ){
+
+                    // checks passed.
+
+                    UserConstruct userConstruct = new UserConstruct(reponame,role);
+                    return Optional.of(userConstruct);
+                }
+
+            }
+
+            //usercode.split();
+        }
+
+        return Optional.empty();
+
+
+    }
+
+
+}

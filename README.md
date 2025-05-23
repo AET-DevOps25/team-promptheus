@@ -40,6 +40,12 @@ TBD
   </details>
 
 
+
+
 ## Getting Started
 
-TBD
+**Currently undockerised setup:**
+
+Setup frontend by following https://ui.shadcn.com/docs/installation/vite
+
+Backend setup is straight forward with gradlew
