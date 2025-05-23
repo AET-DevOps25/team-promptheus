@@ -1,11 +1,10 @@
 package com.autoback.autoback.api;
 
 
-import com.autoback.autoback.LinkConstruct;
-import com.autoback.autoback.PATConstruct;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import com.autoback.autoback.CommunicationObjects.LinkConstruct;
+import com.autoback.autoback.CommunicationObjects.PATConstruct;
+import com.autoback.autoback.CommunicationObjects.UserCodeConstruct;
+import com.autoback.autoback.CommunicationObjects.UserConstruct;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -51,6 +50,39 @@ public class ServiceRest {
         linkconstruct2repomapping.put(lc, repolink);
 
         return Optional.of(lc);
+
+    }
+
+    public Optional<UserConstruct> getUserConstruct(UserCodeConstruct userrequest) {
+
+        String usercode = userrequest.usercode();
+
+        if (!(usercode.contains("_"))) {
+            return Optional.empty();
+        } else {
+
+            String rgx = "_";
+            String[] components = usercode.split(rgx);
+
+            if (repo2patmapping.containsKey(components[0])){
+                // repo uuid exists.
+                String reponame = "somereponame";
+                String role = components[1];
+                if (role.equals("100") || role.equals("200") ){
+
+                    // checks passed.
+
+                    UserConstruct userConstruct = new UserConstruct(reponame,role);
+                    return Optional.of(userConstruct);
+                }
+
+            }
+
+            //usercode.split();
+        }
+
+        return Optional.empty();
+
 
     }
 

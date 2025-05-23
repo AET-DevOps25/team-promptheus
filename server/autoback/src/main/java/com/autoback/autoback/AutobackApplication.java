@@ -1,14 +1,12 @@
 package com.autoback.autoback;
 
+import com.autoback.autoback.CommunicationObjects.LinkConstruct;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @SpringBootApplication
@@ -24,13 +22,5 @@ public class AutobackApplication {
 
 	}
 
-
-	/*
-	@GetMapping("/getsummaryselectionfordev")
-	public ResponseEntity<ContributionOffering> askForContributionSelectingOfDevelopers(@RequestParam(value = "devuuid") String uuid){
-
-		return
-	}
-	*/
 
 }
