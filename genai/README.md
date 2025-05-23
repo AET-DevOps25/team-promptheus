@@ -10,7 +10,7 @@ This project provides a containerized LangChain-based AI service built with Hono
 
 ## Project Structure
 
-```
+```bash
 genai/
 ├── Dockerfile
 ├── package.json
@@ -186,4 +186,4 @@ jobs:
       - name: Run tests in production image
         run: docker-compose run --rm prod npm test
 # ...
-``` 
+```
