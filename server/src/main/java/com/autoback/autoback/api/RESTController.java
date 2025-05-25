@@ -28,12 +28,10 @@ public class RESTController {
 
     @Autowired
     public RESTController(ServiceRest sr){
-
         serviceRest = sr;
-
     }
 
-
+    @Operation(summary = "Get all foos")
     @PostMapping("/providePAT")
     public ResponseEntity<LinkConstruct> registerPAT(@RequestBody PATConstruct patrequest){
 

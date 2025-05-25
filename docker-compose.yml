@@ -49,6 +49,8 @@ services:
         condition: service_healthy
       genai:
         condition: service_started
+    ports:
+      - 8080:8080
     develop:
       watch:
         - action: rebuild
