@@ -1,11 +1,12 @@
 package com.autoback.autoback.api;
 
-
+import com.autoback.autoback.ConfigProperties;
 import com.autoback.autoback.CommunicationObjects.LinkConstruct;
 import com.autoback.autoback.CommunicationObjects.PATConstruct;
 import com.autoback.autoback.CommunicationObjects.UserCodeConstruct;
 import com.autoback.autoback.CommunicationObjects.SearchConstruct;
 import com.autoback.autoback.CommunicationObjects.UserConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.meilisearch.sdk.model.SearchResult;
 import com.meilisearch.sdk.Index;
@@ -17,24 +18,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
+
 @Service
 public class ServiceRest {
     private final Client client;
 
     // todo: replace with db
-    private Map<String, String> repo2patmapping = new HashMap<>();
-    private Map<LinkConstruct, String> linkconstruct2repomapping = new HashMap<LinkConstruct, String>();
+    private final Map<String, String> repo2patmapping = new HashMap<>();
+    private final Map<LinkConstruct, String> linkconstruct2repomapping = new HashMap<LinkConstruct, String>();
 
-    public ServiceRest() {
-        String meiliHost = System.getenv("MEILI_HOST");
-        if (meiliHost== null){
-            meiliHost="http://localhost:7700";
-        }
-        String meiliMasterKey = System.getenv("MEILI_MASTER_KEY");
-        if (meiliMasterKey== null){
-            meiliMasterKey="CHANGE_ME_CHANGE_ME";
-        }
-        client = new Client(new Config(meiliHost, meiliMasterKey));
+    @Autowired
+    public ServiceRest(ConfigProperties properties) {
+        client = new Client(new Config(properties.getMeiliHost(), properties.getMeiliMasterKey()));
     }
 
     public Optional<LinkConstruct> getLinkConstruct(PATConstruct patrequest) {
