@@ -21,20 +21,18 @@ TBD
 
 ## Architecture of the systems
 
-- <details><summary>High level systems architecture diagram</summary>
+- High level systems architecture diagram
   
   > [!TIP]
   > The architecture digagram is [also avaliable as a pdf](docs/components.pdf)
   
   ![High level systems architecture diagram](docs/components.png)
   
-  </details>
-- <details><summary>Usecase diagram</summary
+- Usecase diagram
   
   ![the usecases we are optimising for](docs/usecase.png)
   
-  </details>
-- <details><summary>database layout diagram</summary>
+- database layout diagram
   
   > [!TIP]
   > You can view the DBML diagram interactively here:
