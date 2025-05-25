@@ -2,11 +2,8 @@
 
 # content inspired from https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile
 FROM node:24-slim AS base
-
-# Rebuild the source code only when needed
-FROM base AS builder
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
+FROM base AS builder
 
 # Install dependencies based on the preferred package manager
 COPY package*.json ./

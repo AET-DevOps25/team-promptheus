@@ -47,8 +47,17 @@ TBD
 ## Getting Started
 
 To get a local demo environment running, you can run 
+
 ```shell
-docker compose up
+COMPOSE_BAKE=true docker compose up
 ```
 
 You can now head over to [`https://localhost:3000`](https://localhost:3000) to look at the website.
+
+## Contributing
+
+For contributing, we provide a [docker compose-watch](https://docs.docker.com/compose/how-tos/file-watch/) compatible setup.
+
+```shell
+COMPOSE_BAKE=true docker compose watch
+```
