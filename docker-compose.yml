@@ -68,20 +68,20 @@ services:
       context: ./genai
     ports:
       - "${GENAI_PORT:-3003}:${GENAI_PORT:-3003}"
-    command: npm run dev
+    environment:
+      - GENAI_PORT=${GENAI_PORT:-3003}
+    command: sh -c "uvicorn app:app --host 0.0.0.0 --port ${GENAI_PORT:-3003} --reload"
     develop:
       watch:
         - action: rebuild
-          path: ./genai/package.json
-          ignore:
-            - node_modules
-            - dist
+          path: ./genai/requirements.txt
         - action: sync
           path: ./genai
-          target: /usr/src/app
+          target: /app
           ignore:
-            - node_modules
-            - dist
+            - __pycache__
+            - "*.pyc"
+            - .pytest_cache
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${GENAI_PORT:-3003}/health"]
