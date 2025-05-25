@@ -1,7 +1,7 @@
 # syntax=docker.io/docker/dockerfile:1
 
 # content inspired from https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile
-FROM node:22-alpine AS base
+FROM node:24-slim AS base
 
 # Rebuild the source code only when needed
 FROM base AS builder
