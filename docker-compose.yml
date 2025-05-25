@@ -41,6 +41,7 @@ services:
     image: ghcr.io/aet-devops25/promptheus-server:latest
     environment:
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
+      MEILI_HOST: http://meilisearch:7700
     build:
       context: server
     restart: unless-stopped
