@@ -23,7 +23,10 @@ TBD
 
 - <details><summary>High level systems architecture diagram</summary>
   
-  TODO
+  > [!TIP]
+  > The architecture digagram is [also avaliable as a pdf](docs/components.pdf)
+  
+  ![High level systems architecture diagram](docs/components.png)
   
   </details>
 - <details><summary>Usecase diagram</summary
