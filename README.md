@@ -13,6 +13,8 @@ For a deeper description of what we are building, please see our [problem statem
 |--------|--------|--------|--------|
 | 1 | Shared vision about GitHub summarisation | Shared vision about Books-recommender service | Collaborated on both |
 
+further progress reports starting at week 2 are available [on confluence](https://confluence.aet.cit.tum.de/spaces/DO25WR/pages/258581342/Team+Promptheus)
+
 ## Screenshots
 
 TBD
@@ -44,8 +46,18 @@ TBD
 
 ## Getting Started
 
-**Currently undockerised setup:**
+To get a local demo environment running, you can run 
 
-Setup frontend by following https://ui.shadcn.com/docs/installation/vite
+```shell
+COMPOSE_BAKE=true docker compose up
+```
 
-Backend setup is straight forward with gradlew
+You can now head over to [`https://localhost:3000`](https://localhost:3000) to look at the website.
+
+## Contributing
+
+For contributing, we provide a [docker compose-watch](https://docs.docker.com/compose/how-tos/file-watch/) compatible setup.
+
+```shell
+COMPOSE_BAKE=true docker compose watch
+```

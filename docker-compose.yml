@@ -1,0 +1,125 @@
+services:
+  meilisearch:
+    image: getmeili/meilisearch
+    restart: unless-stopped
+    ports:
+      - 7700:7700
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
+      MEILI_ENV: production
+    volumes:
+      - meilisearch-data:/data
+    healthcheck:
+      test: curl --silent http://localhost:7700/health
+      retries: 5
+      interval: 10s
+      start_period: 1s
+      start_interval: 100ms
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Berlin
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+    command:
+      - -c
+      - synchronous_commit=off
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}" ]
+      retries: 5
+      interval: 10s
+      start_period: 1s
+      start_interval: 100ms
+  server:
+    image: ghcr.io/aet-devops25/promptheus-server:latest
+    build:
+      context: server
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+      genai:
+        condition: service_started
+    develop:
+      watch:
+        - action: rebuild
+          path: ./server/build.gradle
+        - action: rebuild
+          path: ./server/settings.gradle
+        - action: rebuild
+          path: ./server/src
+  genai:
+    image: ghcr.io/aet-devops25/promptheus-genai:latest
+    build:
+      context: ./genai
+    ports:
+      - "${GENAI_PORT:-3003}:${GENAI_PORT:-3003}"
+    command: npm run dev
+    develop:
+      watch:
+        - action: rebuild
+          path: ./genai/package.json
+          ignore:
+            - node_modules
+            - dist
+        - action: sync
+          path: ./genai
+          target: /usr/src/app
+          ignore:
+            - node_modules
+            - dist
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${GENAI_PORT:-3003}/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 1s
+      start_interval: 100ms
+    depends_on:
+      db:
+        condition: service_healthy
+  frontend:
+    image: ghcr.io/aet-devops25/promptheus-frontend:latest
+    build:
+      context: frontend
+    ports:
+      - 3000:${FRONTEND_PORT:-3000}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "-e 'fetch(`http://localhost:${FRONTEND_PORT:-3000}/`).then(x=>x.status==200?process.exit(0):process.exit(1)).catch(()=>process.exit(1))'"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 1s
+      start_interval: 100ms
+    develop:
+      watch:
+        - action: rebuild
+          path: ./frontend/package.json
+        - action: rebuild
+          path: ./frontend/package-lock.json
+        - action: rebuild
+          path: ./frontend/next.config.ts
+        - action: rebuild
+          path: ./frontend/next-env.d.ts
+        - action: rebuild
+          path: ./frontend/tsconfig.json
+        - action: rebuild
+          path: ./frontend/postcss.config.mjs
+        - action: rebuild
+          path: ./frontend/src/app
+        - action: rebuild
+          path: ./frontend/public
+volumes:
+  postgres-data:
+  meilisearch-data:
