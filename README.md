@@ -46,17 +46,9 @@ TBD
 
 ## Getting Started
 
-<<<<<<< HEAD
 To get a local demo environment running, you can run 
 ```shell
 docker compose up
 ```
 
 You can now head over to [`https://localhost:3000`](https://localhost:3000) to look at the website.
-=======
-**Currently undockerised setup:**
-
-Setup frontend by following https://ui.shadcn.com/docs/installation/vite
-
-Backend setup is straight forward with gradlew
->>>>>>> 1f34608 (Setting up basic frontend/backend setup)
