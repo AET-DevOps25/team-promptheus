@@ -4,8 +4,13 @@ package com.autoback.autoback.api;
 import com.autoback.autoback.CommunicationObjects.LinkConstruct;
 import com.autoback.autoback.CommunicationObjects.PATConstruct;
 import com.autoback.autoback.CommunicationObjects.UserCodeConstruct;
+import com.autoback.autoback.CommunicationObjects.SearchConstruct;
 import com.autoback.autoback.CommunicationObjects.UserConstruct;
 import org.springframework.stereotype.Service;
+import com.meilisearch.sdk.model.SearchResult;
+import com.meilisearch.sdk.Index;
+import com.meilisearch.sdk.Client;
+import com.meilisearch.sdk.Config;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,17 +19,22 @@ import java.util.UUID;
 
 @Service
 public class ServiceRest {
+    private final Client client;
 
-
+    // todo: replace with db
     private Map<String, String> repo2patmapping = new HashMap<>();
     private Map<LinkConstruct, String> linkconstruct2repomapping = new HashMap<LinkConstruct, String>();
 
-    //@Value("parametername")
-    //private String testvalue;
-
     public ServiceRest() {
-
-
+        String meiliHost = System.getenv("MEILI_HOST");
+        if (meiliHost== null){
+            meiliHost="http://localhost:7700";
+        }
+        String meiliMasterKey = System.getenv("MEILI_MASTER_KEY");
+        if (meiliMasterKey== null){
+            meiliMasterKey="CHANGE_ME_CHANGE_ME";
+        }
+        client = new Client(new Config(meiliHost, meiliMasterKey));
     }
 
     public Optional<LinkConstruct> getLinkConstruct(PATConstruct patrequest) {
@@ -82,9 +92,10 @@ public class ServiceRest {
         }
 
         return Optional.empty();
-
-
     }
-
-
+    
+    public SearchResult search(SearchConstruct searchConstruct) {
+        Index index = client.index("content");
+        return index.search(searchConstruct.query());
+    }
 }

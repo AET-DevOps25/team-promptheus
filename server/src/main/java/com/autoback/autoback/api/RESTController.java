@@ -2,15 +2,19 @@ package com.autoback.autoback.api;
 
 import com.autoback.autoback.CommunicationObjects.LinkConstruct;
 import com.autoback.autoback.CommunicationObjects.PATConstruct;
+import com.autoback.autoback.CommunicationObjects.SearchConstruct;
 import com.autoback.autoback.CommunicationObjects.UserCodeConstruct;
 import com.autoback.autoback.CommunicationObjects.UserConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.meilisearch.sdk.model.SearchResult;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -19,18 +23,11 @@ import java.util.*;
 @RestController
 @RequestMapping("/api")
 public class RESTController {
-
     private final ServiceRest serviceRest;
-    // will be replaced by db
-    private Map<String, String> repo2patmapping = new HashMap<>();
-    private Map<LinkConstruct, String> linkconstruct2repomapping = new HashMap<LinkConstruct, String>();
-
 
     @Autowired
     public RESTController(ServiceRest sr){
-
         serviceRest = sr;
-
     }
 
 
@@ -60,47 +57,11 @@ public class RESTController {
         } else {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
-
-
-        
     }
-
-    public static void main(String[] args){
-        /*
-        int dbuuid = 243232;
-
-        ByteBuffer bb = ByteBuffer.allocate(16).putInt(dbuuid);
-
-        bb.put((byte) 100); // 100 for developer
-
-        byte[] bbb = bb.array();
-        String asdf = Base64.getEncoder().encodeToString(bbb);
-        System.out.println(asdf);
-        */
-
-        UUID uuid = UUID.randomUUID();
-
-        String uuidstring = uuid.toString();
-
-
-        uuidstring = uuidstring.concat("_");
-        uuidstring = uuidstring.concat("100");
-
-
-        String rgx = "_";
-        String[] asdf = uuidstring.split(rgx);
-
-
-        System.out.println(asdf[0]);
-
-
-
-
-
-
-    }
-
     
-
-
+    @GetMapping("/search")
+    public ResponseEntity<SearchResult> search(@RequestParam String query){
+        SearchResult results = serviceRest.search(new SearchConstruct(query));
+        return ResponseEntity.status(HttpStatus.OK).body(results);
+    }
 }
