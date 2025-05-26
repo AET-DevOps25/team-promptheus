@@ -3,7 +3,7 @@ package com.autoback.autoback.persistence.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 
-import java.sql.Time;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -18,7 +18,7 @@ public class GitRepo {
     @Column(unique = true, name = "repository_link", nullable = false)
     private String repositoryLink;
     @Column(name = "created_at", nullable = false)
-    private Time createdAt;
+    private Instant createdAt;
 
     @ManyToMany
     @JoinTable(

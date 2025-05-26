@@ -3,7 +3,7 @@ package com.autoback.autoback.persistence.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 
-import java.sql.Time;
+import java.time.Instant;
 
 @Entity
 @Table(name = "contents")
@@ -21,5 +21,5 @@ public class Content {
     @Column(nullable = false)
     private String summary;
     @Column(name = "created_at", nullable = false)
-    private Time createdAt;
+    private Instant createdAt;
 }
