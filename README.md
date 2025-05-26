@@ -21,28 +21,24 @@ TBD
 
 ## Architecture of the systems
 
-- <details><summary>High level systems architecture diagram</summary>
+### High level systems architecture diagram
   
-  TODO
-  
-  </details>
-- <details><summary>Usecase diagram</summary
-  
-  ![the usecases we are optimising for](docs/usecase.png)
-  
-  </details>
-- <details><summary>database layout diagram</summary>
-  
-  > [!TIP]
-  > You can view the DBML diagram interactively here:
-  <https://www.dbdiagram.io/d/681e071a5b2fc4582fec9d54>
+> [!TIP]
+> The architecture digagram is [also avaliable as a pdf](docs/components.pdf)
 
-  ![database layout diagram](docs/dbml_diagram.png)
+![High level systems architecture diagram](docs/components.png)
   
-  </details>
+### Usecase diagram
+  
+![the usecases we are optimising for](docs/usecase.png)
+  
+### database layout diagram
+  
+> [!TIP]
+> You can view the DBML diagram interactively here:
+<https://www.dbdiagram.io/d/681e071a5b2fc4582fec9d54>
 
-
-
+![database layout diagram](docs/dbml_diagram.png)
 
 ## Getting Started
 

@@ -2,6 +2,7 @@ package com.autoback.autoback.api;
 
 import com.autoback.autoback.CommunicationObjects.LinkConstruct;
 import com.autoback.autoback.CommunicationObjects.PATConstruct;
+import com.autoback.autoback.CommunicationObjects.SearchConstruct;
 import com.autoback.autoback.CommunicationObjects.UserCodeConstruct;
 import com.autoback.autoback.CommunicationObjects.UserConstruct;
 import io.micrometer.core.instrument.Counter;
@@ -10,16 +11,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.meilisearch.sdk.model.SearchResult;
 
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
 public class RESTController {
-
     private final ServiceRest serviceRest;
     private final Counter patRegistrationCnt;
 
@@ -56,5 +59,11 @@ public class RESTController {
         } else {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
+    }
+    
+    @GetMapping("/search")
+    public ResponseEntity<SearchResult> search(@RequestParam String query){
+        SearchResult results = serviceRest.search(new SearchConstruct(query));
+        return ResponseEntity.status(HttpStatus.OK).body(results);
     }
 }
