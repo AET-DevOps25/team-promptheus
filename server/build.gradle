@@ -19,6 +19,8 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.hibernate.validator:hibernate-validator:9.0.0.Final'
+	implementation 'com.meilisearch.sdk:meilisearch-java:0.14.4'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
