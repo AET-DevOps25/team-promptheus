@@ -11,6 +11,7 @@ import java.util.List;
 @Getter
 public class Question {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
     private Long id;
     @Column(name = "git_repository_id", nullable = false)

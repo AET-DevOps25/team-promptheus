@@ -9,8 +9,8 @@ import java.util.UUID;
 @Table(name = "links")
 @Getter
 public class Link {
-
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false)
     private UUID id;
     @Column(name = "git_repository_id", nullable = false)
