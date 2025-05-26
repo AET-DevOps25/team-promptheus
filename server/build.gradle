@@ -19,8 +19,15 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	// tests
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// metrics
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation platform('io.micrometer:micrometer-bom:1.15.0')
+	implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 tasks.named('test') {
