@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Table(name = "personal_access_tokens")
+@Table(name = "git_repositories")
 @Getter
 public class GitRepo {
     @Id
