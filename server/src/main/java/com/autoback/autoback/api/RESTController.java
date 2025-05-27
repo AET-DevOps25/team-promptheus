@@ -24,6 +24,7 @@ public class RESTController {
 
     @PostMapping("/PAT")
     public ResponseEntity<LinkConstruct> createFromPAT(@RequestBody PATConstruct patRequest){
+        // registers a new repository with a PAT
         Optional<LinkConstruct> lc = gitRepoService.createAccessLinks(patRequest);
         if (lc.isPresent()) {
             return ResponseEntity.status(HttpStatus.OK).body(lc.get());
@@ -35,7 +36,8 @@ public class RESTController {
     @GetMapping("/{usercode}")
     /// responds with the repo and role the uuid is referring to
     public ResponseEntity<GitRepoInformationConstruct> getGitRepository(@PathVariable UUID usercode){
-         Optional<GitRepoInformationConstruct> gitRepository = gitRepoService.getRepositoryByAccessID(usercode);
+        // given a user link, we obtain the information which will be set to a cookie client-side
+        Optional<GitRepoInformationConstruct> gitRepository = gitRepoService.getRepositoryByAccessID(usercode);
         if (gitRepository.isPresent()) {
             return ResponseEntity.status(HttpStatus.OK).body(gitRepository.get());
         } else {
