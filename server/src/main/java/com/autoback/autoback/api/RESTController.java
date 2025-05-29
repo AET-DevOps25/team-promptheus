@@ -3,6 +3,8 @@ package com.autoback.autoback.api;
 import com.autoback.autoback.CommunicationObjects.LinkConstruct;
 import com.autoback.autoback.CommunicationObjects.PATConstruct;
 import com.autoback.autoback.CommunicationObjects.SearchConstruct;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import com.autoback.autoback.CommunicationObjects.GitRepoInformationConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,16 +12,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.meilisearch.sdk.model.SearchResult;
 
+import java.util.Optional;
 import java.util.*;
 
 @RestController
 @RequestMapping("/api/repositories")
 public class RESTController {
-    private final GitRepoService gitRepoService;
-
+  private final GitRepoService gitRepoService;
+  private final Counter patRegistrationCnt;
+  
     @Autowired
-    public RESTController(GitRepoService gitRepoService){
+    public RESTController(GitRepoService gitRepoService, MeterRegistry registry) {
         this.gitRepoService = gitRepoService;
+        patRegistrationCnt = Counter.builder("pat_registration_total").description("Total number of personal access tokens registered").register(registry);
     }
 
     @PostMapping("/PAT")
@@ -27,6 +32,7 @@ public class RESTController {
         // registers a new repository with a PAT
         Optional<LinkConstruct> lc = gitRepoService.createAccessLinks(patRequest);
         if (lc.isPresent()) {
+            patRegistrationCnt.increment();
             return ResponseEntity.status(HttpStatus.OK).body(lc.get());
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
