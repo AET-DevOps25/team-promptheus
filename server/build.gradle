@@ -20,9 +20,19 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.hibernate.validator:hibernate-validator:9.0.0.Final'
-	implementation 'com.meilisearch.sdk:meilisearch-java:0.14.4'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// search
+    implementation 'com.meilisearch.sdk:meilisearch-java:0.14.4'
+	// db access
+    implementation 'org.postgresql:postgresql:42.7.2'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // tests
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // lombok => less weird setter/getters
+	compileOnly("org.projectlombok:lombok:1.18.38")
+	annotationProcessor("org.projectlombok:lombok:1.18.38")
+	testCompileOnly("org.projectlombok:lombok:1.18.38")
+	testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
 }
 
 tasks.named('test') {
