@@ -1,189 +1,159 @@
-# LangChain AI Service with Hono
+# Prompteus GenAI Service
 
-This project provides a containerized LangChain-based AI service built with Hono (NodeJS), orchestrated via Docker Compose. It features live reload for development and an optimized production image.
+AI-powered service for analyzing GitHub contributions and providing intelligent Q&A about developer weekly summaries.
 
-## Prerequisites
+## 🚀 What Works
 
-- Docker and Docker Compose
-- Node.js and npm (for local development outside Docker, or for `generate:sdk` script if run locally)
-- An OpenAI API key (set in `.env`)
+### Core Functionality
+- **Contribution Ingestion**: Store GitHub contributions with user/week organization
+- **AI Summary Generation**: LangChain/LangGraph-powered structured summaries with streaming support
+- **Context-Aware Q&A**: Ask questions about contributions with evidence and confidence scoring
+- **Semantic Search**: Meilisearch integration for finding relevant contributions
+- **Prometheus Metrics**: Comprehensive observability and monitoring
+- **Task-based Processing**: Async ingestion with progress tracking
 
-## Project Structure
+### API Endpoints
+For complete API documentation, see the **[Scalar API Reference](/reference)** when the service is running.
 
-```bash
-genai/
-├── Dockerfile
-├── package.json
-├── tsconfig.json
-├── .env.example        # Example environment variables
-├── .env                # Local environment variables (copy from .env.example, ignored by git)
-├── openapi.json        # Generated OpenAPI specification
-├── src/
-│   ├── index.ts        # Main application entry point (Hono setup, routes)
-│   ├── openapi-generator.ts # Script to generate openapi.json
-│   ├── sdk/            # Generated API client SDK
-│   └── tests/
-│       └── index.test.ts # API tests
-└── README.md
-docker-compose.yml
+## 🏗️ How It Works
+
+### Service Architecture
+
+```mermaid
+graph TB
+    subgraph "API Layer"
+        API[FastAPI App]
+        DEPS[Dependency Injection]
+    end
+    
+    subgraph "Business Services"
+        ING[ContributionsIngestionService]
+        SUM[SummaryService]
+        QA[QuestionAnsweringService]
+    end
+    
+    subgraph "Data & AI"
+        MEILI[Meilisearch Service]
+        LC[LangChain/LangGraph]
+        LLM[OpenAI GPT]
+    end
+    
+    subgraph "Observability"
+        METRICS[Prometheus Metrics]
+        LOGS[Structured Logging]
+    end
+    
+    API --> DEPS
+    DEPS --> ING
+    DEPS --> SUM
+    DEPS --> QA
+    
+    ING --> MEILI
+    SUM --> ING
+    SUM --> LC
+    QA --> ING
+    QA --> LC
+    QA --> MEILI
+    
+    LC --> LLM
+    
+    API --> METRICS
+    API --> LOGS
+    
+    style API fill:#e1f5fe
+    style LC fill:#f3e5f5
+    style MEILI fill:#fff3e0
+    style METRICS fill:#ffebee
 ```
 
-## Environment Variables
+### Data Flow
 
-Copy `.env.example` to `.env` and fill in the required values:
-
-```bash
-cp genai/.env.example genai/.env
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API
+    participant Ingestion
+    participant Meilisearch
+    participant QA
+    participant LangChain
+    
+    Note over Client,LangChain: 1. Contribution Ingestion
+    Client->>API: POST /contributions
+    API->>Ingestion: ingest_contributions()
+    Ingestion->>Meilisearch: store + embed
+    Ingestion-->>API: task_id
+    API-->>Client: IngestTaskResponse
+    
+    Note over Client,LangChain: 2. Summary Generation
+    Client->>API: POST /users/{user}/weeks/{week}/summary
+    API->>SummaryService: generate_summary()
+    SummaryService->>LangChain: LangGraph workflow
+    LangChain-->>SummaryService: structured summary
+    SummaryService-->>API: SummaryResponse
+    API-->>Client: streaming or complete response
+    
+    Note over Client,LangChain: 3. Question Answering
+    Client->>API: POST /users/{user}/weeks/{week}/questions
+    API->>QA: answer_question()
+    QA->>Meilisearch: semantic_search()
+    QA->>LangChain: RAG with context
+    LangChain-->>QA: answer + confidence
+    QA-->>API: QuestionResponse
+    API-->>Client: answer with evidence
 ```
 
-Key variables:
+## 📊 Metrics & Observability
 
-- `GENAI_PORT`: Port for the Hono application (default: `3003`)
-- `OPENAI_API_KEY`: Your OpenAI API key.
-- `LANGCHAIN_MODEL_NAME`: The OpenAI model to use (default: `gpt-3.5-turbo`).
-- `LOG_LEVEL`: Logging level (e.g., `info`, `debug`, `error`, default: `info`).
-- `NODE_ENV`: Set to `production` for production builds, `development` otherwise.
+### Prometheus Metrics (Implemented)
 
-## Development Setup (with Live Reload)
+#### Summary Generation
+- `genai_summary_generation_requests_total` - Generation requests by status
+- `genai_summary_generation_duration_seconds` - Processing time
+- `genai_summary_generation_tokens_total` - Token usage tracking
 
-The development environment uses Docker Compose to build and run the service with live reloading. Changes in the `src` directory will automatically restart the server.
+#### Question Answering  
+- `genai_question_answering_requests_total` - Q&A requests by status
+- `genai_question_answering_duration_seconds` - Response time
+- `genai_question_confidence_score` - Confidence distribution
 
-1.  **Build and Start:**
-    ```bash
-    docker-compose up dev --build
-    ```
-    The service will be available at `http://localhost:<APP_GENAI_PORT>` (default `http://localhost:3003`).
-    The `APP_GENAI_PORT` variable in `docker-compose.yml` can be used to change the host port.
+#### LangChain Operations
+- `genai_langchain_model_requests_total` - Model invocations
+- `genai_langchain_model_duration_seconds` - Model operation time
+- `genai_langchain_model_errors_total` - Model errors
 
-2.  **Accessing the API:**
-    - Health Check: `GET http://localhost:3003/health`
-    - Predict Endpoint: `POST http://localhost:3003/predict` (see API Docs for payload)
-    - OpenAPI UI: `http://localhost:3003/scalar`
-    - OpenAPI Spec: `http://localhost:3003/doc`
+#### Meilisearch Integration
+- `genai_meilisearch_requests_total` - Search operations
+- `genai_meilisearch_duration_seconds` - Search performance
 
-3.  **Running Tests (inside the dev container):**
-    You can run tests in a separate terminal while the dev service is running:
-    ```bash
-    docker-compose exec dev npm run test:dev
-    ```
+## 🚦 Getting Started
 
-4.  **Linting (inside the dev container):**
-    ```bash
-    docker-compose exec dev npm run lint
-    ```
+### Quick Start
 
-5.  **Stop the Service:**
-    ```bash
-    docker-compose down
-    ```
+```bash
+# Set environment variables
+cp env.example .env
+# Edit .env with your OpenAI API key and other config
 
-## Production Build and Smoke Test
+# Start services
+docker compose up -d
 
-The production setup builds an optimized Docker image.
+# Access API docs
+open http://localhost:3003/reference
+```
 
-1.  **Build the Production Image:**
-    ```bash
-    docker-compose build prod
-    ```
+### Configuration
 
-2.  **Run the Production Image (Smoke Test):**
-    ```bash
-    docker-compose up prod
-    ```
-    The service will be available at `http://localhost:<PROD_APP_GENAI_PORT>` (default `http://localhost:3001` as configured in `docker-compose.yml` to avoid conflict with dev).
+See [`.env.example`](./env.example), there is not a lot more you can / want to configure right now.
 
-3.  **Running Tests (inside the prod container):**
-    After starting the `prod` service, you can run tests against the compiled JavaScript code:
-    ```bash
-    docker-compose exec prod npm test
-    ```
+## 🧪 Development
 
-4.  **Stop the Service:**
-    ```bash
-    docker-compose down
-    ```
+### Running Tests
+```bash
+docker compose exec genai pytest tests/
+docker compose exec genai pytest --cov=src tests/
+```
 
-## API Documentation and SDK Generation
-
-### OpenAPI Specification
-
-The OpenAPI 3.1 specification is automatically generated by Hono.
-
--   **View in Browser:** `http://localhost:3003/ui` (when dev service is running)
--   **Get JSON Spec:** `http://localhost:3003/doc` (when dev service is running)
-
-You can also generate/update the `openapi.json` file manually.
-
-1.  **Generate `openapi.json` (inside the dev container):**
-    Ensure the dev service is running or build it first:
-    ```bash
-    docker-compose exec dev npm run generate:openapi
-    ```
-    This will create/update `genai/openapi.json`.
-
-### API Client SDK Generation
-
-An API client SDK can be generated from the `openapi.json` specification. The generated SDK will be placed in `genai/src/sdk/`.
-
-1.  **Generate SDK (inside the dev container):**
-    First, ensure `openapi.json` is up-to-date (see above).
-    ```bash
-    docker-compose exec dev npm run generate:sdk
-    ```
-    This uses `openapi-typescript-codegen`.
-
-    Alternatively, if you have Node.js/npm installed locally and want to generate the SDK without Docker running:
-    ```bash
-    cd genai
-    npm install # If you haven't already
-    npm run generate:openapi # To ensure openapi.json is fresh
-    npm run generate:sdk
-    cd ..
-    ```
-
-## Logging
-
-The application uses `pino` for logging.
--   In development (`NODE_ENV=development`), logs are pretty-printed to `stdout`.
--   In production (`NODE_ENV=production`), logs are JSON-formatted to `stdout`.
-
-## Key Technologies
-
--   **Hono:** Web framework
--   **LangChain:** AI orchestration
--   **Zod:** Schema validation
--   **@hono/zod-openapi:** OpenAPI generation from Hono routes and Zod schemas
--   **Docker & Docker Compose:** Containerization and orchestration
--   **TypeScript:** Language
--   **Node.js:** Runtime
--   **Pino:** Logging
--   **Node:test:** Built-in Node.js test runner
--   **tsx:** TypeScript execution and watch mode
-
-## CI (Continuous Integration)
-
-The CI pipeline should:
-1.  Build the production Docker image (`docker-compose build prod`).
-2.  Run tests within the production container (`docker-compose run --rm prod npm test`).
-   (Using `run --rm` ensures the container is removed after tests complete).
-
-Example CI command:
-```yaml
-# .github/workflows/ci.yml or similar
-# ...
-jobs:
-  build_and_test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Copy .env.example to .env for CI
-        run: cp genai/.env.example genai/.env # Ensure required vars are present, even if empty/mocked
-      # You might need to populate some .env vars for tests, e.g., a test API key
-      - name: Build production image
-        run: docker-compose build prod
-      - name: Run tests in production image
-        run: docker-compose run --rm prod npm test
-# ...
+### Demo Script
+```bash
+docker compose exec genai python scripts/demo.py
 ```

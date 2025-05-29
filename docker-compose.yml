@@ -77,20 +77,24 @@ services:
       context: ./genai
     ports:
       - "${GENAI_PORT:-3003}:${GENAI_PORT:-3003}"
-    command: npm run dev
+    environment:
+      - GENAI_PORT=${GENAI_PORT:-3003}
+      - MEILISEARCH_URL=http://meilisearch:7700
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
+    env_file:
+      - ./genai/.env
+    command: sh -c "python scripts/setup_meilisearch.py && uvicorn app:app --host 0.0.0.0 --port ${GENAI_PORT:-3003} --reload"
     develop:
       watch:
         - action: rebuild
-          path: ./genai/package.json
-          ignore:
-            - node_modules
-            - dist
+          path: ./genai/requirements.txt
         - action: sync
           path: ./genai
-          target: /usr/src/app
+          target: /app
           ignore:
-            - node_modules
-            - dist
+            - __pycache__
+            - "*.pyc"
+            - .pytest_cache
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${GENAI_PORT:-3003}/health"]
@@ -102,6 +106,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+
   frontend:
     image: ghcr.io/aet-devops25/promptheus-frontend:latest
     build:

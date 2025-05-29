@@ -1,29 +1,20 @@
-# Base stage for installing dependencies
-FROM node:22-slim AS base
-ARG NODE_ENV=production
-WORKDIR /usr/src/app
+FROM python:3.12-slim
 
-# Install dependencies
-COPY package*.json ./
-RUN npm install
-
-FROM node:22-slim AS prod
-WORKDIR /usr/src/app
-
-# Install curl
+# Install OS packages
 RUN apt-get update && apt-get install --no-install-recommends -y \
     curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy dependencies from base stage
-COPY --from=base /usr/src/app/node_modules ./node_modules
-COPY tsconfig.json ./
-COPY package*.json ./
+WORKDIR /app
 
-# Copy application code and build
+# Install python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
 COPY . .
 
-# Expose port and start production server
-EXPOSE ${GENAI_PORT:-3003}
-CMD ["npm", "run", "start"]
+# Expose and run
+ENV GENAI_PORT=3003
+EXPOSE 3003
+CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${GENAI_PORT}"]
