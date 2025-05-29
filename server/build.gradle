@@ -21,6 +21,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.hibernate.validator:hibernate-validator:9.0.0.Final'
 
+	// docs
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
+
 	// search
 	implementation 'com.meilisearch.sdk:meilisearch-java:0.14.4'
 	

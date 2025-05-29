@@ -27,6 +27,7 @@ public class RESTController {
         patRegistrationCnt = Counter.builder("pat_registration_total").description("Total number of personal access tokens registered").register(registry);
     }
 
+    @Operation(summary = "Provide the personal access token to retrieve the secure mainteainer and developer links")
     @PostMapping("/PAT")
     public ResponseEntity<LinkConstruct> createFromPAT(@RequestBody PATConstruct patRequest){
         // registers a new repository with a PAT
@@ -39,6 +40,7 @@ public class RESTController {
         }
     }
 
+    @Operation(summary = "Get the git repository information for a provided link")
     @GetMapping("/{usercode}")
     /// responds with the repo and role the uuid is referring to
     public ResponseEntity<GitRepoInformationConstruct> getGitRepository(@PathVariable UUID usercode){
@@ -51,10 +53,16 @@ public class RESTController {
         }
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<SearchResult> search(@RequestParam String query){
-        SearchResult results = serviceRest.search(new SearchConstruct(query));
-        return ResponseEntity.status(HttpStatus.OK).body(results);
+    @Operation(summary = "allows searching the repositorys content")
+    @GetMapping("/{usercode}/search")
+    public ResponseEntity<SearchResult> search(@PathVariable UUID usercode, @RequestParam String query){
+        Optional<GitRepoInformationConstruct> gitRepository = gitRepoService.getRepositoryByAccessID(usercode);
+        if (gitRepository.isPresent()) {
+            SearchResult results = serviceRest.search(new SearchConstruct(query));
+            return ResponseEntity.status(HttpStatus.OK).body(results);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     
@@ -73,7 +81,7 @@ public class RESTController {
     @PostMapping("/setCommitSelection")
     public ResponseEntity<LinkConstruct> setCommitSelectionForSummary(@RequestBody CommitListSubmission commitlistSelection){
         // TODO
-        return null
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
 

@@ -48,7 +48,8 @@ To get a local demo environment running, you can run
 COMPOSE_BAKE=true docker compose up
 ```
 
-You can now head over to [`https://localhost:3000`](https://localhost:3000) to look at the website.
+You can now head over to [`http://localhost:3000`](http://localhost:3000) to look at the website.
+The Backends API is documented at [`http://localhost:8080/docs`](http://localhost:8080/docs)
 
 ## Contributing
 
