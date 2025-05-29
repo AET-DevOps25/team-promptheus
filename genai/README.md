@@ -1,75 +1,159 @@
-# LangChain AI Service (Python / FastAPI)
+# Prompteus GenAI Service
 
-This micro-service provides a simple REST API for interacting with OpenAI-powered chat models via LangChain.  It replaces the previous Node/Hono implementation.
+AI-powered service for analyzing GitHub contributions and providing intelligent Q&A about developer weekly summaries.
 
----
+## 🚀 What Works
 
-## Endpoints
+### Core Functionality
+- **Contribution Ingestion**: Store GitHub contributions with user/week organization
+- **AI Summary Generation**: LangChain/LangGraph-powered structured summaries with streaming support
+- **Context-Aware Q&A**: Ask questions about contributions with evidence and confidence scoring
+- **Semantic Search**: Meilisearch integration for finding relevant contributions
+- **Prometheus Metrics**: Comprehensive observability and monitoring
+- **Task-based Processing**: Async ingestion with progress tracking
 
-| Method | Path      | Description                     |
-| ------ | --------- | --------------------------------|
-| GET    | `/health` | Liveness probe ⇒ `{ "status": "ok" }` |
-| POST   | `/predict`| Generate a completion. Body: `{ "input": "…" }` → `{ "output": "…" }` |
+### API Endpoints
+For complete API documentation, see the **[Scalar API Reference](/reference)** when the service is running.
 
-Interactive docs are served by FastAPI/Swagger at `/docs`.
+## 🏗️ How It Works
 
----
+### Service Architecture
 
-## Running Locally
+```mermaid
+graph TB
+    subgraph "API Layer"
+        API[FastAPI App]
+        DEPS[Dependency Injection]
+    end
+    
+    subgraph "Business Services"
+        ING[ContributionsIngestionService]
+        SUM[SummaryService]
+        QA[QuestionAnsweringService]
+    end
+    
+    subgraph "Data & AI"
+        MEILI[Meilisearch Service]
+        LC[LangChain/LangGraph]
+        LLM[OpenAI GPT]
+    end
+    
+    subgraph "Observability"
+        METRICS[Prometheus Metrics]
+        LOGS[Structured Logging]
+    end
+    
+    API --> DEPS
+    DEPS --> ING
+    DEPS --> SUM
+    DEPS --> QA
+    
+    ING --> MEILI
+    SUM --> ING
+    SUM --> LC
+    QA --> ING
+    QA --> LC
+    QA --> MEILI
+    
+    LC --> LLM
+    
+    API --> METRICS
+    API --> LOGS
+    
+    style API fill:#e1f5fe
+    style LC fill:#f3e5f5
+    style MEILI fill:#fff3e0
+    style METRICS fill:#ffebee
+```
+
+### Data Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API
+    participant Ingestion
+    participant Meilisearch
+    participant QA
+    participant LangChain
+    
+    Note over Client,LangChain: 1. Contribution Ingestion
+    Client->>API: POST /contributions
+    API->>Ingestion: ingest_contributions()
+    Ingestion->>Meilisearch: store + embed
+    Ingestion-->>API: task_id
+    API-->>Client: IngestTaskResponse
+    
+    Note over Client,LangChain: 2. Summary Generation
+    Client->>API: POST /users/{user}/weeks/{week}/summary
+    API->>SummaryService: generate_summary()
+    SummaryService->>LangChain: LangGraph workflow
+    LangChain-->>SummaryService: structured summary
+    SummaryService-->>API: SummaryResponse
+    API-->>Client: streaming or complete response
+    
+    Note over Client,LangChain: 3. Question Answering
+    Client->>API: POST /users/{user}/weeks/{week}/questions
+    API->>QA: answer_question()
+    QA->>Meilisearch: semantic_search()
+    QA->>LangChain: RAG with context
+    LangChain-->>QA: answer + confidence
+    QA-->>API: QuestionResponse
+    API-->>Client: answer with evidence
+```
+
+## 📊 Metrics & Observability
+
+### Prometheus Metrics (Implemented)
+
+#### Summary Generation
+- `genai_summary_generation_requests_total` - Generation requests by status
+- `genai_summary_generation_duration_seconds` - Processing time
+- `genai_summary_generation_tokens_total` - Token usage tracking
+
+#### Question Answering  
+- `genai_question_answering_requests_total` - Q&A requests by status
+- `genai_question_answering_duration_seconds` - Response time
+- `genai_question_confidence_score` - Confidence distribution
+
+#### LangChain Operations
+- `genai_langchain_model_requests_total` - Model invocations
+- `genai_langchain_model_duration_seconds` - Model operation time
+- `genai_langchain_model_errors_total` - Model errors
+
+#### Meilisearch Integration
+- `genai_meilisearch_requests_total` - Search operations
+- `genai_meilisearch_duration_seconds` - Search performance
+
+## 🚦 Getting Started
+
+### Quick Start
 
 ```bash
-# (venv recommended)
-cd genai
-pip install -r requirements.txt
-export OPENAI_API_KEY=sk-…
-uvicorn app:app --reload --port 3003
+# Set environment variables
+cp env.example .env
+# Edit .env with your OpenAI API key and other config
+
+# Start services
+docker compose up -d
+
+# Access API docs
+open http://localhost:3003/reference
 ```
 
-Open <http://localhost:3003/docs> in your browser.
+### Configuration
 
----
+See [`.env.example`](./env.example), there is not a lot more you can / want to configure right now.
 
-## Docker / Compose
+## 🧪 Development
 
+### Running Tests
 ```bash
-docker compose build genai
-docker compose up genai
+docker compose exec genai pytest tests/
+docker compose exec genai pytest --cov=src tests/
 ```
 
-The container image is built from `genai/Dockerfile` (Python 3.12-slim) and starts the service with `uvicorn`.
-
----
-
-## Environment Variables
-
-| Variable              | Default         | Description                         |
-|-----------------------|-----------------|-------------------------------------|
-| `GENAI_PORT`          | `3003`          | Port the service listens on         |
-| `OPENAI_API_KEY`      | –               | Required. Your OpenAI API key       |
-| `LANGCHAIN_MODEL_NAME`| `gpt-3.5-turbo` | Chat model to use                   |
-| `LOG_LEVEL`           | `INFO`          | Python logging level                |
-
-See `genai/env.example` for a template.
-
----
-
-## Tests
-
+### Demo Script
 ```bash
-pytest genai/tests -q
+docker compose exec genai python scripts/demo.py
 ```
-
----
-
-## Project Layout
-
-```text
-genai/
-├── app.py            # FastAPI application
-├── Dockerfile        # Runtime image
-├── requirements.txt  # Python dependencies
-├── tests/            # Pytest test-suite
-└── …
-```
-
-Legacy Node/Hono files (e.g. `src/`, `package*.json`) have been kept only for reference; they are no longer used and can be safely deleted.
