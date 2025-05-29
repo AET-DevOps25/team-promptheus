@@ -358,8 +358,8 @@ async def main():
             
     except Exception as e:
         print(f"💥 Fatal error in main: {e}")
-        import traceback
-        traceback.print_exc()
+        from traceback import TracebackException
+        TracebackException.from_exception(e, limit=-10, capture_locals=True).print()
         sys.exit(1)
 
 
