@@ -50,4 +50,26 @@ public class RESTController {
         SearchResult results = serviceRest.search(new SearchConstruct(query));
         return ResponseEntity.status(HttpStatus.OK).body(results);
     }
+
+    
+
+    @GetMapping("/getCommits")
+    public ResponseEntity<List<CommitOverview>> getCommitOverview(@PathVariable CommitSelection commitselection){
+        // returns for a selection (time interval and committername) 
+        Optional<CommitOverview> commitOverview = gitRepoService.getCommitOverview(commitselection);
+        if (commitOverview.isPresent()) {
+            return ResponseEntity.status(HttpStatus.OK).body(commitOverview.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @PostMapping("/setCommitSelection")
+    public ResponseEntity<LinkConstruct> setCommitSelectionForSummary(@RequestBody CommitListSubmission commitlistSelection){
+        // TODO
+        return null
+    }
+
+
+
 }

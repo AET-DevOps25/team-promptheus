@@ -55,6 +55,15 @@ public class GitRepoService {
         return Optional.of(lc);
     }
 
+    public Optional<List<CommitOverview>> getCommitOverview(CommitSelection commitselection){
+
+        String fromencoding = commitselection.fromdate;
+        String toencoding = commitselection.todate;
+
+        return null;
+
+    }
+
     public Optional<GitRepoInformationConstruct> getRepositoryByAccessID(UUID accessID) {
 
         // access ID (from user link) is converted to tuple (repoid , role) 
