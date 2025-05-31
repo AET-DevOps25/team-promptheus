@@ -12,7 +12,7 @@ from .metrics import (
     question_answering_duration, question_answering_requests, question_confidence_score, 
     question_answering_errors
 )
-from .contributions import ContributionsIngestionService
+from .ingest import ContributionsIngestionService
 
 logger = structlog.get_logger()
 

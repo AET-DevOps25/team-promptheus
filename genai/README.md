@@ -5,15 +5,21 @@ AI-powered service for analyzing GitHub contributions and providing intelligent 
 ## 🚀 What Works
 
 ### Core Functionality
-- **Contribution Ingestion**: Store GitHub contributions with user/week organization
-- **AI Summary Generation**: LangChain/LangGraph-powered structured summaries with streaming support
+- **Metadata-Only Ingestion**: Efficient processing with GitHub API integration for on-demand content fetching
+- **Unified Task Workflow**: Single endpoint handles ingestion, processing, and summarization 
+- **AI Summary Generation**: LangChain/LangGraph-powered structured summaries with real-time progress tracking
 - **Context-Aware Q&A**: Ask questions about contributions with evidence and confidence scoring
 - **Semantic Search**: Meilisearch integration for finding relevant contributions
 - **Prometheus Metrics**: Comprehensive observability and monitoring
-- **Task-based Processing**: Async ingestion with progress tracking
+- **GitHub Content Service**: Secure token-based GitHub API integration
 
 ### API Endpoints
 For complete API documentation, see the **[Scalar API Reference](/reference)** when the service is running.
+
+#### Core Workflow
+- `POST /contributions` - Start unified ingestion + summarization task (metadata-only)
+- `GET /ingest/{task_id}` - Get task status and final summary when complete
+- `POST /users/{user}/weeks/{week}/questions` - Ask questions about contributions
 
 ## 🏗️ How It Works
 
@@ -30,6 +36,11 @@ graph TB
         ING[ContributionsIngestionService]
         SUM[SummaryService]
         QA[QuestionAnsweringService]
+        GH[GitHubContentService]
+    end
+    
+    subgraph "External APIs"
+        GITHUB[GitHub API]
     end
     
     subgraph "Data & AI"
@@ -48,8 +59,10 @@ graph TB
     DEPS --> SUM
     DEPS --> QA
     
+    ING --> GH
+    ING --> SUM
     ING --> MEILI
-    SUM --> ING
+    GH --> GITHUB
     SUM --> LC
     QA --> ING
     QA --> LC
@@ -63,36 +76,49 @@ graph TB
     style API fill:#e1f5fe
     style LC fill:#f3e5f5
     style MEILI fill:#fff3e0
+    style GITHUB fill:#e8f5e8
     style METRICS fill:#ffebee
 ```
 
-### Data Flow
+### Unified Workflow Data Flow
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant API
     participant Ingestion
+    participant GitHub
     participant Meilisearch
-    participant QA
+    participant Summary
     participant LangChain
     
-    Note over Client,LangChain: 1. Contribution Ingestion
-    Client->>API: POST /contributions
-    API->>Ingestion: ingest_contributions()
+    Note over Client,LangChain: Unified: Ingestion + Summarization
+    Client->>API: POST /contributions (metadata only)
+    API->>Ingestion: start_ingestion_task()
+    Ingestion-->>API: task_id (immediate response)
+    API-->>Client: IngestTaskResponse{task_id, status: "queued"}
+    
+    Note over Ingestion,LangChain: Background Processing Phase 1: Ingestion
+    Ingestion->>Ingestion: update status to "ingesting"
+    Ingestion->>GitHub: fetch_contributions() (selected only)
+    GitHub-->>Ingestion: GitHubContribution objects
     Ingestion->>Meilisearch: store + embed
-    Ingestion-->>API: task_id
-    API-->>Client: IngestTaskResponse
     
-    Note over Client,LangChain: 2. Summary Generation
-    Client->>API: POST /users/{user}/weeks/{week}/summary
-    API->>SummaryService: generate_summary()
-    SummaryService->>LangChain: LangGraph workflow
-    LangChain-->>SummaryService: structured summary
-    SummaryService-->>API: SummaryResponse
-    API-->>Client: streaming or complete response
+    Note over Ingestion,LangChain: Background Processing Phase 2: Summarization
+    Ingestion->>Ingestion: update status to "summarizing"
+    Ingestion->>Summary: generate_summary()
+    Summary->>LangChain: LangGraph workflow
+    LangChain-->>Summary: structured summary
+    Summary-->>Ingestion: SummaryResponse
+    Ingestion->>Ingestion: update status to "done" + store summary
     
-    Note over Client,LangChain: 3. Question Answering
+    Note over Client,LangChain: Status Polling & Completion
+    Client->>API: GET /ingest/{task_id}
+    API->>Ingestion: get_task_status()
+    Ingestion-->>API: IngestTaskStatus{status: "done", summary: SummaryResponse}
+    API-->>Client: Complete task with summary
+    
+    Note over Client,LangChain: Optional: Question Answering
     Client->>API: POST /users/{user}/weeks/{week}/questions
     API->>QA: answer_question()
     QA->>Meilisearch: semantic_search()
@@ -102,9 +128,38 @@ sequenceDiagram
     API-->>Client: answer with evidence
 ```
 
+### Task Status Flow
+
+```mermaid
+stateDiagram-v2
+    [*] --> QUEUED: POST /contributions
+    QUEUED --> INGESTING: Background processing starts
+    INGESTING --> SUMMARIZING: Content fetched & stored
+    SUMMARIZING --> DONE: Summary generated
+    INGESTING --> FAILED: Error during ingestion
+    SUMMARIZING --> FAILED: Error during summarization
+    DONE --> [*]: GET /ingest/{task_id} returns summary
+    FAILED --> [*]: GET /ingest/{task_id} returns error
+    
+    note right of QUEUED
+        Client gets immediate response
+        with task_id for polling
+    end note
+    
+    note right of DONE
+        Final status includes
+        complete summary response
+    end note
+```
+
 ## 📊 Metrics & Observability
 
 ### Prometheus Metrics (Implemented)
+
+#### Task Processing
+- `genai_ingestion_tasks_total` - Task creation and completion by status
+- `genai_task_processing_duration_seconds` - End-to-end task processing time
+- `genai_github_api_requests_total` - GitHub API calls by type and status
 
 #### Summary Generation
 - `genai_summary_generation_requests_total` - Generation requests by status
@@ -132,7 +187,7 @@ sequenceDiagram
 ```bash
 # Set environment variables
 cp env.example .env
-# Edit .env with your OpenAI API key and other config
+# Edit .env with your OpenAI API key and GitHub token
 
 # Start services
 docker compose up -d
@@ -143,7 +198,12 @@ open http://localhost:3003/reference
 
 ### Configuration
 
-See [`.env.example`](./env.example), there is not a lot more you can / want to configure right now.
+Key environment variables:
+- `OPENAI_API_KEY` - Required for AI summaries and Q&A
+- `GITHUB_TOKEN` or `GH_PAT` - Required for GitHub API access
+- `MEILISEARCH_MASTER_KEY` - For semantic search functionality
+
+See [`.env.example`](./env.example) for complete configuration options.
 
 ## 🧪 Development
 
@@ -156,4 +216,39 @@ docker compose exec genai pytest --cov=src tests/
 ### Demo Script
 ```bash
 docker compose exec genai python scripts/demo.py
+```
+
+### API Usage Examples
+
+#### Unified Workflow (Recommended)
+```bash
+# Start ingestion + summarization task (metadata-only)
+curl -X POST "http://localhost:3003/contributions" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user": "octocat",
+    "week": "2024-W21", 
+    "repository": "octocat/Hello-World",
+    "contributions": [
+      {"type": "commit", "id": "abc123", "selected": true},
+      {"type": "pull_request", "id": "42", "selected": true}
+    ]
+  }'
+
+# Poll for completion and get summary
+curl "http://localhost:3003/ingest/{task_id}"
+```
+
+#### Question Answering
+```bash
+curl -X POST "http://localhost:3003/users/octocat/weeks/2024-W21/questions" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "What bugs were fixed this week?",
+    "context": {
+      "focus_areas": ["bugs", "fixes"],
+      "include_evidence": true,
+      "reasoning_depth": "detailed"
+    }
+  }'
 ```

@@ -19,7 +19,7 @@ from .models import (
 from .metrics import (
     time_operation, record_request_metrics, record_error_metrics
 )
-from .contributions import ContributionsIngestionService
+from .ingest import ContributionsIngestionService
 
 logger = structlog.get_logger()
 
@@ -93,10 +93,11 @@ class SummaryService:
         
         return workflow.compile()
     
-    async def generate_summary(self, user: str, week: str, request: SummaryRequest) -> SummaryResponse:
+    async def generate_summary(self, user: str, week: str, request: SummaryRequest, summary_id: Optional[str] = None) -> SummaryResponse:
         """Generate a comprehensive summary using LangGraph workflow"""
         start_time = datetime.now(timezone.utc)
-        summary_id = generate_uuidv7()
+        if summary_id is None:
+            summary_id = generate_uuidv7()
         
         try:
             logger.info("Starting LangGraph summary generation",

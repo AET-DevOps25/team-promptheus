@@ -74,10 +74,16 @@ class ServiceContainer:
             logger.warning("Meilisearch service failed to initialize, continuing without it")
             self.meilisearch_service = None
         
-        # Initialize dependent services
-        self.ingestion_service = ContributionsIngestionService(self.meilisearch_service)
+        # Get GitHub token from environment
+        github_token = os.getenv("GITHUB_TOKEN") or os.getenv("GH_PAT")
+        
+        # Initialize services first
+        self.ingestion_service = ContributionsIngestionService(self.meilisearch_service, github_token)
         self.qa_service = QuestionAnsweringService(self.ingestion_service)
         self.summary_service = SummaryService(self.ingestion_service)
+        
+        # Inject summary service into ingestion service to enable full workflow
+        self.ingestion_service.summary_service = self.summary_service
         
         # Initialize metrics
         model_name = os.getenv("LANGCHAIN_MODEL_NAME", DEFAULT_MODEL_NAME)
@@ -241,6 +247,7 @@ async def start_contributions_ingestion_task(
         logger.info("Starting contributions ingestion task",
                    user=request.user,
                    week=request.week,
+                   repository=request.repository,
                    contributions_count=len(request.contributions))
         
         result = await service.start_ingestion_task(request)
@@ -249,6 +256,7 @@ async def start_contributions_ingestion_task(
                    task_id=result.task_id,
                    user=result.user,
                    week=result.week,
+                   repository=result.repository,
                    total_contributions=result.total_contributions)
         
         return result
@@ -256,7 +264,8 @@ async def start_contributions_ingestion_task(
     except Exception as e:
         logger.error("Failed to start contributions ingestion task", 
                     user=request.user, 
-                    week=request.week, 
+                    week=request.week,
+                    repository=request.repository,
                     error=str(e))
         raise HTTPException(
             status_code=500, 
