@@ -1,18 +1,18 @@
 package com.autoback.autoback.api;
 
 
-import com.autoback.autoback.CommunicationObjects.LinkConstruct;
-import com.autoback.autoback.CommunicationObjects.PATConstruct;
-import com.autoback.autoback.CommunicationObjects.GitRepoInformationConstruct;
-import com.autoback.autoback.persistence.entity.GitRepo;
-import com.autoback.autoback.persistence.entity.Link;
-import com.autoback.autoback.persistence.entity.PersonalAccessToken;
+import com.autoback.autoback.CommunicationObjects.*;
+import com.autoback.autoback.persistence.entity.*;
 import com.autoback.autoback.persistence.repository.GitRepoRepository;
 import com.autoback.autoback.persistence.repository.LinkRepository;
 import com.autoback.autoback.persistence.repository.PersonalAccessTokenRepository;
+import com.autoback.autoback.persistence.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,21 +21,23 @@ public class GitRepoService {
     private final GitRepoRepository gitRepoRepository;
     private final LinkRepository linkRepository;
     private final PersonalAccessTokenRepository patRepository;
+    private final QuestionRepository questionRepository;
 
     @Autowired
-    public GitRepoService(GitRepoRepository gitRepoRepository, LinkRepository linkRepository, PersonalAccessTokenRepository patRepository) {
+    public GitRepoService(GitRepoRepository gitRepoRepository, LinkRepository linkRepository, PersonalAccessTokenRepository patRepository, QuestionRepository questionRepository) {
         this.gitRepoRepository = gitRepoRepository;
         this.linkRepository = linkRepository;
         this.patRepository = patRepository;
+        this.questionRepository = questionRepository;
     }
 
-    public Optional<LinkConstruct> createAccessLinks(PATConstruct patRequest) {
+    public LinkConstruct createAccessLinks(PATConstruct patRequest) {
         String repoLink = patRequest.repolink();
         String pat = patRequest.pat();
 
         //TODO: testing that repolink can be accessed with the pat
         if (repoLink == null || pat == null || repoLink.isEmpty() || pat.isEmpty()) {
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "repo or pat are invalid");
         }
 
         // we check if a (GitRepo) object already exists by that repolink
@@ -51,37 +53,53 @@ public class GitRepoService {
         Link manLinkEntity = linkRepository.save(new Link(repoEntity, false));
 
         // we put the links together in a LinkConstruct and send it
-        LinkConstruct lc = new LinkConstruct(devLinkEntity.getId().toString(), manLinkEntity.getId().toString());
-        return Optional.of(lc);
+        return LinkConstruct.builder().developerview(devLinkEntity.getId().toString()).stakeholderview(manLinkEntity.getId().toString()).build();
     }
 
-    public Optional<List<CommitOverview>> getCommitOverview(CommitSelection commitselection){
-
-        String fromencoding = commitselection.fromdate;
-        String toencoding = commitselection.todate;
-
-        return null;
-
-    }
-
-    public Optional<GitRepoInformationConstruct> getRepositoryByAccessID(UUID accessID) {
-
-        // access ID (from user link) is converted to tuple (repoid , role) 
-        Optional<Link> repoLinkEntity = linkRepository.findById(accessID); 
+    public GitRepoInformationConstruct getRepositoryByAccessID(UUID accessID) {
+        // access ID (from a user link) is converted to tuple (repoid , role)
+        Optional<Link> repoLinkEntity = linkRepository.findById(accessID);
         if (repoLinkEntity.isEmpty()) {
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "link is not a valid access id");
         }
 
         // repoid is converted to [all data about the repo (GitRepo) which contains its name, questions, summaries ....]
         Optional<GitRepo> repoEntity = gitRepoRepository.findById(repoLinkEntity.get().getGitRepositoryId());
         if (repoEntity.isEmpty()) {
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "link does not point to a repository");
         }
 
         // from that GitRepo object we only return now the link of the repository and the role
-        return Optional.of(new GitRepoInformationConstruct(
-                repoEntity.get().getRepositoryLink(),
-                repoLinkEntity.get().isDeveloper()
-        ));
+        List<QuestionConstruct> questions = repoEntity.get().getQuestions().stream().map(QuestionConstruct::from).toList();
+        List<SummaryConstruct> summaries = repoEntity.get().getSummaries().stream().map(SummaryConstruct::from).toList();
+        List<ContentConstruct> contents=repoEntity.get().getContents().stream().map(ContentConstruct::from).toList();
+        return GitRepoInformationConstruct.builder()
+                .repoLink(repoEntity.get().getRepositoryLink())
+                .isDeveloper(repoLinkEntity.get().isDeveloper())
+                .createdAt(repoEntity.get().getCreatedAt())
+                .questions(questions)
+                .summaries(summaries)
+                .contents(contents)
+                .build();
+    }
+
+    public void createCommitSelection(UUID accessID, SelectionSubmission selection) {
+        Optional<Link> repoLinkEntity = linkRepository.findById(accessID);
+        if (repoLinkEntity.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "link is not a valid access id");
+        }
+    }
+
+    public void createQuestion(UUID usercode, String question) {
+        Optional<Link> repoLinkEntity = linkRepository.findById(usercode);
+        if (repoLinkEntity.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "link is not a valid access id");
+        }
+
+        Question q = Question.builder()
+                .gitRepositoryId(repoLinkEntity.get().getGitRepositoryId())
+                .question(question)
+                .build();
+        questionRepository.save(q);
     }
 }

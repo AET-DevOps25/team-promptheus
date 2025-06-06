@@ -3,6 +3,7 @@ package com.autoback.autoback.persistence.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
