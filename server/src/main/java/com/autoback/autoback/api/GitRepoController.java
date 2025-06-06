@@ -92,7 +92,7 @@ public class GitRepoController {
                     content = {@Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))}),
             @ApiResponse(responseCode = "400", description = "Invalid input provided - please make sure that all selected content exists",
                     content = {@Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))}),
-            @ApiResponse(responseCode = "403", description = "Forbiddeb - Requested code does not exist",
+            @ApiResponse(responseCode = "403", description = "Forbidden - Requested code does not exist",
                     content = {@Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))}),
 
     })
