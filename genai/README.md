@@ -9,19 +9,14 @@ AI-powered service for analyzing GitHub contributions and providing intelligent 
 - **Unified Task Workflow**: Single endpoint handles ingestion, processing, and summarization 
 - **AI Summary Generation**: LangChain/LangGraph-powered structured summaries with real-time progress tracking
 - **Context-Aware Q&A**: Ask questions about contributions with evidence and confidence scoring
+- **Conversation Context**: Follow-up questions maintain context from previous Q&As in the same session
 - **Semantic Search**: Meilisearch integration for finding relevant contributions
 - **Prometheus Metrics**: Comprehensive observability and monitoring
 - **GitHub Content Service**: Secure token-based GitHub API integration
 
-### API Endpoints
 For complete API documentation, see the **[Scalar API Reference](/reference)** when the service is running.
 
-#### Core Workflow
-- `POST /contributions` - Start unified ingestion + summarization task (metadata-only)
-- `GET /ingest/{task_id}` - Get task status and final summary when complete
-- `POST /users/{user}/weeks/{week}/questions` - Ask questions about contributions
-
-## 🏗️ How It Works
+## 🚀 How It Works
 
 ### Service Architecture
 
@@ -214,9 +209,17 @@ docker compose exec genai pytest --cov=src tests/
 ```
 
 ### Demo Script
+
+The demo script showcases the conversation context feature:
 ```bash
 docker compose exec genai python scripts/demo.py
 ```
+
+Features:
+- Ask follow-up questions that maintain context
+- View conversation history with `history` command
+- Clear conversation with `clear` command  
+- Visual indicators (🔗) when answers reference previous Q&As
 
 ### API Usage Examples
 
@@ -241,6 +244,7 @@ curl "http://localhost:3003/ingest/{task_id}"
 
 #### Question Answering
 ```bash
+# Initial question
 curl -X POST "http://localhost:3003/users/octocat/weeks/2024-W21/questions" \
   -H "Content-Type: application/json" \
   -d '{
@@ -251,4 +255,16 @@ curl -X POST "http://localhost:3003/users/octocat/weeks/2024-W21/questions" \
       "reasoning_depth": "detailed"
     }
   }'
+
+# Follow-up question (maintains conversation context)
+curl -X POST "http://localhost:3003/users/octocat/weeks/2024-W21/questions" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "Which of those bugs were critical?",
+    "context": {
+      "include_evidence": true
+    }
+  }'
 ```
+
+The question answering system automatically maintains conversation context for each user/week combination. Follow-up questions can reference previous Q&As without repeating context. Sessions are isolated per user and week.
