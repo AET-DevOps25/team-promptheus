@@ -121,10 +121,22 @@ Return a JSON response with this exact structure:
         # Create parser
         parser = PydanticOutputParser(pydantic_object=QuestionAnswerOutput)
         
-        # Create the chain
-        chain = prompt | self.llm | parser
+        # Create the chain that returns structured output
+        structured_chain = prompt | self.llm | parser
         
-        return chain
+        # Create a wrapper that returns just the answer for conversation history
+        def extract_answer(structured_output):
+            if hasattr(structured_output, 'answer'):
+                return structured_output.answer
+            return str(structured_output)
+        
+        # Chain that returns just the answer string for conversation history
+        conversation_chain = structured_chain | extract_answer
+        
+        # Store both chains - we'll use structured_chain directly in our implementation
+        self.structured_chain = structured_chain
+        
+        return conversation_chain
     
     def _create_qa_with_history(self):
         """Create the Q&A chain with conversation history"""
@@ -180,8 +192,14 @@ Return a JSON response with this exact structure:
                        question=request.question[:100],
                        evidence_count=len(evidence))
             
-            # Use the conversation-aware chain
-            llm_result = await self.qa_with_history.ainvoke(chain_input, config=config)
+            # Use the conversation-aware chain to maintain history (returns just answer string)
+            conversation_answer = await self.qa_with_history.ainvoke(chain_input, config=config)
+            
+            # Also get the full structured response for our application
+            # Add empty history for the structured chain call
+            structured_input = chain_input.copy()
+            structured_input["history"] = []
+            llm_result = await self.structured_chain.ainvoke(structured_input)
             
             # Calculate response time
             response_time_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)

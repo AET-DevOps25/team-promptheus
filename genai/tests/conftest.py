@@ -257,7 +257,7 @@ def mock_github_service():
         return results
     
     # Patch the GitHubContentService.fetch_contributions method
-    with patch('src.github_content_service.GitHubContentService.fetch_contributions', mock_fetch_contributions):
+    with patch('src.contributions.GitHubContentService.fetch_contributions', mock_fetch_contributions):
         yield
 
 

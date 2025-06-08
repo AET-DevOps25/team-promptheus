@@ -800,24 +800,41 @@ class InteractiveQASession:
         try:
             response = self.client.session.get(f"{self.client.base_url}/users/{user}/weeks/{week}/conversations/history")
             if response.status_code == 200:
-                history = response.json()
-                if not history:
+                history_data = response.json()
+                
+                # Handle structured response from API
+                messages = history_data.get('messages', [])
+                session_id = history_data.get('session_id', 'unknown')
+                
+                if not messages:
                     print("📝 No conversation history yet. Start asking questions!")
                     return
                 
-                print("\n📜 Conversation History:")
-                print("=" * 40)
-                for i, message in enumerate(history):
-                    if hasattr(message, 'content'):
-                        content = message.content
+                print(f"\n📜 Conversation History (Session: {session_id}):")
+                print("=" * 60)
+                
+                # Process LangChain message format
+                question_count = 0
+                for i, message in enumerate(messages):
+                    # Handle different message formats
+                    if isinstance(message, dict):
+                        message_type = message.get('type', 'unknown')
+                        content = message.get('content', str(message))
                     else:
+                        # Assume alternating human/AI pattern
+                        message_type = 'human' if i % 2 == 0 else 'ai'
                         content = str(message)
                     
-                    if i % 2 == 0:  # Human messages
-                        print(f"👤 Q{i//2 + 1}: {content}")
-                    else:  # AI messages
-                        print(f"🤖 A{i//2 + 1}: {content[:150]}{'...' if len(content) > 150 else ''}")
+                    if message_type == 'human':
+                        question_count += 1
+                        print(f"👤 Q{question_count}: {content}")
+                    elif message_type == 'ai':
+                        # Truncate long AI responses for readability
+                        display_content = content[:200] + "..." if len(content) > 200 else content
+                        print(f"🤖 A{question_count}: {display_content}")
                         print()
+                    
+                print(f"Total messages: {len(messages)}")
             else:
                 print("❌ Could not retrieve conversation history")
         except Exception as e:

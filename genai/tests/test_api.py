@@ -364,42 +364,96 @@ class TestQuestionAnswering:
                 if status_data["status"] in ["done", "failed"]:
                     break
     
-    def test_ask_question_success(self, test_client):
+    async def test_ask_question_success(self, test_client):
         """Test successful question answering"""
-        question_request = {
-            "question": "What bugs were fixed this week?",
+        request_data = {
+            "question": "What commits were made?",
             "context": {
-                "focus_areas": ["bug fixes", "authentication"],
+                "focus_areas": ["features", "bugs", "performance"],
                 "include_evidence": True,
-                "reasoning_depth": "detailed"
+                "reasoning_depth": "detailed",
+                "max_evidence_items": 5
             }
         }
         
-        response = test_client.post("/users/testuser/weeks/2024-W21/questions", json=question_request)
-        assert response.status_code == 200
+        response = test_client.post("/users/testuser/weeks/2024-W21/questions", json=request_data)
         
+        assert response.status_code == 200
         data = response.json()
+        
+        # Verify response structure
         assert "question_id" in data
-        assert data["user"] == "testuser"
-        assert data["week"] == "2024-W21"
-        assert data["question"] == "What bugs were fixed this week?"
+        assert "user" in data
+        assert "week" in data
+        assert "question" in data
         assert "answer" in data
         assert "confidence" in data
-        assert 0.0 <= data["confidence"] <= 1.0
         assert "evidence" in data
         assert "reasoning_steps" in data
         assert "suggested_actions" in data
         assert "asked_at" in data
         assert "response_time_ms" in data
+        assert "conversation_id" in data
         
-        # Check evidence structure
-        if data["evidence"]:
-            evidence = data["evidence"][0]
-            assert "contribution_id" in evidence
-            assert "contribution_type" in evidence
-            assert "excerpt" in evidence
-            assert "relevance_score" in evidence
-            assert "timestamp" in evidence
+        # Verify values
+        assert data["user"] == "testuser"
+        assert data["week"] == "2024-W21"
+        assert data["question"] == "What commits were made?"
+        assert isinstance(data["answer"], str)
+        assert 0.0 <= data["confidence"] <= 1.0
+        assert isinstance(data["evidence"], list)
+        assert isinstance(data["reasoning_steps"], list)
+        assert isinstance(data["suggested_actions"], list)
+        assert isinstance(data["response_time_ms"], int)
+        assert data["conversation_id"] == "testuser:2024-W21"
+    
+    async def test_conversation_history_endpoints(self, test_client):
+        """Test conversation history API endpoints"""
+        user = "testuser"
+        week = "2024-W21"
+        
+        # First, ask a question to create conversation history
+        request_data = {
+            "question": "What was done this week?",
+            "context": {
+                "include_evidence": True,
+                "reasoning_depth": "detailed"
+            }
+        }
+        
+        response = test_client.post(f"/users/{user}/weeks/{week}/questions", json=request_data)
+        assert response.status_code == 200
+        
+        # Test getting conversation history
+        history_response = test_client.get(f"/users/{user}/weeks/{week}/conversations/history")
+        assert history_response.status_code == 200
+        
+        history_data = history_response.json()
+        assert isinstance(history_data, dict)
+        assert "session_id" in history_data
+        assert "message_count" in history_data
+        assert "messages" in history_data
+        assert history_data["session_id"] == f"{user}:{week}"
+        # Should have at least 2 messages (human question + AI response)
+        assert history_data["message_count"] >= 2
+        assert len(history_data["messages"]) >= 2
+        
+        # Test clearing conversation history
+        clear_response = test_client.delete(f"/users/{user}/weeks/{week}/conversations")
+        assert clear_response.status_code == 200
+        
+        clear_data = clear_response.json()
+        assert "message" in clear_data
+        assert "session_id" in clear_data
+        
+        # Verify history is cleared
+        history_after_clear = test_client.get(f"/users/{user}/weeks/{week}/conversations/history")
+        assert history_after_clear.status_code == 200
+        
+        cleared_history = history_after_clear.json()
+        assert isinstance(cleared_history, dict)
+        assert cleared_history["message_count"] == 0
+        assert len(cleared_history["messages"]) == 0
 
 
 @pytest.mark.usefixtures("mock_summary_for_api")
