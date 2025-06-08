@@ -1,11 +1,7 @@
 package com.autoback.autoback.api;
 
 import com.autoback.autoback.CommunicationObjects.*;
-import com.autoback.autoback.ConfigProperties;
-import com.meilisearch.sdk.Client;
-import com.meilisearch.sdk.Config;
 import com.meilisearch.sdk.model.SearchResult;
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -28,16 +24,14 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/repositories")
 public class GitRepoController {
     private final GitRepoService gitRepoService;
-    private final Counter patRegistrationCnt;
-    private final Counter questionCreationCnt;
-    private final Client meilisearchClient;
+    private final SearchService searchService;
+    private final MeterRegistry meterRegistry;
 
     @Autowired
-    public GitRepoController(GitRepoService gitRepoService, MeterRegistry registry, ConfigProperties properties) {
+    public GitRepoController(GitRepoService gitRepoService, SearchService searchService, MeterRegistry registry) {
         this.gitRepoService = gitRepoService;
-        meilisearchClient = new Client(new Config(properties.getMeiliHost(), properties.getMeiliMasterKey()));
-        patRegistrationCnt = Counter.builder("pat_registration_total").description("Total number of personal access tokens registered").register(registry);
-        questionCreationCnt = Counter.builder("question_creation_total").description("Total number of asked questions").register(registry);
+        this.searchService = searchService;
+        meterRegistry = registry;
     }
 
     @Operation(summary = "Provide the personal access token to retrieve the secure maintainer and developer links")
@@ -50,7 +44,7 @@ public class GitRepoController {
     @PostMapping("/PAT")
     public ResponseEntity<LinkConstruct> createFromPAT(@RequestBody PATConstruct patRequest) {
         LinkConstruct lc = gitRepoService.createAccessLinks(patRequest);
-        patRegistrationCnt.increment();
+        meterRegistry.counter("pat_registration_total").increment();
         return ResponseEntity.ok(lc);
     }
 
@@ -62,7 +56,7 @@ public class GitRepoController {
                     content = {@Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))}),
     })
     @GetMapping("/{usercode}")
-    public ResponseEntity<GitRepoInformationConstruct> getGitRepository(@RequestParam(name = "usercode", required = true) @NotNull @NotBlank @PathVariable UUID usercode) {
+    public ResponseEntity<GitRepoInformationConstruct> getGitRepository(@PathVariable @NotNull UUID usercode) {
         GitRepoInformationConstruct gitRepository = gitRepoService.getRepositoryByAccessID(usercode);
         return ResponseEntity.ok(gitRepository);
     }
@@ -77,13 +71,14 @@ public class GitRepoController {
     })
     @GetMapping("/{usercode}/search")
     public ResponseEntity<SearchResult> search(
-            @RequestParam(name = "usercode", required = true) @NotNull @NotBlank @PathVariable UUID usercode,
-            @RequestParam(name = "query", required = true) @NotNull @NotBlank String query) {
+            @PathVariable @NotNull UUID usercode,
+            @RequestParam(name = "query") @NotNull @NotBlank String query) {
         GitRepoInformationConstruct gitRepository = gitRepoService.getRepositoryByAccessID(usercode);
         if (gitRepository.contents().isEmpty())
-            return ResponseEntity.notFound().build();
-        SearchResult results = meilisearchClient.getIndex("content").search(query);
-        return ResponseEntity.status(HttpStatus.OK).body(results);
+            return ResponseEntity.noContent().build();
+        SearchResult results = searchService.search(query);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(results);
     }
 
     @Operation(summary = "tell the AI service which items should be included into the summary")
@@ -97,7 +92,7 @@ public class GitRepoController {
 
     })
     @PostMapping("/{usercode}/selection")
-    public ResponseEntity<String> createCommitSelectionForSummary(@RequestParam(name = "usercode", required = true) @NotNull @NotBlank @PathVariable UUID usercode, @RequestBody SelectionSubmission selection) {
+    public ResponseEntity<String> createCommitSelectionForSummary(@PathVariable @NotNull UUID usercode, @RequestBody SelectionSubmission selection) {
         GitRepoInformationConstruct gitRepository = gitRepoService.getRepositoryByAccessID(usercode);
 
         Set<Long> content = gitRepository.contents().stream().map(ContentConstruct::id).collect(Collectors.toSet());
@@ -118,14 +113,20 @@ public class GitRepoController {
 
     })
     @PostMapping("/{usercode}/question")
-    public ResponseEntity<String> createQuestion(@RequestParam(name = "usercode", required = true) @NotNull @NotBlank @PathVariable UUID usercode, @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "QUestion to create", required = true,
-            content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class),
-                    examples = @ExampleObject(value = "{ \"question\": \"Why are these developer raving about 42?\" }")))
+    public ResponseEntity<String> createQuestion(
+            @PathVariable @NotNull UUID usercode,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Question to create",
+                required = true,
+                content = @Content(
+                        mediaType = "text/plain",
+                        schema = @Schema(implementation = QuestionSubmission.class),
+                        examples = @ExampleObject(value = "{ \"question\": \"Why are these developer raving about 42?\" }"))
+                )
     @RequestBody
     QuestionSubmission question) {
         gitRepoService.createQuestion(usercode, question.question());
-        questionCreationCnt.increment();
+        meterRegistry.counter("question_creation_total").increment();
 
         return ResponseEntity.ok("Created Successfully");
     }

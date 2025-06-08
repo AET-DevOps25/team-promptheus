@@ -1,7 +1,6 @@
 package com.autoback.autoback.CommunicationObjects;
 
 import com.autoback.autoback.persistence.entity.QuestionAnswer;
-import jakarta.persistence.Column;
 import lombok.Builder;
 
 import java.time.Instant;

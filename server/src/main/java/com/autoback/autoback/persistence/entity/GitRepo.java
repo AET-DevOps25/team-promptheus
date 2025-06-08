@@ -1,16 +1,19 @@
 package com.autoback.autoback.persistence.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 @Entity
 @Table(name = "git_repositories")
 @Getter
+@Builder
+@AllArgsConstructor
 public class GitRepo {
     @Id
     @Column(nullable = false)
