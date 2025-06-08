@@ -709,9 +709,7 @@ class PrompteusAPIClient(HTTPClientMixin):
         
         response = self.session.post(f"{self.base_url}/users/{user}/weeks/{week}/questions", json=payload)
         response.raise_for_status()
-        json_response = response.json()
-        print(json_response)
-        return json_response
+        return response.json()
     
     def generate_summary(self, user: str, week: str) -> Dict[str, Any]:
         """Generate a comprehensive summary of the user's weekly contributions"""

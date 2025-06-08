@@ -13,7 +13,7 @@ from typing import Annotated, Any, Dict, List, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # Constants
-DEFAULT_EVIDENCE_LIMIT = 5
+DEFAULT_EVIDENCE_LIMIT = 10
 DEFAULT_REASONING_DEPTH = "detailed"
 
 
