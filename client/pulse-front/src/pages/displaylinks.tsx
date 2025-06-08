@@ -28,7 +28,7 @@ const formSchema = z.object({
 
 
 
-type LinkListProps = {
+export type LinkListProps = {
   links: [string, string]; // Tuple of exactly 2 links
 };
 

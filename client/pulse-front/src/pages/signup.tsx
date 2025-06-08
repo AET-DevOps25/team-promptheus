@@ -16,7 +16,10 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import DisplayLinks from './displaylinks'
-import { LinkListProp } from "../components/LinkList";
+import { useAuth } from '@/elements/auth'
+
+
+
 
 const formSchema = z.object({
     patstr: z.string().startsWith('ghp_', {
@@ -32,12 +35,11 @@ function SignupMain() {
 
     const [displayinglinks, setDisplayinglinks] = useState(false);
     const [linklist, setLinkList] = useState(["",""]); // TODO wiiiee??
-    
 
     function ProfileForm() {
         // ...
-    
-        const [patsubmitted, setPatSubmitting] = useState(0)  
+        
+        const [patsubmitted, setPatSubmitting] = useState(0);
     
         const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -141,15 +143,15 @@ function SignupMain() {
         </Form>
         )
     }
-  
-
+    
+    const asdf = ['asdf', 'sfda'] as [string, string];
 
     // main content
     return (
         <div>
 
             <div className="flex flex-col items-center justify-center min-h-svh">
-            {displayinglinks ? <DisplayLinks links={ <LinkListProp links =  /> } /> : <ProfileForm></ProfileForm> }
+            {displayinglinks ? <DisplayLinks links={ asdf } /> : <ProfileForm></ProfileForm> }
             </div>
             
         </div>

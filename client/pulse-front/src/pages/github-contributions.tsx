@@ -24,8 +24,8 @@ import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { fetchGitHubContributions } from "./app/actions"
-import type { GitHubContribution, GitHubUser } from "./lib/github"
+import { fetchGitHubContributions } from "@/lib/github"
+import type { GitHubContribution, GitHubUser } from "@/services/api"
 
 // Helper function to get start and end of a week
 const getWeekBounds = (date: Date) => {
