@@ -727,13 +727,15 @@ class PrompteusAPIClient(HTTPClientMixin):
         return response.json()
 
 class InteractiveQASession:
-    """Manages interactive Q&A sessions"""
+    """Manages interactive Q&A sessions with conversation context visualization"""
     
     def __init__(self, prompteus_client: PrompteusAPIClient):
         self.client = prompteus_client
+        self.conversation_id = None
+        self.question_count = 0
     
     async def run_session(self, user: str, week: str) -> None:
-        """Run an interactive Q&A session with the user"""
+        """Run an interactive Q&A session with conversation context"""
         self._print_session_header()
         
         try:
@@ -746,6 +748,10 @@ class InteractiveQASession:
                 if not question:
                     continue
                 
+                # Check for special commands
+                if await self._handle_special_commands(user, week, question):
+                    continue
+                
                 await self._process_question(user, week, question)
         
         except KeyboardInterrupt:
@@ -754,13 +760,18 @@ class InteractiveQASession:
     def _print_session_header(self) -> None:
         """Print the Q&A session header with instructions"""
         qa_panel = Panel(
-            "[bold cyan]🤖 Interactive Q&A Session[/]\n\n"
-            "Ask questions about the contributions. Type 'quit' or press Ctrl+C to exit.\n\n"
+            "[bold cyan]🤖 Interactive Q&A Session with Conversation Context[/]\n\n"
+            "Ask questions about the contributions. The AI will remember our conversation!\n\n"
             "[bold]Example questions:[/]\n"
             "  • What features were implemented?\n"
             "  • What bugs were fixed?\n"
-            "  • What files were changed the most?\n"
-            "  • Summarize the week's work",
+            "  • Tell me more about that bug fix\n"
+            "  • What was the most challenging part?\n"
+            "  • How can I improve based on this?\n\n"
+            "[bold]Special commands:[/]\n"
+            "  • 'history' - Show conversation history\n"
+            "  • 'clear' - Clear conversation history\n"
+            "  • 'quit' or Ctrl+C - Exit session",
             title="[bold magenta]Q&A Session[/]",
             expand=False,
             padding=(1, 2)
@@ -771,26 +782,112 @@ class InteractiveQASession:
         """Check if the user wants to exit the session"""
         return question.lower() in ['quit', 'exit', 'q']
     
-    async def _process_question(self, user: str, week: str, question: str) -> None:
-        """Process a single question and display the response"""
+    async def _handle_special_commands(self, user: str, week: str, question: str) -> bool:
+        """Handle special commands like 'history' and 'clear'. Returns True if command was handled."""
+        command = question.lower().strip()
+        
+        if command == 'history':
+            await self._show_conversation_history(user, week)
+            return True
+        elif command == 'clear':
+            await self._clear_conversation_history(user, week)
+            return True
+        
+        return False
+    
+    async def _show_conversation_history(self, user: str, week: str) -> None:
+        """Show the current conversation history"""
         try:
-            print("🤔 Thinking...")
+            response = self.client.session.get(f"{self.client.base_url}/users/{user}/weeks/{week}/conversations/history")
+            if response.status_code == 200:
+                history = response.json()
+                if not history:
+                    print("📝 No conversation history yet. Start asking questions!")
+                    return
+                
+                print("\n📜 Conversation History:")
+                print("=" * 40)
+                for i, message in enumerate(history):
+                    if hasattr(message, 'content'):
+                        content = message.content
+                    else:
+                        content = str(message)
+                    
+                    if i % 2 == 0:  # Human messages
+                        print(f"👤 Q{i//2 + 1}: {content}")
+                    else:  # AI messages
+                        print(f"🤖 A{i//2 + 1}: {content[:150]}{'...' if len(content) > 150 else ''}")
+                        print()
+            else:
+                print("❌ Could not retrieve conversation history")
+        except Exception as e:
+            print(f"❌ Error retrieving history: {e}")
+        print()
+    
+    async def _clear_conversation_history(self, user: str, week: str) -> None:
+        """Clear the conversation history"""
+        try:
+            response = self.client.session.delete(f"{self.client.base_url}/users/{user}/weeks/{week}/conversations")
+            if response.status_code == 200:
+                print("🗑️  Conversation history cleared. Starting fresh!")
+                self.conversation_id = None
+                self.question_count = 0
+            else:
+                print("❌ Could not clear conversation history")
+        except Exception as e:
+            print(f"❌ Error clearing history: {e}")
+        print()
+    
+    async def _process_question(self, user: str, week: str, question: str) -> None:
+        """Process a single question and display the response with context indicators"""
+        try:
+            self.question_count += 1
+            print(f"🤔 Thinking... (Question {self.question_count})")
             response = self.client.ask_question(user, week, question)
             
-            self._display_answer(response)
+            # Track conversation ID from first response
+            if not self.conversation_id and response.get('conversation_id'):
+                self.conversation_id = response['conversation_id']
+                console.print(f"💬 Started conversation session: [cyan]{self.conversation_id}[/]")
+            
+            self._display_answer_with_context(response)
             
         except Exception as e:
             print(f"❌ Error processing question: {e}")
             print()
     
-    def _display_answer(self, response: Dict[str, Any]) -> None:
-        """Display the answer and supporting evidence"""
-        print(f"\n💡 Answer:")
-        print(f"   {response['answer']}")
-        print(f"   Confidence: {response['confidence']:.2f}")
+    def _display_answer_with_context(self, response: Dict[str, Any]) -> None:
+        """Display the answer with conversation context indicators"""
+        answer = response['answer']
+        confidence = response['confidence']
         
+        # Look for conversation context indicators in the answer
+        context_keywords = [
+            'previous', 'earlier', 'mentioned', 'discussed', 'that', 'those', 'this',
+            'as I said', 'building on', 'following up', 'in addition to'
+        ]
+        
+        has_context = any(keyword in answer.lower() for keyword in context_keywords)
+        
+        # Display answer with context indicator
+        if has_context and self.question_count > 1:
+            context_icon = "🔗"
+            context_note = " [dim](references previous conversation)[/]"
+        else:
+            context_icon = "💡"
+            context_note = ""
+        
+        console.print(f"\n{context_icon} [bold]Answer:[/]{context_note}")
+        console.print(f"   {answer}")
+        console.print(f"   [dim]Confidence: {confidence:.2f}[/]")
+        
+        # Show evidence if available
         if response.get('evidence'):
             self._display_evidence(response['evidence'])
+        
+        # Show reasoning if available and high confidence
+        if response.get('reasoning_steps') and confidence > 0.7:
+            self._display_reasoning(response['reasoning_steps'])
         
         print()
     
@@ -801,6 +898,12 @@ class InteractiveQASession:
             title = item.get('title', 'No title available')
             excerpt = item.get('excerpt', 'No excerpt available')
             print(f"   {i}. {title}: {excerpt[:80]}...")
+    
+    def _display_reasoning(self, reasoning_steps: List[str]) -> None:
+        """Display reasoning steps for transparent AI decision making"""
+        print(f"\n🧠 Reasoning:")
+        for i, step in enumerate(reasoning_steps[:3], 1):
+            print(f"   {i}. {step}")
 
 
 class ArgumentParser:

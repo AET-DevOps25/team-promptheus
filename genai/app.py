@@ -32,7 +32,7 @@ from src.models import (
     SummaryChunk,
     SummaryRequest,
     SummaryResponse,
-    ConversationThread,
+
 )
 from src.services import (
     ContributionsIngestionService,
@@ -408,50 +408,50 @@ async def get_question_by_id(
         raise HTTPException(status_code=500, detail=f"Failed to retrieve question: {str(e)}")
 
 
-# Conversation management endpoints
-@app.get("/users/{username}/weeks/{week_id}/conversations", response_model=Optional[ConversationThread])
-async def get_user_week_conversation(
+# Conversation management endpoints (LangChain-based)
+@app.get("/users/{username}/weeks/{week_id}/conversations/history")
+async def get_user_week_conversation_history(
     username: str = Path(..., description="GitHub username"),
     week_id: str = Path(..., description="ISO week format: 2024-W21"),
     service: QuestionAnsweringService = Depends(get_qa_service)
 ):
-    """Get the active conversation thread for a user's week"""
+    """Get conversation history for a user's week (LangChain messages)"""
     try:
-        conversation = service.get_user_conversations(username, week_id)
-        return conversation
+        history = service.get_conversation_history(username, week_id)
+        return {
+            "session_id": f"{username}:{week_id}",
+            "message_count": len(history),
+            "messages": [{"type": msg.__class__.__name__, "content": msg.content} for msg in history]
+        }
         
     except Exception as e:
-        logger.error("Failed to retrieve conversation", 
+        logger.error("Failed to retrieve conversation history", 
                     username=username, 
                     week_id=week_id,
                     error=str(e))
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve conversation: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve conversation history: {str(e)}")
 
 
-@app.get("/conversations/{conversation_id}", response_model=ConversationThread)
-async def get_conversation_by_id(
-    conversation_id: str = Path(..., description="UUIDv7 conversation identifier"),
+@app.delete("/users/{username}/weeks/{week_id}/conversations")
+async def clear_user_week_conversation(
+    username: str = Path(..., description="GitHub username"),
+    week_id: str = Path(..., description="ISO week format: 2024-W21"),
     service: QuestionAnsweringService = Depends(get_qa_service)
 ):
-    """Get a conversation thread by ID"""
+    """Clear conversation history for a user's week"""
     try:
-        conversation = service.get_conversation(conversation_id)
+        service.clear_conversation_history(username, week_id)
+        return {
+            "message": f"Conversation history cleared for {username} in week {week_id}",
+            "session_id": f"{username}:{week_id}"
+        }
         
-        if conversation is None:
-            raise HTTPException(
-                status_code=404, 
-                detail=f"Conversation {conversation_id} not found"
-            )
-        
-        return conversation
-        
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error("Failed to retrieve conversation by ID", 
-                    conversation_id=conversation_id,
+        logger.error("Failed to clear conversation history", 
+                    username=username, 
+                    week_id=week_id,
                     error=str(e))
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve conversation: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to clear conversation history: {str(e)}")
 
 
 # Summary generation endpoints  

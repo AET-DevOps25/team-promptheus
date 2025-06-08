@@ -472,44 +472,6 @@ class QuestionContext(BaseModel):
     include_evidence: bool = True
     reasoning_depth: ReasoningDepth = ReasoningDepth.DETAILED
     max_evidence_items: int = DEFAULT_EVIDENCE_LIMIT
-    # New fields for conversation context
-    conversation_id: Optional[str] = None  # UUIDv7 - links questions in a conversation
-    max_conversation_history: int = 5  # Maximum previous Q&As to include in context
-
-
-class ConversationTurn(BaseModel):
-    """A single question-answer turn in a conversation"""
-    question: str
-    answer: str
-    confidence: float = Field(ge=0.0, le=1.0)
-    asked_at: datetime
-    response_time_ms: int
-
-
-class ConversationThread(BaseModel):
-    """A conversation thread containing multiple Q&A turns"""
-    conversation_id: str  # UUIDv7
-    user: str
-    week: str
-    turns: List[ConversationTurn] = Field(default_factory=list)
-    created_at: datetime
-    last_activity_at: datetime
-    
-    def add_turn(self, question: str, answer: str, confidence: float, response_time_ms: int) -> None:
-        """Add a new turn to the conversation"""
-        turn = ConversationTurn(
-            question=question,
-            answer=answer,
-            confidence=confidence,
-            asked_at=datetime.now(timezone.utc),
-            response_time_ms=response_time_ms
-        )
-        self.turns.append(turn)
-        self.last_activity_at = datetime.now(timezone.utc)
-    
-    def get_recent_turns(self, max_turns: int = 5) -> List[ConversationTurn]:
-        """Get the most recent turns for context"""
-        return self.turns[-max_turns:] if len(self.turns) > max_turns else self.turns
 
 
 class QuestionRequest(BaseModel):
@@ -541,8 +503,8 @@ class QuestionResponse(BaseModel):
     suggested_actions: List[str] = Field(default_factory=list)
     asked_at: datetime
     response_time_ms: int
-    # New field for conversation context
-    conversation_id: Optional[str] = None  # Links to conversation thread
+    # LangChain conversation session ID (user:week)
+    conversation_id: Optional[str] = None
 
 
 class SummaryRequest(BaseModel):
