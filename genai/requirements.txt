@@ -17,3 +17,4 @@ python-multipart>=0.0.9
 structlog>=24.1.0 
 wait-for-it>=2.3.0
 questionary>=2.0.1
+rich>=13.0.0

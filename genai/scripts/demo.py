@@ -47,6 +47,9 @@ import structlog
 import questionary
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from rich.console import Console
+from rich.markdown import Markdown
+from rich.panel import Panel
 
 # Configuration constants
 GITHUB_API_BASE_URL = "https://api.github.com"
@@ -83,6 +86,9 @@ structlog.configure(
 )
 
 logger = structlog.get_logger()
+
+# Initialize rich console for beautiful output
+console = Console()
 
 
 class GitHubTokenManager:
@@ -703,7 +709,9 @@ class PrompteusAPIClient(HTTPClientMixin):
         
         response = self.session.post(f"{self.base_url}/users/{user}/weeks/{week}/questions", json=payload)
         response.raise_for_status()
-        return response.json()
+        json_response = response.json()
+        print(json_response)
+        return json_response
     
     def generate_summary(self, user: str, week: str) -> Dict[str, Any]:
         """Generate a comprehensive summary of the user's weekly contributions"""
@@ -747,15 +755,19 @@ class InteractiveQASession:
     
     def _print_session_header(self) -> None:
         """Print the Q&A session header with instructions"""
-        print("\n🤖 Interactive Q&A Session")
-        print("=" * 40)
-        print("Ask questions about the contributions. Type 'quit' or press Ctrl+C to exit.")
-        print("Example questions:")
-        print("  - What features were implemented?")
-        print("  - What bugs were fixed?")
-        print("  - What files were changed the most?")
-        print("  - Summarize the week's work")
-        print()
+        qa_panel = Panel(
+            "[bold cyan]🤖 Interactive Q&A Session[/]\n\n"
+            "Ask questions about the contributions. Type 'quit' or press Ctrl+C to exit.\n\n"
+            "[bold]Example questions:[/]\n"
+            "  • What features were implemented?\n"
+            "  • What bugs were fixed?\n"
+            "  • What files were changed the most?\n"
+            "  • Summarize the week's work",
+            title="[bold magenta]Q&A Session[/]",
+            expand=False,
+            padding=(1, 2)
+        )
+        console.print(qa_panel)
     
     def _should_exit(self, question: str) -> bool:
         """Check if the user wants to exit the session"""
@@ -830,7 +842,7 @@ class ServiceHealthChecker:
             print("Please start the service with: docker compose up")
             sys.exit(1)
         
-        print(f"✅ GenAI service is running at {genai_url}")
+        console.print(f"✅ GenAI service is running at {genai_url}", style="green")
 
 
 class DemoRunner:
@@ -860,8 +872,13 @@ class DemoRunner:
     
     def _print_welcome_banner(self) -> None:
         """Print the welcome banner"""
-        print("🚀 Welcome to Prompteus Demo!")
-        print("=" * 40)
+        welcome_panel = Panel(
+            "[bold blue]🚀 Welcome to Prompteus Demo![/]",
+            title="[bold green]Prompteus[/]",
+            expand=False,
+            padding=(1, 2)
+        )
+        console.print(welcome_panel)
     
     def _initialize_services(self) -> None:
         """Initialize and health check all required services"""
@@ -877,7 +894,7 @@ class DemoRunner:
             print("❌ GitHub authentication failed. Please check your token.")
             sys.exit(1)
         
-        print("✅ GitHub authentication successful")
+        console.print("✅ GitHub authentication successful", style="green")
     
     def _fetch_and_process_contributions(self, user: str, repo: str, week: str) -> Dict[str, Any]:
         """Fetch contribution metadata and process them with the GenAI service"""
@@ -904,9 +921,9 @@ class DemoRunner:
             print("This will ingest the contributions and generate a summary.")
             
             result = self.prompteus_client.ingest_contributions(user, week, repo, selected_contributions)
-            print(f"\n✅ Task completed successfully!")
-            print(f"   Ingested: {result.get('ingested_count', 0)} contributions")
-            print(f"   Failed: {result.get('failed_count', 0)} contributions")
+            console.print(f"\n✅ Task completed successfully!", style="green bold")
+            console.print(f"   [green]Ingested:[/] {result.get('ingested_count', 0)} contributions")
+            console.print(f"   [red]Failed:[/] {result.get('failed_count', 0)} contributions")
             
             return result
             
@@ -916,19 +933,22 @@ class DemoRunner:
             sys.exit(1)
     
     def _display_summary(self, result: Dict[str, Any]) -> None:
-        """Display the generated summary from the task result"""
+        """Display the generated summary from the task result using rich markdown formatting"""
         summary = result.get('summary')
         if not summary:
-            print("⚠️  No summary available from the task.")
+            console.print("⚠️  No summary available from the task.", style="yellow")
             return
-            
-        print("\n📄 Weekly Contribution Summary")
-        print("=" * 50)
+        
+        # Build markdown content for the summary
+        markdown_content = []
+        
+        # Add title
+        markdown_content.append("# 📄 Weekly Contribution Summary\n")
         
         # Display overview
         if summary.get('overview'):
-            print(f"\n**Overview:**")
-            print(summary['overview'])
+            markdown_content.append("## Overview\n")
+            markdown_content.append(f"{summary['overview']}\n")
         
         # Display detailed sections
         sections = [
@@ -941,34 +961,40 @@ class DemoRunner:
         for section_key, section_title in sections:
             content = summary.get(section_key)
             if content and content.strip():
-                print(f"\n**{section_title}:**")
-                print(content)
+                markdown_content.append(f"## {section_title}\n")
+                markdown_content.append(f"{content}\n")
         
         # Display analysis
         if summary.get('analysis'):
-            print(f"\n**Analysis:**")
-            print(summary['analysis'])
+            markdown_content.append("## Analysis\n")
+            markdown_content.append(f"{summary['analysis']}\n")
         
         # Display achievements
         achievements = summary.get('key_achievements', [])
         if achievements:
-            print(f"\n**Key Achievements:**")
+            markdown_content.append("## Key Achievements\n")
             for achievement in achievements:
-                print(f"  • {achievement}")
+                markdown_content.append(f"• {achievement}\n")
+            markdown_content.append("")
         
         # Display areas for improvement
         improvements = summary.get('areas_for_improvement', [])
         if improvements:
-            print(f"\n**Areas for Improvement:**")
+            markdown_content.append("## Areas for Improvement\n")
             for improvement in improvements:
-                print(f"  • {improvement}")
+                markdown_content.append(f"• {improvement}\n")
+            markdown_content.append("")
         
         # Display metadata
         metadata = summary.get('metadata', {})
         if metadata:
-            print(f"\n**Summary Statistics:**")
-            print(f"  • Total contributions: {metadata.get('total_contributions', 0)}")
-            print(f"  • Processing time: {metadata.get('processing_time_ms', 0)}ms")
+            markdown_content.append("## Summary Statistics\n")
+            markdown_content.append(f"• **Total contributions:** {metadata.get('total_contributions', 0)}\n")
+            markdown_content.append(f"• **Processing time:** {metadata.get('processing_time_ms', 0)}ms\n")
+        
+        # Render the markdown content using rich
+        full_markdown = "\n".join(markdown_content)
+        console.print(Markdown(full_markdown))
     
     async def _run_qa_session(self, user: str, week: str) -> None:
         """Run the interactive Q&A session"""
