@@ -269,7 +269,7 @@ def failing_github_service():
         """Mock that always fails"""
         raise Exception("GitHub API connection failed")
     
-    with patch('src.github_content_service.GitHubContentService.fetch_contributions', mock_fetch_contributions_fail):
+    with patch('src.contributions.GitHubContentService.fetch_contributions', mock_fetch_contributions_fail):
         yield
 
 
@@ -407,7 +407,7 @@ def auto_mock_github():
         return results
     
     # Patch the GitHubContentService.fetch_contributions method
-    with patch('src.github_content_service.GitHubContentService.fetch_contributions', mock_fetch_contributions):
+    with patch('src.contributions.GitHubContentService.fetch_contributions', mock_fetch_contributions):
         yield
 
 

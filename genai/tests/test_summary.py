@@ -177,10 +177,10 @@ class TestSummaryService:
         assert result.user == "testuser"
         assert result.week == "2024-W21"
         assert "No contributions found" in result.overview
-        assert result.commits_summary == "No commits this week"
-        assert result.pull_requests_summary == "No pull requests this week"
-        assert result.issues_summary == "No issues this week"
-        assert result.releases_summary == "No releases this week"
+        assert result.commits_summary == "No commits made this week."
+        assert result.pull_requests_summary == "No pull requests created this week."
+        assert result.issues_summary == "No issues created this week."
+        assert result.releases_summary == "No releases published this week."
         assert result.analysis == "No activity to analyze for this week."
         assert len(result.key_achievements) == 0
         assert "No remaining tasks assigned" in result.areas_for_improvement
