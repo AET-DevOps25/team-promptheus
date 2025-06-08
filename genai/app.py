@@ -32,6 +32,7 @@ from src.models import (
     SummaryChunk,
     SummaryRequest,
     SummaryResponse,
+    ConversationThread,
 )
 from src.services import (
     ContributionsIngestionService,
@@ -405,6 +406,52 @@ async def get_question_by_id(
                     question_id=question_id,
                     error=str(e))
         raise HTTPException(status_code=500, detail=f"Failed to retrieve question: {str(e)}")
+
+
+# Conversation management endpoints
+@app.get("/users/{username}/weeks/{week_id}/conversations", response_model=Optional[ConversationThread])
+async def get_user_week_conversation(
+    username: str = Path(..., description="GitHub username"),
+    week_id: str = Path(..., description="ISO week format: 2024-W21"),
+    service: QuestionAnsweringService = Depends(get_qa_service)
+):
+    """Get the active conversation thread for a user's week"""
+    try:
+        conversation = service.get_user_conversations(username, week_id)
+        return conversation
+        
+    except Exception as e:
+        logger.error("Failed to retrieve conversation", 
+                    username=username, 
+                    week_id=week_id,
+                    error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve conversation: {str(e)}")
+
+
+@app.get("/conversations/{conversation_id}", response_model=ConversationThread)
+async def get_conversation_by_id(
+    conversation_id: str = Path(..., description="UUIDv7 conversation identifier"),
+    service: QuestionAnsweringService = Depends(get_qa_service)
+):
+    """Get a conversation thread by ID"""
+    try:
+        conversation = service.get_conversation(conversation_id)
+        
+        if conversation is None:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Conversation {conversation_id} not found"
+            )
+        
+        return conversation
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to retrieve conversation by ID", 
+                    conversation_id=conversation_id,
+                    error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve conversation: {str(e)}")
 
 
 # Summary generation endpoints  

@@ -13,7 +13,7 @@ from pydantic import BaseModel as PydanticBaseModel, Field
 
 from .models import (
     GitHubContribution, ContributionType, QuestionRequest, QuestionResponse, 
-    QuestionEvidence, generate_uuidv7
+    QuestionEvidence, generate_uuidv7, ConversationThread, ConversationTurn
 )
 from .metrics import (
     time_operation, record_request_metrics, record_error_metrics,
@@ -39,6 +39,9 @@ class QuestionAnsweringService:
     def __init__(self, ingestion_service: ContributionsIngestionService):
         self.ingestion_service = ingestion_service
         self.questions_store: Dict[str, QuestionResponse] = {}
+        # New conversation management
+        self.conversations_store: Dict[str, ConversationThread] = {}  # conversation_id -> thread
+        self.user_conversations: Dict[str, str] = {}  # user:week -> conversation_id
         
         # Initialize LangChain components
         self.llm = ChatOpenAI(
@@ -53,6 +56,9 @@ class QuestionAnsweringService:
         start_time = datetime.now(timezone.utc)
         question_id = generate_uuidv7()
         
+        # Handle conversation context
+        conversation_thread = self._get_or_create_conversation(user, week, request.context.conversation_id)
+        
         try:
             record_request_metrics(
                 question_answering_requests,
@@ -63,8 +69,8 @@ class QuestionAnsweringService:
             # 1. Retrieve relevant contributions for this user's week
             relevant_contributions = await self._retrieve_relevant_contributions(user, week, request)
             
-            # 2. Generate answer using agentic RAG with LLM
-            answer_data = await self._generate_agentic_answer(user, week, request, relevant_contributions)
+            # 2. Generate answer using agentic RAG with LLM (now with conversation context)
+            answer_data = await self._generate_agentic_answer(user, week, request, relevant_contributions, conversation_thread)
             
             # Calculate response time
             response_time_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
@@ -80,11 +86,20 @@ class QuestionAnsweringService:
                 reasoning_steps=answer_data["reasoning_steps"],
                 suggested_actions=answer_data["suggested_actions"],
                 asked_at=datetime.now(timezone.utc),
-                response_time_ms=response_time_ms
+                response_time_ms=response_time_ms,
+                conversation_id=conversation_thread.conversation_id  # Link to conversation
             )
             
             # Store the question for retrieval
             self.questions_store[question_id] = response
+            
+            # Add this Q&A to the conversation thread
+            conversation_thread.add_turn(
+                question=request.question,
+                answer=answer_data["answer"],
+                confidence=answer_data["confidence"],
+                response_time_ms=response_time_ms
+            )
             
             # Record metrics
             question_confidence_score.labels(
@@ -102,6 +117,7 @@ class QuestionAnsweringService:
                        question_id=question_id,
                        user=user,
                        week=week,
+                       conversation_id=conversation_thread.conversation_id,
                        question_length=len(request.question),
                        evidence_count=len(answer_data["evidence"]),
                        confidence=answer_data["confidence"],
@@ -192,7 +208,7 @@ class QuestionAnsweringService:
             return []
     
     async def _generate_agentic_answer(self, user: str, week: str, request: QuestionRequest, 
-                                     contributions: List[GitHubContribution]) -> Dict[str, Any]:
+                                     contributions: List[GitHubContribution], conversation_thread: ConversationThread) -> Dict[str, Any]:
         """Generate answer using agentic RAG with LangChain"""
         
         # Record LangChain metrics
@@ -257,6 +273,17 @@ class QuestionAnsweringService:
             if request.context.focus_areas:
                 focus_context = f"\nPay special attention to these focus areas: {', '.join(request.context.focus_areas)}"
             
+            # Build conversation history context
+            conversation_context = ""
+            recent_turns = conversation_thread.get_recent_turns(request.context.max_conversation_history)
+            if recent_turns:
+                conversation_context = "\n\nPrevious conversation in this session:"
+                for i, turn in enumerate(recent_turns, 1):
+                    conversation_context += f"\n\nQ{i}: {turn.question}"
+                    conversation_context += f"\nA{i}: {turn.answer[:200]}{'...' if len(turn.answer) > 200 else ''}"
+                
+                conversation_context += "\n\nNote: Use this conversation history to provide contextual answers. Reference previous questions/answers when relevant, and maintain conversational flow."
+            
             # Create system prompt
             system_prompt = f"""You are an AI assistant that analyzes developer contributions and answers questions about their work.
 You are analyzing contributions for developer "{user}" during week {week}.
@@ -264,15 +291,18 @@ You are analyzing contributions for developer "{user}" during week {week}.
 Your task is to:
 1. Carefully analyze the provided evidence from their contributions
 2. Answer the user's question directly and accurately based on this evidence
-3. Provide reasoning steps showing your analysis process
-4. Suggest actionable next steps when appropriate
-5. Assign a confidence score based on the quality and relevance of evidence
+3. Use conversation history to provide contextual answers and maintain conversational flow
+4. Provide reasoning steps showing your analysis process
+5. Suggest actionable next steps when appropriate
+6. Assign a confidence score based on the quality and relevance of evidence
 
 Guidelines:
 - Be specific and reference actual contributions when possible
+- Reference previous questions/answers from the conversation when relevant
 - If the evidence doesn't fully support an answer, be honest about limitations
 - Focus on factual information from the contributions
-- Provide actionable insights when possible{focus_context}
+- Provide actionable insights when possible
+- Maintain a conversational tone that builds on previous interactions{focus_context}{conversation_context}
 
 Return a JSON response with this exact structure:
 {{
@@ -424,4 +454,62 @@ Based on this evidence, please answer the question with appropriate confidence a
     
     def get_question(self, question_id: str) -> Optional[QuestionResponse]:
         """Retrieve a previously asked question"""
-        return self.questions_store.get(question_id) 
+        return self.questions_store.get(question_id)
+    
+    def _get_or_create_conversation(self, user: str, week: str, conversation_id: Optional[str] = None) -> ConversationThread:
+        """Get existing conversation or create a new one for the user/week"""
+        user_week_key = f"{user}:{week}"
+        
+        if conversation_id:
+            # Client provided a specific conversation ID
+            if conversation_id in self.conversations_store:
+                thread = self.conversations_store[conversation_id]
+                # Verify it matches the user/week
+                if thread.user == user and thread.week == week:
+                    return thread
+                else:
+                    logger.warning("Conversation ID mismatch",
+                                 conversation_id=conversation_id,
+                                 expected_user=user,
+                                 expected_week=week,
+                                 actual_user=thread.user,
+                                 actual_week=thread.week)
+        
+        # Check if we have an existing conversation for this user/week
+        if user_week_key in self.user_conversations:
+            existing_conversation_id = self.user_conversations[user_week_key]
+            if existing_conversation_id in self.conversations_store:
+                return self.conversations_store[existing_conversation_id]
+        
+        # Create new conversation
+        new_conversation_id = generate_uuidv7()
+        conversation_thread = ConversationThread(
+            conversation_id=new_conversation_id,
+            user=user,
+            week=week,
+            created_at=datetime.now(timezone.utc),
+            last_activity_at=datetime.now(timezone.utc)
+        )
+        
+        # Store the conversation
+        self.conversations_store[new_conversation_id] = conversation_thread
+        self.user_conversations[user_week_key] = new_conversation_id
+        
+        logger.info("Created new conversation thread",
+                   conversation_id=new_conversation_id,
+                   user=user,
+                   week=week)
+        
+        return conversation_thread
+    
+    def get_conversation(self, conversation_id: str) -> Optional[ConversationThread]:
+        """Get a conversation thread by ID"""
+        return self.conversations_store.get(conversation_id)
+    
+    def get_user_conversations(self, user: str, week: str) -> Optional[ConversationThread]:
+        """Get the active conversation for a user/week"""
+        user_week_key = f"{user}:{week}"
+        conversation_id = self.user_conversations.get(user_week_key)
+        if conversation_id:
+            return self.conversations_store.get(conversation_id)
+        return None 
