@@ -1,18 +1,11 @@
-package com.autoback.autoback;
+package com.autoback.autoback.api;
 
 import com.autoback.autoback.CommunicationObjects.GitRepoInformationConstruct;
 import com.autoback.autoback.CommunicationObjects.LinkConstruct;
 import com.autoback.autoback.CommunicationObjects.PATConstruct;
 import com.autoback.autoback.CommunicationObjects.SelectionSubmission;
-import com.autoback.autoback.api.GitRepoService;
-import com.autoback.autoback.persistence.entity.GitRepo;
-import com.autoback.autoback.persistence.entity.Link;
-import com.autoback.autoback.persistence.entity.PersonalAccessToken;
-import com.autoback.autoback.persistence.entity.Question;
-import com.autoback.autoback.persistence.repository.GitRepoRepository;
-import com.autoback.autoback.persistence.repository.LinkRepository;
-import com.autoback.autoback.persistence.repository.PersonalAccessTokenRepository;
-import com.autoback.autoback.persistence.repository.QuestionRepository;
+import com.autoback.autoback.persistence.entity.*;
+import com.autoback.autoback.persistence.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,12 +35,12 @@ class GitRepoServiceTest {
     private PersonalAccessTokenRepository patRepository;
     @Mock
     private QuestionRepository questionRepository;
-
+    @Mock
+    private PersonalAccessToken2GitRepoRepository pat2gitRepository;
     private GitRepoService gitRepoService;
-
     @BeforeEach
     void setUp() {
-        gitRepoService = new GitRepoService(gitRepoRepository, linkRepository, patRepository, questionRepository);
+        gitRepoService = new GitRepoService(gitRepoRepository, linkRepository, patRepository, pat2gitRepository, questionRepository);
     }
 
     @Test
@@ -67,11 +60,14 @@ class GitRepoServiceTest {
         setId(devLink, devLinkUuid);
         setId(managerLink, managerLinkUuid);
 
+        PersonalAccessToken savedPat = new PersonalAccessToken(pat);
         when(gitRepoRepository.findByRepositoryLink(repoLink)).thenReturn(null);
         when(gitRepoRepository.save(any(GitRepo.class))).thenReturn(savedRepo);
         when(linkRepository.save(any(Link.class)))
                 .thenReturn(devLink)
                 .thenReturn(managerLink);
+        when(patRepository.save(any(PersonalAccessToken.class))).thenReturn(savedPat);
+        when(pat2gitRepository.save(any(PersonalAccessTokensGitRepository.class))).thenReturn(new PersonalAccessTokensGitRepository(savedPat, savedRepo));
 
         // Act
         LinkConstruct result = gitRepoService.createAccessLinks(patRequest);
@@ -81,9 +77,10 @@ class GitRepoServiceTest {
         assertEquals(devLinkUuid.toString(), result.developerview());
         assertEquals(managerLinkUuid.toString(), result.stakeholderview());
 
-        verify(gitRepoRepository).findByRepositoryLink(repoLink);
-        verify(gitRepoRepository).save(any(GitRepo.class));
-        verify(patRepository).save(any(PersonalAccessToken.class));
+        verify(gitRepoRepository, times(1)).findByRepositoryLink(repoLink);
+        verify(gitRepoRepository, times(1)).save(any(GitRepo.class));
+        verify(patRepository, times(1)).save(any(PersonalAccessToken.class));
+        verify(pat2gitRepository, times(1)).save(any(PersonalAccessTokensGitRepository.class));
         verify(linkRepository, times(2)).save(any(Link.class));
     }
 
@@ -178,7 +175,7 @@ class GitRepoServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(validRepo.getRepositoryLink(), result.repoLink());
-        assertTrue(result.isDeveloper());
+        assertTrue(result.isMaintainer());
         assertEquals(createdAt,validRepo.getCreatedAt());
         assertEquals(validRepo.getCreatedAt(), result.createdAt());
         assertTrue(result.questions().isEmpty());

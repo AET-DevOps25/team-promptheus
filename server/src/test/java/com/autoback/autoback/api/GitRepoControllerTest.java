@@ -1,14 +1,10 @@
-package com.autoback.autoback;
+package com.autoback.autoback.api;
 
 import com.autoback.autoback.CommunicationObjects.*;
-import com.autoback.autoback.api.GitRepoController;
-import com.autoback.autoback.api.GitRepoService;
-import com.autoback.autoback.api.SearchService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meilisearch.sdk.model.SearchResult;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -84,7 +80,7 @@ class GitRepoControllerTest {
         UUID usercode = UUID.randomUUID();
         GitRepoInformationConstruct expectedResponse = GitRepoInformationConstruct.builder()
                 .repoLink("https://github.com/test/repo")
-                .isDeveloper(true)
+                .isMaintainer(true)
                 .createdAt(Instant.now())
                 .questions(List.of())
                 .summaries(List.of())

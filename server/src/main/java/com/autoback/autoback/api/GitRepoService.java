@@ -3,10 +3,7 @@ package com.autoback.autoback.api;
 
 import com.autoback.autoback.CommunicationObjects.*;
 import com.autoback.autoback.persistence.entity.*;
-import com.autoback.autoback.persistence.repository.GitRepoRepository;
-import com.autoback.autoback.persistence.repository.LinkRepository;
-import com.autoback.autoback.persistence.repository.PersonalAccessTokenRepository;
-import com.autoback.autoback.persistence.repository.QuestionRepository;
+import com.autoback.autoback.persistence.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,13 +18,15 @@ public class GitRepoService {
     private final GitRepoRepository gitRepoRepository;
     private final LinkRepository linkRepository;
     private final PersonalAccessTokenRepository patRepository;
+    private final PersonalAccessToken2GitRepoRepository pat2gitRepository;
     private final QuestionRepository questionRepository;
 
     @Autowired
-    public GitRepoService(GitRepoRepository gitRepoRepository, LinkRepository linkRepository, PersonalAccessTokenRepository patRepository, QuestionRepository questionRepository) {
+    public GitRepoService(GitRepoRepository gitRepoRepository, LinkRepository linkRepository, PersonalAccessTokenRepository patRepository, PersonalAccessToken2GitRepoRepository pat2gitRepository, QuestionRepository questionRepository) {
         this.gitRepoRepository = gitRepoRepository;
         this.linkRepository = linkRepository;
         this.patRepository = patRepository;
+        this.pat2gitRepository = pat2gitRepository;
         this.questionRepository = questionRepository;
     }
 
@@ -45,12 +44,13 @@ public class GitRepoService {
         if (repoEntity == null) {
             // we create a (GitRepo) object
             repoEntity = gitRepoRepository.save(new GitRepo(repoLink));
-            patRepository.save(new PersonalAccessToken(repoEntity, pat));
+            PersonalAccessToken patEntity = patRepository.save(new PersonalAccessToken(pat));
+            pat2gitRepository.save(new PersonalAccessTokensGitRepository(patEntity, repoEntity));
         }
 
         // we create one link for developer and manager
-        Link devLinkEntity = linkRepository.save(new Link(repoEntity, true));
-        Link manLinkEntity = linkRepository.save(new Link(repoEntity, false));
+        Link devLinkEntity = linkRepository.save(new Link(repoEntity, false));
+        Link manLinkEntity = linkRepository.save(new Link(repoEntity, true));
 
         // we put the links together in a LinkConstruct and send it
         return LinkConstruct.builder().developerview(devLinkEntity.getId().toString()).stakeholderview(manLinkEntity.getId().toString()).build();
@@ -75,7 +75,7 @@ public class GitRepoService {
         List<ContentConstruct> contents=repoEntity.get().getContents().stream().map(ContentConstruct::from).toList();
         return GitRepoInformationConstruct.builder()
                 .repoLink(repoEntity.get().getRepositoryLink())
-                .isDeveloper(repoLinkEntity.get().isDeveloper())
+                .isMaintainer(repoLinkEntity.get().getIsMaintainer())
                 .createdAt(repoEntity.get().getCreatedAt())
                 .questions(questions)
                 .summaries(summaries)

@@ -1,11 +1,15 @@
 package com.autoback.autoback.persistence.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -19,28 +23,43 @@ public class GitRepo {
     @Column(nullable = false)
     private Long id;
     @Column(unique = true, name = "repository_link", nullable = false)
+    @NotNull
+    @NotBlank
     private String repositoryLink;
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
+    @Builder.Default
+    private Instant createdAt = Instant.now();
 
     @ManyToMany
     @JoinTable(
-            name = "personal_access_tokens_repositories",
-            joinColumns = @JoinColumn(name = "repositories_id"),
+            name = "personal_access_tokens_git_repositories",
+            joinColumns = @JoinColumn(name = "git_repositories_id"),
             inverseJoinColumns = @JoinColumn(name = "personal_access_tokens_pat"))
-    private Set<PersonalAccessToken> patsAllowingAccess;
+    @Builder.Default
+    private Set<PersonalAccessToken> patsAllowingAccess = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "gitRepositoryId")
-    private List<Question> questions;
+    @Builder.Default
+    private List<Question> questions=List.of();
 
     @OneToMany(mappedBy = "gitRepositoryId")
-    private List<Summary> summaries;
+    @Builder.Default
+    private List<Summary> summaries=List.of();
 
     @OneToMany(mappedBy = "gitRepositoryId")
-    private List<Content> contents;
+    @Builder.Default
+    private List<Content> contents=List.of();
 
     @OneToMany(mappedBy = "gitRepositoryId")
-    private List<Link> links;
+    @Builder.Default
+    private List<Link> links=List.of();
+
+    @ManyToMany
+    @JoinTable(name = "personal_access_tokens_git_repositories",
+            joinColumns = @JoinColumn(name = "git_repositories_id"),
+            inverseJoinColumns = @JoinColumn(name = "personal_access_tokens_pat"))
+    @Builder.Default
+    private Set<PersonalAccessToken> personalAccessTokens = new LinkedHashSet<>();
 
     public GitRepo(String repoLink) {
         this.repositoryLink = repoLink;

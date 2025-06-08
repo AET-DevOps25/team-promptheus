@@ -10,7 +10,6 @@ import java.time.Instant;
 @Getter
 public class Content {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
     private Long id;
     @Column(name = "git_repository_id", nullable = false)

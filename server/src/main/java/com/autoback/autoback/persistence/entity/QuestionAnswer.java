@@ -10,7 +10,6 @@ import java.time.Instant;
 @Getter
 public class QuestionAnswer {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
     private Long id;
     @Column(name = "question_id",nullable = false)
