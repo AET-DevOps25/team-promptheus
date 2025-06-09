@@ -11,7 +11,7 @@ import java.time.Instant;
 public class Content {
     @Id
     @Column(nullable = false)
-    private Long id;
+    private String id;
     @Column(name = "git_repository_id", nullable = false)
     private Long gitRepositoryId;
     @Column(nullable = false)

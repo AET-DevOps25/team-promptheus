@@ -17,7 +17,7 @@ CREATE TABLE "summaries" (
 );
 
 CREATE TABLE "contents" (
-                            "id" bigint PRIMARY KEY NOT NULL,
+                            "id" text PRIMARY KEY NOT NULL,
                             "git_repository_id" bigint NOT NULL,
                             "type" text NOT NULL,
                             "user" text NOT NULL,

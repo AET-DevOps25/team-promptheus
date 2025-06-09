@@ -1,7 +1,5 @@
 package com.autoback.autoback.CommunicationObjects;
 
-import java.util.List;
+import java.util.Set;
 
-public record SelectionSubmission(
-        List<Long> selection
-) {}
+public record SelectionSubmission(Set<String> selection) {}
