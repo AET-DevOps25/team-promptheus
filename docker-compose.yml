@@ -40,13 +40,19 @@ services:
   server:
     image: ghcr.io/aet-devops25/promptheus-server:latest
     environment:
+      spring.datasource.url: jdbc:postgresql://db:5432/${POSTGRES_DB:-postgres}
+      spring.datasource.username: ${POSTGRES_USER:-postgres}
+      spring.datasource.password: ${POSTGRES_PASSWORD:-CHANGE_ME}
       app.meiliMasterKey: ${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
       app.meiliHost: http://meilisearch:7700
+      management.otlp.tracing.endpoint: http://monitoring:4318/v1/traces
+      management.otlp.metrics.export.url: http://monitoring:4318/v1/metrics
+      management.otlp.logging.endpoint: http://monitoring:4318/v1/logs
     build:
       context: server
     restart: unless-stopped
     ports:
-      - 8080:8080
+      - ${SERVER_PORT:-8080}:8080
     depends_on:
       db:
         condition: service_healthy
@@ -63,7 +69,7 @@ services:
         - action: rebuild
           path: ./server/src
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${GENAI_PORT:-8080}/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT:-8080}/actuator/health"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -139,6 +145,21 @@ services:
           path: ./frontend/src/app
         - action: rebuild
           path: ./frontend/public
+  monitoring:
+    image: grafana/otel-lgtm:latest
+    ports:
+      - 3001:3000
+      - 4317:4317
+      - 4318:4318
+    volumes:
+      - grafana-data:/data/grafana
+      - prometheus-data:/data/prometheus
+      - loki-data:/data/loki
+    environment:
+      GF_PATHS_DATA: /data/grafana
 volumes:
+  prometheus-data:
+  grafana-data:
+  loki-data:
   postgres-data:
   meilisearch-data:
