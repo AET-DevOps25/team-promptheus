@@ -1,13 +1,17 @@
 package com.autoback.autoback.persistence.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "contents")
+@Builder
 @Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Content {
     @Id
     @Column(nullable = false)
@@ -20,6 +24,8 @@ public class Content {
     private String user;
     @Column(nullable = false)
     private String summary;
+    @Column(nullable = false)
+    private boolean is_selected;
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 }

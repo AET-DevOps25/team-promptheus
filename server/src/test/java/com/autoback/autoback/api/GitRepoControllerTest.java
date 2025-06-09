@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -119,14 +120,15 @@ class GitRepoControllerTest {
     void createCommitSelectionForSummary_ValidRequest_ReturnsSuccess() throws Exception {
         // Arrange
         UUID usercode = UUID.randomUUID();
-        SelectionSubmission selection = new SelectionSubmission(List.of(1L)); // Add appropriate data
-        when(gitRepoService.getRepositoryByAccessID(any(UUID.class))).thenReturn(GitRepoInformationConstruct.builder().contents(List.of(ContentConstruct.builder().id(1L).build(),ContentConstruct.builder().id(2L).build())).build());
+        ContentConstruct c1 = ContentConstruct.builder().id("asdsda").build();
+        ContentConstruct c2 = ContentConstruct.builder().id("ladsad").build();
+        SelectionSubmission selection = new SelectionSubmission(Set.of(c1.id(), c2.id()));
+
         // Act & Assert
         mockMvc.perform(post("/api/repositories/{usercode}/selection", usercode)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(selection)))
                 .andExpect(status().isOk());
-        verify(gitRepoService,times(1)).getRepositoryByAccessID(usercode);
         verify(gitRepoService,times(1)).createCommitSelection(usercode, selection);
         verifyNoMoreInteractions(gitRepoService);
     }
@@ -135,14 +137,17 @@ class GitRepoControllerTest {
     void createCommitSelectionForSummary_ValidRequest_AssertsValidContent() throws Exception {
         // Arrange
         UUID usercode = UUID.randomUUID();
-        SelectionSubmission selection = new SelectionSubmission(List.of(3L)); // Add appropriate data
-        when(gitRepoService.getRepositoryByAccessID(any(UUID.class))).thenReturn(GitRepoInformationConstruct.builder().contents(List.of(ContentConstruct.builder().id(1L).build(),ContentConstruct.builder().id(2L).build())).build());
+        SelectionSubmission selection = new SelectionSubmission(Set.of("does_not_exist"));
+        doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "please make sure that all selected content exists for the current week"))
+                .when(gitRepoService)
+                        .createCommitSelection(usercode, selection);
         // Act & Assert
         mockMvc.perform(post("/api/repositories/{usercode}/selection", usercode)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(selection)))
                 .andExpect(status().isBadRequest());
-        verify(gitRepoService,only()).getRepositoryByAccessID(usercode);
+        verify(gitRepoService, only()).createCommitSelection(usercode, selection);
+        verifyNoMoreInteractions(gitRepoService);
     }
 
     @Test

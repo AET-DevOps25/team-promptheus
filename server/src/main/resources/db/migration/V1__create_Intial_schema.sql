@@ -22,6 +22,7 @@ CREATE TABLE "contents" (
                             "type" text NOT NULL,
                             "user" text NOT NULL,
                             "summary" text NOT NULL,
+                            "is_selected" boolean not null default true,
                             "created_at" timestamp NOT NULL DEFAULT (now())
 );
 

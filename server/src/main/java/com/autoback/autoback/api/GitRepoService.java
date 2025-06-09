@@ -9,9 +9,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.DayOfWeek;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class GitRepoService {
@@ -20,14 +27,16 @@ public class GitRepoService {
     private final PersonalAccessTokenRepository patRepository;
     private final PersonalAccessToken2GitRepoRepository pat2gitRepository;
     private final QuestionRepository questionRepository;
+    private final GitContentRepository gitContentRepository;
 
     @Autowired
-    public GitRepoService(GitRepoRepository gitRepoRepository, LinkRepository linkRepository, PersonalAccessTokenRepository patRepository, PersonalAccessToken2GitRepoRepository pat2gitRepository, QuestionRepository questionRepository) {
+    public GitRepoService(GitRepoRepository gitRepoRepository, LinkRepository linkRepository, PersonalAccessTokenRepository patRepository, PersonalAccessToken2GitRepoRepository pat2gitRepository, QuestionRepository questionRepository, GitContentRepository gitContentRepository) {
         this.gitRepoRepository = gitRepoRepository;
         this.linkRepository = linkRepository;
         this.patRepository = patRepository;
         this.pat2gitRepository = pat2gitRepository;
         this.questionRepository = questionRepository;
+        this.gitContentRepository = gitContentRepository;
     }
 
     public LinkConstruct createAccessLinks(PATConstruct patRequest) {
@@ -72,15 +81,8 @@ public class GitRepoService {
         // from that GitRepo object we only return now the link of the repository and the role
         List<QuestionConstruct> questions = repoEntity.get().getQuestions().stream().map(QuestionConstruct::from).toList();
         List<SummaryConstruct> summaries = repoEntity.get().getSummaries().stream().map(SummaryConstruct::from).toList();
-        List<ContentConstruct> contents=repoEntity.get().getContents().stream().map(ContentConstruct::from).toList();
-        return GitRepoInformationConstruct.builder()
-                .repoLink(repoEntity.get().getRepositoryLink())
-                .isMaintainer(repoLinkEntity.get().getIsMaintainer())
-                .createdAt(repoEntity.get().getCreatedAt())
-                .questions(questions)
-                .summaries(summaries)
-                .contents(contents)
-                .build();
+        List<ContentConstruct> contents = repoEntity.get().getContents().stream().map(ContentConstruct::from).toList();
+        return GitRepoInformationConstruct.builder().repoLink(repoEntity.get().getRepositoryLink()).isMaintainer(repoLinkEntity.get().getIsMaintainer()).createdAt(repoEntity.get().getCreatedAt()).questions(questions).summaries(summaries).contents(contents).build();
     }
 
     public void createCommitSelection(UUID accessID, SelectionSubmission selection) {
@@ -88,7 +90,17 @@ public class GitRepoService {
         if (repoLinkEntity.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "link is not a valid access id");
         }
-        // TODO: store once the wire format is figured out
+        Instant weekStart = Instant.now().atZone(ZoneId.systemDefault()).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).truncatedTo(ChronoUnit.DAYS).toInstant();
+        Set<Content> validContent = gitContentRepository.findDistinctByCreatedAtAfterAndGitRepositoryId(weekStart, repoLinkEntity.get().getGitRepositoryId());
+        if (!validContent.stream().map(Content::getId).collect(Collectors.toSet()).containsAll(selection.selection()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please make sure that all selected content exists for the current week");
+
+        // below would be the SQL below, but JPA is being stubborn
+        // UPDATE Content SET is_selected = CASE WHEN id IN (:ids) THEN true ELSE false END WHERE createdAt >= date_trunc('week', now())
+        for (Content c : validContent) {
+            c.set_selected(selection.selection().contains(c.getId()));
+            gitContentRepository.save(c);
+        }
     }
 
     public void createQuestion(UUID usercode, String question) {
@@ -97,10 +109,7 @@ public class GitRepoService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "link is not a valid access id");
         }
 
-        Question q = Question.builder()
-                .gitRepositoryId(repoLinkEntity.get().getGitRepositoryId())
-                .question(question)
-                .build();
+        Question q = Question.builder().gitRepositoryId(repoLinkEntity.get().getGitRepositoryId()).question(question).build();
         questionRepository.save(q);
     }
 }

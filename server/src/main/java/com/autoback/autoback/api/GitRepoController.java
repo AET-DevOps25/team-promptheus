@@ -93,12 +93,6 @@ public class GitRepoController {
     })
     @PostMapping("/{usercode}/selection")
     public ResponseEntity<String> createCommitSelectionForSummary(@PathVariable @NotNull UUID usercode, @RequestBody SelectionSubmission selection) {
-        GitRepoInformationConstruct gitRepository = gitRepoService.getRepositoryByAccessID(usercode);
-
-        Set<String> content = gitRepository.contents().stream().map(ContentConstruct::id).collect(Collectors.toSet());
-        if (selection.selection().stream().anyMatch(s -> !content.contains(s)))
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("please make sure that all content exists");
-
         gitRepoService.createCommitSelection(usercode, selection);
 
         return ResponseEntity.ok("Created Successfully");

@@ -15,10 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,10 +34,12 @@ class GitRepoServiceTest {
     private QuestionRepository questionRepository;
     @Mock
     private PersonalAccessToken2GitRepoRepository pat2gitRepository;
+    @Mock
+    private GitContentRepository gitContentRepository;
     private GitRepoService gitRepoService;
     @BeforeEach
     void setUp() {
-        gitRepoService = new GitRepoService(gitRepoRepository, linkRepository, patRepository, pat2gitRepository, questionRepository);
+        gitRepoService = new GitRepoService(gitRepoRepository, linkRepository, patRepository, pat2gitRepository, questionRepository, gitContentRepository);
     }
 
     @Test
@@ -231,24 +230,31 @@ class GitRepoServiceTest {
     void createCommitSelection_WithValidAccessId_Success() {
         // Arrange
         UUID validAccessId = UUID.randomUUID();
-        SelectionSubmission selection = new SelectionSubmission(List.of(1L, 2L));
+        Content c1 = Content.builder().id("asdsda").build();
+        Content c2 = Content.builder().id("ladsad").build();
+        SelectionSubmission selection = new SelectionSubmission(Set.of(c1.getId(), c2.getId()));
         GitRepo validRepo = new GitRepo("https://github.com/test/repo");
         Link validLink = new Link(validRepo, true);
+        validLink.setGitRepositoryId(42L);
 
         when(linkRepository.findById(validAccessId)).thenReturn(Optional.of(validLink));
+        when(gitContentRepository.findDistinctByCreatedAtAfterAndGitRepositoryId(any(Instant.class),eq(validLink.getGitRepositoryId()))).thenReturn(Set.of(c1, c2));
 
         // Act
         assertDoesNotThrow(() -> gitRepoService.createCommitSelection(validAccessId, selection));
 
         // Assert
         verify(linkRepository).findById(validAccessId);
+        verify(gitContentRepository).findDistinctByCreatedAtAfterAndGitRepositoryId(any(Instant.class),eq(validLink.getGitRepositoryId()));
+        verify(gitContentRepository,times(2)).save(any());
+        verifyNoMoreInteractions(linkRepository, gitContentRepository);
     }
 
     @Test
     void createCommitSelection_WithInvalidAccessId_ThrowsForbidden() {
         // Arrange
         UUID invalidAccessId = UUID.randomUUID();
-        SelectionSubmission selection = new SelectionSubmission(List.of(1L, 2L));
+        SelectionSubmission selection = new SelectionSubmission(Set.of("asdsda", "ladsad"));
 
         when(linkRepository.findById(invalidAccessId)).thenReturn(Optional.empty());
 
