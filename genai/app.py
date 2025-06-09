@@ -32,6 +32,7 @@ from src.models import (
     SummaryChunk,
     SummaryRequest,
     SummaryResponse,
+
 )
 from src.services import (
     ContributionsIngestionService,
@@ -74,10 +75,16 @@ class ServiceContainer:
             logger.warning("Meilisearch service failed to initialize, continuing without it")
             self.meilisearch_service = None
         
-        # Initialize dependent services
-        self.ingestion_service = ContributionsIngestionService(self.meilisearch_service)
+        # Get GitHub token from environment
+        github_token = os.getenv("GITHUB_TOKEN") or os.getenv("GH_PAT")
+        
+        # Initialize services first
+        self.ingestion_service = ContributionsIngestionService(self.meilisearch_service, github_token)
         self.qa_service = QuestionAnsweringService(self.ingestion_service)
         self.summary_service = SummaryService(self.ingestion_service)
+        
+        # Inject summary service into ingestion service to enable full workflow
+        self.ingestion_service.summary_service = self.summary_service
         
         # Initialize metrics
         model_name = os.getenv("LANGCHAIN_MODEL_NAME", DEFAULT_MODEL_NAME)
@@ -241,6 +248,7 @@ async def start_contributions_ingestion_task(
         logger.info("Starting contributions ingestion task",
                    user=request.user,
                    week=request.week,
+                   repository=request.repository,
                    contributions_count=len(request.contributions))
         
         result = await service.start_ingestion_task(request)
@@ -249,6 +257,7 @@ async def start_contributions_ingestion_task(
                    task_id=result.task_id,
                    user=result.user,
                    week=result.week,
+                   repository=result.repository,
                    total_contributions=result.total_contributions)
         
         return result
@@ -256,7 +265,8 @@ async def start_contributions_ingestion_task(
     except Exception as e:
         logger.error("Failed to start contributions ingestion task", 
                     user=request.user, 
-                    week=request.week, 
+                    week=request.week,
+                    repository=request.repository,
                     error=str(e))
         raise HTTPException(
             status_code=500, 
@@ -396,6 +406,52 @@ async def get_question_by_id(
                     question_id=question_id,
                     error=str(e))
         raise HTTPException(status_code=500, detail=f"Failed to retrieve question: {str(e)}")
+
+
+# Conversation management endpoints (LangChain-based)
+@app.get("/users/{username}/weeks/{week_id}/conversations/history")
+async def get_user_week_conversation_history(
+    username: str = Path(..., description="GitHub username"),
+    week_id: str = Path(..., description="ISO week format: 2024-W21"),
+    service: QuestionAnsweringService = Depends(get_qa_service)
+):
+    """Get conversation history for a user's week (LangChain messages)"""
+    try:
+        history = service.get_conversation_history(username, week_id)
+        return {
+            "session_id": f"{username}:{week_id}",
+            "message_count": len(history),
+            "messages": [{"type": msg.__class__.__name__, "content": msg.content} for msg in history]
+        }
+        
+    except Exception as e:
+        logger.error("Failed to retrieve conversation history", 
+                    username=username, 
+                    week_id=week_id,
+                    error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve conversation history: {str(e)}")
+
+
+@app.delete("/users/{username}/weeks/{week_id}/conversations")
+async def clear_user_week_conversation(
+    username: str = Path(..., description="GitHub username"),
+    week_id: str = Path(..., description="ISO week format: 2024-W21"),
+    service: QuestionAnsweringService = Depends(get_qa_service)
+):
+    """Clear conversation history for a user's week"""
+    try:
+        service.clear_conversation_history(username, week_id)
+        return {
+            "message": f"Conversation history cleared for {username} in week {week_id}",
+            "session_id": f"{username}:{week_id}"
+        }
+        
+    except Exception as e:
+        logger.error("Failed to clear conversation history", 
+                    username=username, 
+                    week_id=week_id,
+                    error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to clear conversation history: {str(e)}")
 
 
 # Summary generation endpoints  
