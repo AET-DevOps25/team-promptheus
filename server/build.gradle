@@ -30,15 +30,21 @@ dependencies {
 	// db access
 	implementation 'org.postgresql:postgresql:42.7.2'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-  
+	// db migrations
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-database-postgresql'
 	// tests
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'org.mockito:mockito-core'
 
-	// metrics
+	// observability
+	implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation platform('io.micrometer:micrometer-bom:1.15.0')
-	implementation 'io.micrometer:micrometer-registry-prometheus'
+	implementation 'io.micrometer:micrometer-tracing'
+	implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+	implementation 'io.micrometer:micrometer-registry-otlp'
 
 	// lombok => less weird setter/getters
 	compileOnly("org.projectlombok:lombok:1.18.38")
