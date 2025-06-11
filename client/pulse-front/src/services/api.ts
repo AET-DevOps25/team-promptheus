@@ -55,25 +55,22 @@ export interface GitHubContribution {
 
 
 //sign-up for a repository
-export async function signupWithPat(pat: string, repolink: String){
-              fetch('http://localhost:8090/api/providePAT' , 
-            {
-                method: "POST",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(pack)
-            }
-            ).then(response => {
-            if (!response.ok) {
-                setPatSubmitting(0);
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-            }).then(data => {
-            console.log(data);
-            setPatSubmitting(0);
-            setLinkList([data[0], data[1]]);
-            setDisplayinglinks(true);
-            });
+export async function signupWithPat(pack: any){
+
+    /* const response = await fetch('http://localhost:8090/api/providePAT' , 
+      {
+          method: "POST",
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(pack)
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      } */
+
+    let response = ['firstlink', 'secondlink'];
+    return response //.json();
+    
     
 }
 

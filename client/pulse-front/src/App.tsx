@@ -1,11 +1,11 @@
 
 import './App.css'
-import React from "react";
+import React, { useContext } from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router";
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import LandingPage from './pages/landing'
-import { AuthProvider, useAuth } from './elements/auth';
+import { AuthContext, AuthProvider, useAuth } from './elements/auth';
 import { UUIDForwarder } from './components/ui/UUIDForwarder';
 import { Header } from './elements/header';
 import { About } from './pages/About';
@@ -15,6 +15,7 @@ import { SummaryViewing } from './pages/SummaryViewing';
 import { Search } from 'lucide-react';
 import { QnAPage } from './pages/QnAPage';
 import GitHubContributions from './pages/github-contributions';
+import { NoPage } from './pages/nopage';
 
 
 //{<div>Welcome! You are a viewing as a {user.role === 'dev' ? 'developer' : 'manager'} the repository {user.reponame}.</div>} />
@@ -35,6 +36,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
+        path: '/welcome',
         element: <WelcomePage />,
       },
       {
@@ -64,42 +66,78 @@ const router = createBrowserRouter([
     path: '/:uuid', // Catch UUID URLs
     element: <UUIDForwarder />,
   },
+  {
+    path: '*',
+    element: <NoPage />
+  }
 ]);
 
 
 function ProtectedLayout() {
-  const { user, loading, api } = useAuth();
-  return user ? <Header /> : <Navigate to="/landing" replace />;
+  //const { user, loading } = useAuth();
+  const { user, loading} = useContext(AuthContext);
+  console.log("We load useAuth and got:")
+  console.log(user)
+/*   if (loading == false) {
+    if (user == null) {
+      return (<Navigate to="/landing" replace />);
+    }
+    else {
+      console.log("Context detected. Loading a different layout!")
+      return  ( <> <Header /> <Outlet /> </>);
+    }
+  } 
+  if (loading == true) {
+    console.log("Loading...")
+    return (<> <div> loading...</div></>)
+  } else {
+    console.log("impossible?")
+  } */
+
+
+
+    return loading==false ? 
+          ( 
+            (user == null ? (<Navigate to="/landing" replace />) : ( <> <Header /> <Outlet /> </>) ) 
+          ) :
+          (<> <div> loading...</div></>) 
+
 }
+
 
 
 function App() {
 
   return (
 
+    //<AuthProvider>
+    //  <RouterProvider router={router} />
+    //</AuthProvider>
+ 
     <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
-
-    /*
     <BrowserRouter> 
       <Routes>
-          <Route index element={<LandingPage />} /> 
-          <Route path="/about" element={ <About /> } />
+          <Route path="/landing" element={<LandingPage />} /> 
+          <Route path="/signup" element={<SignupMain />} />
 
-          <Route path="view">
-          <Route path="/selectcontent" element={ {selectcontent} } />
-          <Route path="/summaryviewing" element={  {summaryviewing} } />
-          <Route path="/questionandanswers" element= { { questionandanswers} } />
-          <Route path="/search" element= { { search } } />
+
+          <Route element={<ProtectedLayout />}>
+            <Route path="/" element={<WelcomePage />} />
+          </Route>
+
+          <Route 
+            path="/:uuid" 
+            element={<UUIDForwarder />} 
+          />
+
+
+          <Route path="about" element={ <About /> } />
           
-          <Route path="*" element = { <NoPage /> }
+          <Route path="*" element = { <NoPage /> } />
       </Routes>
     </BrowserRouter>   
-    */
     
-
-
+    </AuthProvider>
 
    
   );

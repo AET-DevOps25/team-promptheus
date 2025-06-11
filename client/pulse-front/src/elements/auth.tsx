@@ -4,7 +4,7 @@
 // it sets a cookie
 
 
-import { ApiService } from '@/services/api';
+import { getCookie, getFromCookie } from '@/services/cookieutils';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 
@@ -14,10 +14,13 @@ type Userrole = {
     role: string;
   } | null;
 
-const AuthContext = createContext<{
+export const AuthContext = createContext<{
     user: Userrole;
     loading: boolean;
-}>(null!); //({ user: null, loading: true, api: null });
+}>({
+    user: null,
+    loading: true
+}) ; //({ user: null, loading: true, api: null });
 
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -33,10 +36,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
            
             //const cookie = document.cookie.split('; ')
             //    .find(row => row.startsWith('user='));
-
-        const cookie = getCookie('user');
+        console.log("doing auth")
+        const cookie = getFromCookie('user');
         if (cookie) {
-            setUser(JSON.parse(cookie.split('=')[1]));
+            console.log("loaded cookie:")
+            console.log(cookie);
+            //setUser(JSON.parse(  //cookie.split('=')[1]));
+            
+            setUser(  {
+                    uuid: "7f2c97bd-fc21-4eb0-a3d8-f4ac7986ee64",
+                    reponame: "reponames",
+                    role: "arole"
+                 } )
+            setLoading(false);
+        } else {
+
+            console.log("no cookie found");
             setLoading(false);
         } //else {
                 // no cookie and not uuid
@@ -52,12 +67,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
 }
 
-
+/* 
 function getCookie(name: string) {
   // Simple cookie parser
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop()?.split(';').shift();
-}
+} */
 
 export const useAuth = () => useContext(AuthContext);

@@ -11,7 +11,7 @@ export function Header() {
     return (
 
       <div>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm border-b border-gray-100">
+      <header >
         <div className="container mx-auto px-4 py-3">
           <h1 className="text-xl font-light tracking-tight">
             <span className="font-medium">Auto</span>Pulse

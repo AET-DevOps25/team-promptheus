@@ -1,9 +1,11 @@
 import { useAuth } from "@/elements/auth";
+import { fetchUser } from "@/services/api";
+import { updateCookie } from "@/services/cookieutils";
 import { useEffect } from "react";
 import { Navigate, useParams } from "react-router-dom";
 
 export function UUIDForwarder() {
-  const { user, loading, api } = useAuth();
+
   //const { uuid } = useParams();
   
     
@@ -16,13 +18,15 @@ export function UUIDForwarder() {
       try {
 
         // obtain uuid
-
+        console.log("obtain uuid")
 
         // ask spring for uuid mapping
-        const userData = await api.fetchUser(uuid!);
-
+        const userData = ["thisisareponame", "thisisarole"]  //await fetchUser(uuid!);
+        
         // store in cookie
-        document.cookie = `user=${JSON.stringify(userData)}; path=/; max-age=${30 * 24 * 60 * 60}`;
+        updateCookie('user', userData)
+        
+        //document.cookie = `user=${JSON.stringify(userData)}; path=/; max-age=${30 * 24 * 60 * 60}`;
 
       } catch (error) {
         console.error('Failed to fetch user', error);
@@ -30,7 +34,7 @@ export function UUIDForwarder() {
     }
 
     handleUUID();
-  }, [uuid, api]);
+  }, [uuid]);
 
   return <Navigate to="/" replace />;
 }
