@@ -6,14 +6,14 @@ Models are organized by functional domain and follow GitHub API conventions.
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Annotated, Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # Constants
-DEFAULT_EVIDENCE_LIMIT = 5
+DEFAULT_EVIDENCE_LIMIT = 10
 DEFAULT_REASONING_DEPTH = "detailed"
 
 
@@ -28,8 +28,9 @@ class ContributionType(str, Enum):
 class TaskStatus(str, Enum):
     """Status values for asynchronous tasks"""
     QUEUED = "queued"
-    PROCESSING = "processing"
-    COMPLETED = "completed"
+    INGESTING = "ingesting"
+    SUMMARIZING = "summarizing"
+    DONE = "done"
     FAILED = "failed"
 
 
@@ -371,11 +372,27 @@ GitHubContribution = Union[
 
 # === API Request/Response Models ===
 
+class ContributionMetadata(BaseModel):
+    """Metadata about a contribution to be fetched"""
+    type: ContributionType
+    id: str
+    selected: bool  # Only fetch actual data if true
+
+    @field_validator('id')
+    @classmethod
+    def validate_id_format(cls, v):
+        """Validate that ID is non-empty"""
+        if not v or not v.strip():
+            raise ValueError('ID cannot be empty')
+        return v.strip()
+
+
 class ContributionsIngestRequest(BaseModel):
-    """Request to ingest contributions for a user's week"""
+    """Request to ingest contributions for a user's week (metadata only)"""
     user: str
     week: str  # ISO week format: 2024-W21
-    contributions: List[GitHubContribution]
+    repository: str  # Repository to fetch contributions from
+    contributions: List[ContributionMetadata]
 
     @field_validator('week')
     @classmethod
@@ -386,14 +403,24 @@ class ContributionsIngestRequest(BaseModel):
             raise ValueError('Week must be in ISO format: YYYY-WXX (e.g., 2024-W21)')
         return v
 
+    @field_validator('repository')
+    @classmethod
+    def validate_repository_format(cls, v):
+        """Validate repository format (owner/repo)"""
+        if not v or '/' not in v:
+            raise ValueError('Repository must be in format: owner/repo')
+        return v
+
 
 class IngestTaskResponse(BaseModel):
     """Response from starting a contributions ingestion task"""
     task_id: str  # UUIDv7 task identifier
     user: str
     week: str
+    repository: str  # Repository being processed
     status: TaskStatus = TaskStatus.QUEUED
     total_contributions: int
+    summary_id: Optional[str] = None  # UUIDv7 summary identifier for unified workflow
     created_at: datetime
 
 
@@ -402,11 +429,13 @@ class IngestTaskStatus(BaseModel):
     task_id: str
     user: str
     week: str
+    repository: str  # Repository being processed
     status: TaskStatus
     total_contributions: int
     ingested_count: int
     failed_count: int
     embedding_job_id: Optional[str] = None
+    summary: Optional['SummaryResponse'] = None  # Only populated when status is DONE
     error_message: Optional[str] = None
     created_at: datetime
     started_at: Optional[datetime] = None
@@ -434,6 +463,8 @@ class ContributionsStatusResponse(BaseModel):
     last_updated: datetime
     meilisearch_status: str
 
+
+# === Question Answering Models ===
 
 class QuestionContext(BaseModel):
     """Context configuration for question answering"""
@@ -472,6 +503,8 @@ class QuestionResponse(BaseModel):
     suggested_actions: List[str] = Field(default_factory=list)
     asked_at: datetime
     response_time_ms: int
+    # LangChain conversation session ID (user:week)
+    conversation_id: Optional[str] = None
 
 
 class SummaryRequest(BaseModel):
@@ -543,4 +576,7 @@ def generate_uuidv7() -> str:
         return str(uuid.uuid7())
     except AttributeError:
         # Fallback to uuid4 for older Python versions
-        return str(uuid.uuid4()) 
+        return str(uuid.uuid4())
+
+
+ 

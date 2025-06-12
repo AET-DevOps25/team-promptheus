@@ -1,6 +1,8 @@
 package com.autoback.autoback.persistence.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -9,9 +11,10 @@ import java.util.List;
 @Entity
 @Table(name = "questions")
 @Getter
+@Builder
+@AllArgsConstructor
 public class Question {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
     private Long id;
     @Column(name = "git_repository_id", nullable = false)
@@ -23,4 +26,6 @@ public class Question {
 
     @OneToMany(mappedBy = "questionId")
     private List<QuestionAnswer> answers;
+
+    public Question() {}
 }
