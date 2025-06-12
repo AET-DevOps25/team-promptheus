@@ -4,10 +4,11 @@ import React from 'react';
 
 
 
-export function NoPage() {
+export function SearchPage() {
+
   return (
     <div>
-      <h1>You got lost</h1>
+      <h1>Searching content</h1>
     </div>
   );
 }

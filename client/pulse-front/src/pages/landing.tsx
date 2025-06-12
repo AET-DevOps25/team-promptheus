@@ -1,12 +1,18 @@
+import { Button } from "@/components/ui/button";
+import { Navigate, useNavigate } from "react-router-dom";
 
 
 
 
 export function LandingPage() {
 
-    const handleStartClick = () => {
-      
-    }
+  const navigate = useNavigate()
+  
+  const handleStartClick = () => {
+      //navigate("/signup")
+      console.log("asfd");
+      //return <Navigate to="/signup" />;
+  }
     
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
@@ -21,9 +27,10 @@ export function LandingPage() {
         </div>
   
         <div className="card">
-          <button onClick={handleStartClick} >
+
+          <Button onClick={() => navigate('/signup')}> 
             Get started
-          </button>
+          </Button>
           {/* <p>
             Edit <code>src/App.tsx</code> and save to test HMR
           </p> */}
@@ -33,4 +40,5 @@ export function LandingPage() {
       </div>
     );
   }
-  export default LandingPage
+  
+export default LandingPage

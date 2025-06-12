@@ -44,9 +44,22 @@ public class GitRepoController {
     @PostMapping("/PAT")
     public ResponseEntity<LinkConstruct> createFromPAT(@RequestBody PATConstruct patRequest) {
         LinkConstruct lc = gitRepoService.createAccessLinks(patRequest);
-        meterRegistry.counter("pat_registration_total").increment();
+        //meterRegistry.counter("pat_registration_total").increment();
         return ResponseEntity.ok(lc);
     }
+
+    @PostMapping("/pingpost")
+    public ResponseEntity<String> testpong(@RequestBody PATConstruct patRequest) {
+        //meterRegistry.counter("pat_registration_total").increment();
+        return ResponseEntity.ok("pong");
+    }
+
+
+    @GetMapping("/ping")
+    public ResponseEntity<String> testping() { // TODO: to be removed
+        return ResponseEntity.ok("pong");
+    }
+
 
     @Operation(summary = "Get the git repository information", description = "Auth is handled via the provided UUID")
     @ApiResponses(value = {
