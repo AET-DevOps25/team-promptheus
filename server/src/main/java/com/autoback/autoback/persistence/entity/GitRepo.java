@@ -3,10 +3,7 @@ package com.autoback.autoback.persistence.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.Instant;
 import java.util.LinkedHashSet;
@@ -18,14 +15,18 @@ import java.util.Set;
 @Getter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class GitRepo {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
     private Long id;
+
     @Column(unique = true, name = "repository_link", nullable = false)
     @NotNull
     @NotBlank
     private String repositoryLink;
+
     @Column(name = "created_at", nullable = false)
     @Builder.Default
     private Instant createdAt = Instant.now();
@@ -61,9 +62,4 @@ public class GitRepo {
     @Builder.Default
     private Set<PersonalAccessToken> personalAccessTokens = new LinkedHashSet<>();
 
-    public GitRepo(String repoLink) {
-        this.repositoryLink = repoLink;
-    }
-
-    public GitRepo() {}
 }
