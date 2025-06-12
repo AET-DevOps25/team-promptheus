@@ -1,13 +1,16 @@
 package com.autoback.autoback.persistence.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.UUID;
 
 @Entity
 @Table(name = "links")
 @Getter
+@Setter
 public class Link {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -15,13 +18,15 @@ public class Link {
     private UUID id;
     @Column(name = "git_repository_id", nullable = false)
     private Long gitRepositoryId;
-    @Column(name = "is_developer", nullable = false)
-    private boolean isDeveloper;
 
-    public Link(GitRepo repo, boolean isDev) {
+    @NotNull
+    @Column(name = "is_maintainer", nullable = false)
+    private Boolean isMaintainer = false;
+
+    public Link(GitRepo repo, boolean isMaint) {
         gitRepositoryId = repo.getId();
         id = UUID.randomUUID();
-        isDeveloper = isDev;
+        isMaintainer = isMaint;
     }
     public Link() {}
 }

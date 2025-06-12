@@ -1,4 +1,12 @@
 package com.autoback.autoback.CommunicationObjects;
 
-public record GitRepoInformationConstruct(String repoLink, boolean isDeveloper) {
+import lombok.Builder;
+
+import java.time.Instant;
+import java.util.List;
+
+@Builder
+public record GitRepoInformationConstruct(String repoLink, boolean isMaintainer, Instant createdAt,
+                                          List<QuestionConstruct> questions, List<SummaryConstruct> summaries,
+                                          List<ContentConstruct> contents) {
 }

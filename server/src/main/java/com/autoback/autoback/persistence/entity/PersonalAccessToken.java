@@ -1,31 +1,38 @@
 package com.autoback.autoback.persistence.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
+import java.time.Instant;
 import java.util.Set;
 
 @Entity
 @Table(name = "personal_access_tokens")
 @Getter
+@Setter
+@NoArgsConstructor
 public class PersonalAccessToken {
     @Id
     @Column(nullable = false)
     private String pat;
-    @Column(name = "git_repository_id", nullable = false)
-    private Long gitRepositoryId;
 
     @ManyToMany
     @JoinTable(
-            name = "personal_access_tokens_repositories",
+            name = "personal_access_tokens_git_repositories",
             joinColumns = @JoinColumn(name = "personal_access_tokens_pat"),
-            inverseJoinColumns = @JoinColumn(name = "repositories_id"))
-    private Set<GitRepo> relatedGitRepos;
+            inverseJoinColumns = @JoinColumn(name = "git_repositories_id"))
+    private Set<GitRepo> relatedGitRepos = Set.of();
 
-    public PersonalAccessToken(GitRepo repoEntity, String pat) {
-        gitRepositoryId = repoEntity.getId();
+    @NotNull
+    @ColumnDefault("now()")
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt = Instant.now();
+
+    public PersonalAccessToken(String pat) {
         this.pat = pat;
     }
-
-    public PersonalAccessToken() {}
 }

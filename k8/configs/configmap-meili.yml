@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: meilisearch-config
+  namespace: team-promptheus
+data:
+  MEILI_ENV: "development"

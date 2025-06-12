@@ -40,13 +40,19 @@ services:
   server:
     image: ghcr.io/aet-devops25/promptheus-server:latest
     environment:
+      spring.datasource.url: jdbc:postgresql://db:5432/${POSTGRES_DB:-postgres}
+      spring.datasource.username: ${POSTGRES_USER:-postgres}
+      spring.datasource.password: ${POSTGRES_PASSWORD:-CHANGE_ME}
       app.meiliMasterKey: ${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
       app.meiliHost: http://meilisearch:7700
+      management.otlp.tracing.endpoint: http://monitoring:4318/v1/traces
+      management.otlp.metrics.export.url: http://monitoring:4318/v1/metrics
+      management.otlp.logging.endpoint: http://monitoring:4318/v1/logs
     build:
       context: server
     restart: unless-stopped
     ports:
-      - 8080:8080
+      - ${SERVER_PORT:-8080}:8080
     depends_on:
       db:
         condition: service_healthy
@@ -54,8 +60,6 @@ services:
         condition: service_healthy
       genai:
         condition: service_started
-    ports:
-      - 8080:8080
     develop:
       watch:
         - action: rebuild
@@ -65,7 +69,7 @@ services:
         - action: rebuild
           path: ./server/src
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${GENAI_PORT:-8080}/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT:-8080}/actuator/health"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -112,35 +116,34 @@ services:
   frontend:
     image: ghcr.io/aet-devops25/promptheus-frontend:latest
     build:
-      context: frontend
+      context: ./client
+      dockerfile: ./Dockerfile
     ports:
-      - 3000:${FRONTEND_PORT:-3000}
+      - 8080:${FRONTEND_PORT:-8080}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "-e 'fetch(`http://localhost:${FRONTEND_PORT:-3000}/`).then(x=>x.status==200?process.exit(0):process.exit(1)).catch(()=>process.exit(1))'"]
+      test: ["CMD", "node", "-e", "-e 'fetch(`http://localhost:${FRONTEND_PORT:-8080}/`).then(x=>x.status==200?process.exit(0):process.exit(1)).catch(()=>process.exit(1))'"]
       interval: 10s
       timeout: 3s
       retries: 5
       start_period: 1s
       start_interval: 100ms
-    develop:
-      watch:
-        - action: rebuild
-          path: ./frontend/package.json
-        - action: rebuild
-          path: ./frontend/package-lock.json
-        - action: rebuild
-          path: ./frontend/next.config.ts
-        - action: rebuild
-          path: ./frontend/next-env.d.ts
-        - action: rebuild
-          path: ./frontend/tsconfig.json
-        - action: rebuild
-          path: ./frontend/postcss.config.mjs
-        - action: rebuild
-          path: ./frontend/src/app
-        - action: rebuild
-          path: ./frontend/public
+
+  monitoring:
+    image: grafana/otel-lgtm:latest
+    ports:
+      - 3001:3000
+      - 4317:4317
+      - 4318:4318
+    volumes:
+      - grafana-data:/data/grafana
+      - prometheus-data:/data/prometheus
+      - loki-data:/data/loki
+    environment:
+      GF_PATHS_DATA: /data/grafana
 volumes:
+  prometheus-data:
+  grafana-data:
+  loki-data:
   postgres-data:
   meilisearch-data:

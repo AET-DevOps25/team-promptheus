@@ -1,18 +1,21 @@
 package com.autoback.autoback.persistence.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "contents")
+@Builder
 @Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Content {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
-    private Long id;
+    private String id;
     @Column(name = "git_repository_id", nullable = false)
     private Long gitRepositoryId;
     @Column(nullable = false)
@@ -21,6 +24,8 @@ public class Content {
     private String user;
     @Column(nullable = false)
     private String summary;
+    @Column(nullable = false)
+    private boolean is_selected;
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 }

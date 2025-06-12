@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genai
+  namespace: team-promptheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: genai
+  template:
+    metadata:
+      labels:
+        app: genai
+    spec:
+      containers:
+      - name: genai
+        image: ghcr.io/aet-devops25/team-promptheus-genai:latest
+        ports:
+        - containerPort: 3003
+        envFrom:
+        - configMapRef:
+            name: genai-config
+        - secretRef:
+            name: app-secrets
+        command: ["sh", "-c", "python scripts/setup_meilisearch.py && uvicorn app:app --host 0.0.0.0 --port 3003 --reload"]
+        livenessProbe:
+          exec:
+            command:
+            - curl
+            - -f
+            - http://localhost:3003/health
+          initialDelaySeconds: 1
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 5
+        readinessProbe:
+          exec:
+            command:
+            - curl
+            - -f
+            - http://localhost:3003/health
+          initialDelaySeconds: 1
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 5
