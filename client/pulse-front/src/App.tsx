@@ -16,6 +16,7 @@ import { Search } from 'lucide-react';
 import { QnAPage } from './pages/QnAPage';
 import GitHubContributions from './pages/github-contributions';
 import { NoPage } from './pages/nopage';
+import { SearchPage } from './pages/SearchPage';
 
 
 //{<div>Welcome! You are a viewing as a {user.role === 'dev' ? 'developer' : 'manager'} the repository {user.reponame}.</div>} />
@@ -123,6 +124,10 @@ function App() {
 
           <Route element={<ProtectedLayout />}>
             <Route path="/" element={<WelcomePage />} />
+            <Route path="/selectcontent" element={<GitHubContributions /> } />
+            <Route path="/qna" element={<QnAPage /> } />
+            <Route path="/summaryviewing" element={ <SummaryViewing/> } />
+            <Route path="/search" element={ <SearchPage /> } />
           </Route>
 
           <Route 
