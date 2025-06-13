@@ -17,6 +17,7 @@ from fastapi import Depends, FastAPI, HTTPException, Path
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from src.meilisearch import MeilisearchService
 from src.metrics import initialize_service_info
@@ -659,6 +660,7 @@ async def handle_general_exception(request, exc: Exception):
         ).model_dump(mode='json')
     )
 
+FastAPIInstrumentor.instrument_app(app)
 
 # Fallback initialization for TestClient usage
 def ensure_services_initialized():
