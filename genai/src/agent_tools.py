@@ -152,5 +152,3 @@ all_tools = [
     get_issue_details,
     get_pull_request_details,
 ] 
-
-print(get_tool_descriptions(all_tools))

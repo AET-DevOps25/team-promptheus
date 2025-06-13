@@ -197,7 +197,7 @@ class GitHubContentService:
         
         return commits
     
-    async def _get_commit_details(self, repository: str, sha: str) -> Optional[GitHubContribution]:
+    async def get_commit_details(self, repository: str, sha: str) -> Optional[GitHubContribution]:
         """Get detailed information for a specific commit"""
         try:
             url = f"{GITHUB_API_BASE_URL}/repos/{repository}/commits/{sha}"
@@ -273,7 +273,7 @@ class GitHubContentService:
             try:
                 # Extract PR number from ID (format: "pr-{number}" or just "{number}")
                 pr_number = self._get_id(metadata).replace("pr-", "")
-                pr_detail = await self._get_pull_request_details(repository, pr_number)
+                pr_detail = await self.get_pull_request_details(repository, pr_number)
                 if pr_detail:
                     pull_requests.append(pr_detail)
             except Exception as e:
@@ -284,7 +284,7 @@ class GitHubContentService:
         
         return pull_requests
     
-    async def _get_pull_request_details(self, repository: str, pr_number: str) -> Optional[GitHubContribution]:
+    async def get_pull_request_details(self, repository: str, pr_number: str) -> Optional[GitHubContribution]:
         """Get detailed information for a specific pull request"""
         try:
             url = f"{GITHUB_API_BASE_URL}/repos/{repository}/pulls/{pr_number}"
@@ -362,7 +362,7 @@ class GitHubContentService:
             try:
                 # Extract issue number from ID (format: "issue-{number}" or just "{number}")
                 issue_number = self._get_id(metadata).replace("issue-", "")
-                issue_detail = await self._get_issue_details(repository, issue_number)
+                issue_detail = await self.get_issue_details(repository, issue_number)
                 if issue_detail:
                     issues.append(issue_detail)
             except Exception as e:
@@ -373,7 +373,7 @@ class GitHubContentService:
         
         return issues
     
-    async def _get_issue_details(self, repository: str, issue_number: str) -> Optional[GitHubContribution]:
+    async def get_issue_details(self, repository: str, issue_number: str) -> Optional[GitHubContribution]:
         """Get detailed information for a specific issue"""
         try:
             url = f"{GITHUB_API_BASE_URL}/repos/{repository}/issues/{issue_number}"
@@ -599,4 +599,4 @@ class GitHubContentService:
             return None
         if datetime_str.endswith('Z'):
             datetime_str = datetime_str[:-1] + '+00:00'
-        return datetime.fromisoformat(datetime_str) 
+        return datetime.fromisoformat(datetime_str)
