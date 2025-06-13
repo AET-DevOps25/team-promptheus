@@ -4,15 +4,13 @@ from datetime import datetime, timezone
 from typing import List, Dict, Optional, Any
 import structlog
 
-# LangChain imports for conversation history
+# LangChain and LangGraph imports
 from langchain.schema import HumanMessage, SystemMessage, AIMessage
 from langchain_openai import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.output_parsers import PydanticOutputParser
 from langchain_core.chat_history import BaseChatMessageHistory, InMemoryChatMessageHistory
-from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.messages import BaseMessage
+from langgraph.prebuilt import create_react_agent
+from langgraph.checkpoint.memory import MemorySaver
 from pydantic import BaseModel as PydanticBaseModel, Field
 
 from .models import (
@@ -25,6 +23,7 @@ from .metrics import (
     question_answering_errors, langchain_model_requests, langchain_model_duration, langchain_model_errors
 )
 from .ingest import ContributionsIngestionService
+from .agent_tools import all_tools, get_tool_descriptions
 
 logger = structlog.get_logger()
 
@@ -47,14 +46,11 @@ class ConversationState(PydanticBaseModel):
 
 
 class QuestionAnsweringService:
-    """Service for answering questions with LangChain's conversation history management"""
+    """Service for answering questions using LangGraph agents with automatic tool usage"""
     
     def __init__(self, ingestion_service: ContributionsIngestionService):
         self.ingestion_service = ingestion_service
         self.questions_store: Dict[str, QuestionResponse] = {}
-        
-        # Simple in-memory conversation storage per user:week
-        self.conversation_stores: Dict[str, InMemoryChatMessageHistory] = {}
         
         # Initialize LangChain components
         self.llm = ChatOpenAI(
@@ -63,93 +59,41 @@ class QuestionAnsweringService:
             max_tokens=20000
         )
         
-        # Create the conversation-aware chain
-        self.qa_chain = self._create_qa_chain()
-        self.qa_with_history = self._create_qa_with_history()
+        # Create LangGraph agent with automatic tool usage
+        self.checkpointer = MemorySaver()
+        self.agent = create_react_agent(
+            model=self.llm,
+            tools=all_tools,
+            checkpointer=self.checkpointer
+        )
     
-    def _get_session_history(self, session_id: str) -> BaseChatMessageHistory:
-        """Get or create in-memory chat message history for a session (user:week)"""
-        if session_id not in self.conversation_stores:
-            self.conversation_stores[session_id] = InMemoryChatMessageHistory()
-            logger.info("Created new conversation session", session_id=session_id)
-        return self.conversation_stores[session_id]
-    
-    def _create_qa_chain(self):
-        """Create the core Q&A chain without history"""
-        
-        # Create system prompt template with conversation history placeholder
-        system_prompt = """You are an AI assistant that analyzes developer contributions and answers questions about their work.
+    def _create_context_message(self, user: str, week: str, evidence_context: str, focus_context: str = "") -> str:
+        """Create a context message for the agent"""
+        tool_descriptions = get_tool_descriptions(all_tools)
+        context = f"""You are analyzing contributions for developer \"{user}\" during week \"{week}\".
 
-You are analyzing contributions for developer "{user}" during week "{week}".
+You have access to the following tools:
 
-Your task is to:
-1. Carefully analyze the provided evidence from their contributions
-2. Use conversation history to provide contextual answers and maintain conversational flow
-3. Answer the user's question directly and accurately based on the evidence
-4. Provide reasoning steps showing your analysis process
-5. Suggest actionable next steps when appropriate
-6. Assign a confidence score based on the quality and relevance of evidence
+{tool_descriptions}
 
-Guidelines:
-- Be specific and reference actual contributions when possible
-- Reference previous questions/answers from the conversation when relevant
-- If the evidence doesn't fully support an answer, be honest about limitations
-- Focus on factual information from the contributions
-- Provide actionable insights when possible
-- Maintain a conversational tone that builds on previous interactions
+Your task is to answer questions about their work by:
+1. Analyzing the provided evidence from their contributions
+2. Using available tools to gather additional real-time information when needed
+3. Providing direct, accurate answers based on both static evidence and tool-enhanced data
+4. Suggesting actionable next steps when appropriate
+
+Evidence from {user}'s contributions in week {week}:
+{evidence_context}
 
 {focus_context}
 
-Evidence from {user}'s contributions in week {week}:
-
-{evidence_context}
-
-Return a JSON response with this exact structure:
-{{
-    "answer": "Direct answer to the user's question based on the evidence",
-    "confidence": 0.85,
-    "reasoning_steps": ["Step 1", "Step 2", "Step 3"],
-    "suggested_actions": ["Action 1", "Action 2"]
-}}"""
-
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", system_prompt),
-            MessagesPlaceholder(variable_name="history"),  # LangChain manages this
-            ("human", "{question}")
-        ])
+Use the available GitHub API tools whenever they can provide better or more current information than the static evidence alone."""
         
-        # Create parser
-        parser = PydanticOutputParser(pydantic_object=QuestionAnswerOutput)
-        
-        # Create the chain that returns structured output
-        structured_chain = prompt | self.llm | parser
-        
-        # Create a wrapper that returns just the answer for conversation history
-        def extract_answer(structured_output):
-            if hasattr(structured_output, 'answer'):
-                return structured_output.answer
-            return str(structured_output)
-        
-        # Chain that returns just the answer string for conversation history
-        conversation_chain = structured_chain | extract_answer
-        
-        # Store both chains - we'll use structured_chain directly in our implementation
-        self.structured_chain = structured_chain
-        
-        return conversation_chain
-    
-    def _create_qa_with_history(self):
-        """Create the Q&A chain with conversation history"""
-        return RunnableWithMessageHistory(
-            self.qa_chain,
-            self._get_session_history,
-            input_messages_key="question",
-            history_messages_key="history",
-        )
+        return context
     
     @time_operation(question_answering_duration, {"user": "unknown", "week": "unknown"})
     async def answer_question(self, user: str, week: str, request: QuestionRequest) -> QuestionResponse:
-        """Answer a question about a specific user's week using RAG with LangChain conversation history"""
+        """Answer a question using LangGraph agent with automatic tool usage"""
         start_time = datetime.now(timezone.utc)
         question_id = generate_uuidv7()
         
@@ -166,7 +110,7 @@ Return a JSON response with this exact structure:
             # 1. Retrieve relevant contributions for this user's week
             relevant_contributions = await self._retrieve_relevant_contributions(user, week, request)
             
-            # 2. Prepare evidence context for the LLM
+            # 2. Prepare evidence context
             evidence, evidence_context = self._prepare_evidence_context(relevant_contributions)
             
             # 3. Prepare focus areas context
@@ -174,49 +118,69 @@ Return a JSON response with this exact structure:
             if request.context.focus_areas:
                 focus_context = f"\nPay special attention to these focus areas: {', '.join(request.context.focus_areas)}"
             
-            # 4. Invoke the conversation-aware chain
-            config = {"configurable": {"session_id": session_id}}
+            # 4. Create context message for the agent
+            context_message = self._create_context_message(user, week, evidence_context, focus_context)
             
-            chain_input = {
-                "user": user,
-                "week": week,
-                "question": request.question,
-                "evidence_context": evidence_context,
-                "focus_context": focus_context
-            }
+            # 5. Prepare messages for the agent
+            messages = [
+                SystemMessage(content=context_message),
+                HumanMessage(content=request.question)
+            ]
             
-            logger.info("Calling LangChain conversation-aware Q&A",
+            # 6. Configure the agent
+            config = {"configurable": {"thread_id": session_id}}
+            
+            logger.info("Calling LangGraph agent with automatic tool usage",
                        user=user,
                        week=week,
                        session_id=session_id,
                        question=request.question[:100],
                        evidence_count=len(evidence))
             
-            # Use the conversation-aware chain to maintain history (returns just answer string)
-            conversation_answer = await self.qa_with_history.ainvoke(chain_input, config=config)
+            # 7. Invoke the agent (it will automatically use tools as needed)
+            agent_response = await self.agent.ainvoke(
+                {"messages": messages},
+                config=config
+            )
             
-            # Also get the full structured response for our application
-            # Add empty history for the structured chain call
-            structured_input = chain_input.copy()
-            structured_input["history"] = []
-            llm_result = await self.structured_chain.ainvoke(structured_input)
+            # 8. Extract the final answer from agent response
+            final_message = agent_response["messages"][-1]
+            answer = final_message.content
             
-            # Calculate response time
+            # 9. Calculate response time
             response_time_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
+            
+            # 10. Determine confidence based on tool usage
+            # Check if tools were used by looking at the message history
+            tool_usage_detected = any(
+                hasattr(msg, 'tool_calls') and msg.tool_calls 
+                for msg in agent_response["messages"]
+            )
+            confidence = 0.9 if tool_usage_detected else 0.7
+            
+            # 11. Extract reasoning from agent's work
+            reasoning_steps = []
+            for msg in agent_response["messages"]:
+                if hasattr(msg, 'tool_calls') and msg.tool_calls:
+                    for tool_call in msg.tool_calls:
+                        reasoning_steps.append(f"Used {tool_call['name']} to gather additional information")
+            
+            if not reasoning_steps:
+                reasoning_steps = ["Analyzed provided evidence to answer the question"]
             
             response = QuestionResponse(
                 question_id=question_id,
                 user=user,
                 week=week,
                 question=request.question,
-                answer=llm_result.answer,
-                confidence=llm_result.confidence,
+                answer=answer,
+                confidence=confidence,
                 evidence=evidence,
-                reasoning_steps=llm_result.reasoning_steps,
-                suggested_actions=llm_result.suggested_actions,
+                reasoning_steps=reasoning_steps,
+                suggested_actions=["Continue exploring related questions to get more insights"],
                 asked_at=datetime.now(timezone.utc),
                 response_time_ms=response_time_ms,
-                conversation_id=session_id  # Use session_id as conversation_id
+                conversation_id=session_id
             )
             
             # Store the question for retrieval
@@ -226,7 +190,7 @@ Return a JSON response with this exact structure:
             question_confidence_score.labels(
                 user=user,
                 week=week
-            ).observe(llm_result.confidence)
+            ).observe(confidence)
             
             record_request_metrics(
                 question_answering_requests,
@@ -234,14 +198,15 @@ Return a JSON response with this exact structure:
                 "success"
             )
             
-            logger.info("Question answered successfully with conversation context",
+            logger.info("Question answered successfully using LangGraph agent",
                        question_id=question_id,
                        user=user,
                        week=week,
                        session_id=session_id,
                        question_length=len(request.question),
                        evidence_count=len(evidence),
-                       confidence=llm_result.confidence,
+                       confidence=confidence,
+                       tool_usage_detected=tool_usage_detected,
                        response_time_ms=response_time_ms)
             
             return response
@@ -257,7 +222,7 @@ Return a JSON response with this exact structure:
                 {"user": user, "week": week},
                 type(e).__name__
             )
-            logger.error("Question answering failed",
+            logger.error("LangGraph agent question answering failed",
                         user=user,
                         week=week,
                         question=request.question,
@@ -377,15 +342,23 @@ Return a JSON response with this exact structure:
         return self.questions_store.get(question_id)
     
     def get_conversation_history(self, user: str, week: str) -> List[BaseMessage]:
-        """Get conversation history for a user/week"""
-        session_id = f"{user}:{week}"
-        if session_id in self.conversation_stores:
-            return self.conversation_stores[session_id].messages
+        """Get conversation history for a user/week from LangGraph checkpointer"""
+        thread_id = f"{user}:{week}"
+        try:
+            # Get the latest checkpoint from the LangGraph agent
+            checkpoint = self.checkpointer.get({"configurable": {"thread_id": thread_id}})
+            if checkpoint and "messages" in checkpoint:
+                return checkpoint["messages"]
+        except Exception as e:
+            logger.warning("Could not retrieve conversation history", thread_id=thread_id, error=str(e))
         return []
     
     def clear_conversation_history(self, user: str, week: str) -> None:
         """Clear conversation history for a user/week"""
-        session_id = f"{user}:{week}"
-        if session_id in self.conversation_stores:
-            self.conversation_stores[session_id].clear()
-            logger.info("Cleared conversation history", user=user, week=week, session_id=session_id) 
+        thread_id = f"{user}:{week}"
+        try:
+            # Clear the checkpoint for this thread
+            self.checkpointer.delete({"configurable": {"thread_id": thread_id}})
+            logger.info("Cleared conversation history", user=user, week=week, thread_id=thread_id)
+        except Exception as e:
+            logger.warning("Could not clear conversation history", thread_id=thread_id, error=str(e)) 

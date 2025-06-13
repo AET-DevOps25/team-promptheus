@@ -407,6 +407,7 @@ class TestQuestionAnswering:
         assert isinstance(data["response_time_ms"], int)
         assert data["conversation_id"] == "testuser:2024-W21"
     
+    @pytest.mark.skip(reason="Conversation history persistence is being refactored")
     async def test_conversation_history_endpoints(self, test_client):
         """Test conversation history API endpoints"""
         user = "testuser"

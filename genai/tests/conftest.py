@@ -258,7 +258,55 @@ def mock_github_service():
     
     # Patch the GitHubContentService.fetch_contributions method
     with patch('src.contributions.GitHubContentService.fetch_contributions', mock_fetch_contributions):
+        # Patch new async methods for agent_tools
+        async def mock_get_file_content(self, repository, file_path):
+            if file_path == "notfound.py":
+                return None
+            return f"# Mock content of {file_path} in {repository}"
+
+        async def mock_search_code(self, repository, query):
+            return [
+                {"path": "src/example.py", "html_url": f"https://github.com/{repository}/blob/main/src/example.py"}
+            ]
+
+        async def mock_search_issues_and_prs(self, repository, query, is_pr=False, is_open=None):
+            if is_pr:
+                return [
+                    {"number": 1, "title": "Mock PR", "state": "open", "html_url": f"https://github.com/{repository}/pull/1"}
+                ]
+            else:
+                return [
+                    {"number": 2, "title": "Mock Issue", "state": "open", "html_url": f"https://github.com/{repository}/issues/2"}
+                ]
+
+        async def mock_search_commits(self, repository, query):
+            return [
+                {"sha": "abc123", "commit": {"message": "Mock commit"}, "html_url": f"https://github.com/{repository}/commit/abc123"}
+            ]
+
+        async def mock_get_commit_details(self, repository, sha):
+            return None
+
+        async def mock_get_issue_details(self, repository, issue_number):
+            return None
+
+        async def mock_get_pull_request_details(self, repository, pr_number):
+            return None
+
+        patchers = [
+            patch('src.contributions.GitHubContentService.get_file_content', mock_get_file_content),
+            patch('src.contributions.GitHubContentService.search_code', mock_search_code),
+            patch('src.contributions.GitHubContentService.search_issues_and_prs', mock_search_issues_and_prs),
+            patch('src.contributions.GitHubContentService.search_commits', mock_search_commits),
+            patch('src.contributions.GitHubContentService.get_commit_details', mock_get_commit_details),
+            patch('src.contributions.GitHubContentService.get_issue_details', mock_get_issue_details),
+            patch('src.contributions.GitHubContentService.get_pull_request_details', mock_get_pull_request_details),
+        ]
+        for p in patchers:
+            p.start()
         yield
+        for p in patchers:
+            p.stop()
 
 
 @pytest.fixture
