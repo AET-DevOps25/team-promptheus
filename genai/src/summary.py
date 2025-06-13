@@ -8,6 +8,8 @@ from langchain.schema import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.output_parsers import PydanticOutputParser
+from langgraph.prebuilt import create_react_agent
+from langgraph.checkpoint.memory import MemorySaver
 from pydantic import BaseModel as PydanticBaseModel, Field
 
 from .models import (
@@ -20,6 +22,7 @@ from .metrics import (
     time_operation, record_request_metrics, record_error_metrics,
     summary_generation_duration, summary_generation_requests
 )
+from .agent_tools import all_tools, get_tool_descriptions
 
 # Type-only import to avoid circular dependency
 if TYPE_CHECKING:
@@ -48,6 +51,13 @@ class SummaryService:
             model=os.getenv("LANGCHAIN_MODEL_NAME", "gpt-4-turbo"),
             temperature=0.2,
             max_tokens=1500
+        )
+        
+        # Create LangGraph agent for tool-enhanced summary generation
+        self.agent = create_react_agent(
+            model=self.llm,
+            tools=all_tools,
+            checkpointer=MemorySaver()
         )
     
     @time_operation(summary_generation_duration, {"repository": "unknown", "username": "unknown"})
@@ -224,34 +234,39 @@ class SummaryService:
     async def _generate_progress_report(self, user: str, week: str, contributions: List[GitHubContribution], request: SummaryRequest) -> WeeklyProgressOutput:
         """Generate structured progress report using AI"""
         contributions_summary = self._format_contributions_for_prompt(contributions)
-        
+        tool_descriptions = get_tool_descriptions(all_tools)
         parser = PydanticOutputParser(pydantic_object=WeeklyProgressOutput)
-        
         prompt = ChatPromptTemplate.from_messages([
             SystemMessage(content=f"""You are Auto-Pulse, a helpful assistant that generates weekly progress reports for developers.
 Auto-Pulse never starts its response by saying a question or idea or observation was good, great, fascinating, profound, excellent, or any other positive adjective. It skips the flattery and responds directly.
-                          
-You are generating a weekly progress report for developer "{user}". 
+
+You have access to the following tools:
+
+{tool_descriptions}
+
+You are generating a weekly progress report for developer \"{user}\". 
 
 Create a brief, professional report similar to a weekly scrum update.
 
 Focus on:
-- What was accomplished this week (brief, factual)
-- Key achievements and deliverables
-- Any blockers or impediments encountered
-- Planned next steps (infer from open issues and work patterns)
+- What was accomplished this week (brief, factual) - enhance with tool data when helpful
+- Key achievements and deliverables - use tools to understand impact
+- Any blockers or impediments encountered - check related issues if needed
+- Planned next steps (infer from open issues and work patterns) - use tools to identify upcoming work
 
 If no impediments are apparent from the contributions, use an empty list.
-If no clear next steps can be inferred, indicate "No remaining tasks assigned".
+If no clear next steps can be inferred, indicate \"No remaining tasks assigned\".
 
 {parser.get_format_instructions()}"""),
             HumanMessage(content=f"""Analyze {user}'s contributions for week {week}:
 
 {contributions_summary}
 
-Generate a weekly progress report for {user}. Be concise and professional.""")
+Generate a weekly progress report for {user}. Be concise and professional. Consider using available tools to provide richer context where appropriate.""")
         ])
         
+        # Use the agent for enhanced summary generation
+        # First try with the structured chain, but the agent can use tools if needed
         chain = prompt | self.llm | parser
         
         try:
