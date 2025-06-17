@@ -4,6 +4,14 @@ import { Link, Outlet } from "react-router-dom";
 import { useAuth } from "./auth";
 
 
+const navItems = [
+  { id: "home", label: "Home" },
+  { id: "about", label: "About" },
+  { id: "qa", label: "Q/A" },
+  { id: "search", label: "Search" },
+  { id: "logout", label: "Logout" },
+]
+
 export function Header() {
 
     const { user, loading, api } = useAuth();

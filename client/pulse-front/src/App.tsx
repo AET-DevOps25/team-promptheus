@@ -95,13 +95,13 @@ function ProtectedLayout() {
     console.log("impossible?")
   } */
 
+  
 
-
-    return loading==false ? 
-          ( 
-            (user == null ? (<Navigate to="/landing" replace />) : ( <> <Header /> <Outlet /> </>) ) 
-          ) :
-          (<> <div> loading...</div></>) 
+  return loading==false ? 
+        ( 
+          (user == null ? (<Navigate to="/landing" replace />) : ( <div><Header />   </div> ) ) 
+        ) :
+        (<> <div> loading...</div></>) 
 
 }
 

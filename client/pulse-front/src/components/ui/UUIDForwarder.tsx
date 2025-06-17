@@ -9,8 +9,8 @@ export function UUIDForwarder() {
   //const { uuid } = useParams();
   
     
-    const urlParams = new URLSearchParams(window.location.search);
-    const uuid = urlParams.get('uuid');
+  const urlParams = new URLSearchParams(window.location.search);
+  const uuid = urlParams.get('uuid');
 
 
   useEffect(() => {
