@@ -99,7 +99,7 @@ function ProtectedLayout() {
 
   return loading==false ? 
         ( 
-          (user == null ? (<Navigate to="/landing" replace />) : ( <div><Header />   </div> ) ) 
+          (user == null ? (<Navigate to="/landing" replace />) : ( <><div><Header />   </div></>) ) 
         ) :
         (<> <div> loading...</div></>) 
 

@@ -1,61 +1,55 @@
 
 import React from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "./auth";
 
 
 const navItems = [
-  { id: "home", label: "Home" },
-  { id: "about", label: "About" },
-  { id: "qa", label: "Q/A" },
-  { id: "search", label: "Search" },
-  { id: "logout", label: "Logout" },
+  { href: "/", label: "Home" },
+  { href: "/about", label: "About" },
+  { href: "/qna", label: "Q/A" },
+  { href: "/search", label: "Search" },
+  { href: "/selectcontent", label: "Select content"}
 ]
+
 
 export function Header() {
 
-    const { user, loading, api } = useAuth();
+    const { user, loading } = useAuth();
+    let location = useLocation();
 
     return (
-
       <div>
-      <header >
-        <div className="container mx-auto px-4 py-3">
-          <h1 className="text-xl font-light tracking-tight">
-            <span className="font-medium">Auto</span>Pulse
-          </h1>
+    <header className="w-full max-w-4xl mx-auto mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b">
+          
+          
+          <h1 className="text-3xl font-bold tracking-tight"><span className="font-medium">Auto</span>Pulse</h1>
+          
+          
+        <div> Repository: {user?.reponame}</div>
+
+          <nav className="flex flex-wrap gap-1">
+            {navItems.map((item) => (
+              <Link
+                to={item.href}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  location.pathname === item.href
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
         </div>
+    </header>
 
-<div>Using repository {user?.reponame}</div>
+        <Outlet />
 
-            <nav>
-            <ul style={{ listStyleType: "none", padding: 0 }}>
-                <li>
-                <Link to="/">Home</Link>
-                </li>
-                <li>
-                <Link to="/selectcontent">Select content for summary</Link>
-                </li>
-                <li>
-                <Link to="/summaryviewing">View summary for last week</Link>
-                </li>
-                <li>
-                <Link to="/qna">Q&A</Link>
-                </li>
-                <li>
-                <Link to="/search">Search</Link>
-                </li>
-                <li>
-                <Link to="/about">About</Link>
-                </li>
-            </ul>
-            </nav>
+    </div>
 
-      </header>
-
-      <Outlet />
-
-      </div>
     );
   }
 
