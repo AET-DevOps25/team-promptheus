@@ -320,7 +320,19 @@ export default function GitHubContributions() {
                         </Badge>
                         <span className="text-sm text-muted-foreground">{contribution.repo}</span>
                       </div>
-                      <Label
+                      
+                      <Button asChild>
+                        <a
+                          href={contribution.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          {contribution.title}
+                        </a>
+                      </Button>
+                      
+                      {/* <Label
                         htmlFor={`contribution-${contribution.id}`}
                         className={`font-medium ${isSelectedWeekCurrentWeek() ? "cursor-pointer hover:text-primary" : ""}`}
                       >
@@ -332,7 +344,7 @@ export default function GitHubContributions() {
                         >
                           {contribution.title}
                         </a>
-                      </Label>
+                      </Label> */}
                     </div>
                     <div className="hidden sm:flex items-center gap-1 text-sm text-muted-foreground">
                       <Clock className="h-3 w-3" />

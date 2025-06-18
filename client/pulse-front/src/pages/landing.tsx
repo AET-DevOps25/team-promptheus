@@ -7,13 +7,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 export function LandingPage() {
 
   const navigate = useNavigate()
-  
-  const handleStartClick = () => {
-      //navigate("/signup")
-      console.log("asfd");
-      //return <Navigate to="/signup" />;
-  }
-    
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         {/* Main Content (centered) */}
