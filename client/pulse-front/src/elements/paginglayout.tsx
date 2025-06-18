@@ -7,7 +7,7 @@ import { Header } from "@/elements/header";
 //import { Route, Routes } from "react-router-dom";
 import { BrowserRouter, Routes, Route } from "react-router";
 
-import { useAuth } from "./auth";
+import { useAuth } from "../contextproviders/authprovider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Navigate } from 'react-router-dom';
 

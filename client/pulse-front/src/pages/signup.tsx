@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import DisplayLinks from './displaylinks'
-import { useAuth } from '@/elements/auth'
+import { useAuth } from '@/contextproviders/authprovider'
 import { signupWithPat } from '@/services/api'
 
 

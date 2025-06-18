@@ -43,6 +43,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log(cookie);
             //setUser(JSON.parse(  //cookie.split('=')[1]));
             
+                (async () => { 
+                    // Do something before delay
+                    console.log('before delay')
+
+                    await new Promise(f => setTimeout(f, 1000));
+
+                    // Do something after
+                    console.log('after delay')
+                })();
+
+            
             setUser(  {
                     uuid: "7f2c97bd-fc21-4eb0-a3d8-f4ac7986ee64",
                     reponame: "reponames",

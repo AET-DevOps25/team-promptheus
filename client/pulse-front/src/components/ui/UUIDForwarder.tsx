@@ -1,4 +1,4 @@
-import { useAuth } from "@/elements/auth";
+import { useAuth } from "@/contextproviders/authprovider";
 import { fetchUser } from "@/services/api";
 import { updateCookie } from "@/services/cookieutils";
 import { useEffect } from "react";
