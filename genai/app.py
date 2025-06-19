@@ -16,8 +16,11 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Path
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
-from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 from src.meilisearch import MeilisearchService
 from src.metrics import initialize_service_info
@@ -150,6 +153,19 @@ def create_application() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    
+    
+    # Initialize OpenTelemetry
+    trace.set_tracer_provider(TracerProvider())
+    tracer = trace.get_tracer(__name__)
+    
+    # Set up OTLP exporter
+    otlp_exporter = OTLPSpanExporter(endpoint=os.environ.get('OTEL_EXPORTER_OTLP_TRACES_ENDPOINT', "http://localhost:4317/v1/traces"))
+    span_processor = BatchSpanProcessor(otlp_exporter)
+    trace.get_tracer_provider().add_span_processor(span_processor)
+    
+    # Instrument FastAPI with OpenTelemetry
+    FastAPIInstrumentor.instrument_app(app)
     
     return app
 
@@ -659,8 +675,6 @@ async def handle_general_exception(request, exc: Exception):
             timestamp=datetime.now(timezone.utc)
         ).model_dump(mode='json')
     )
-
-FastAPIInstrumentor.instrument_app(app)
 
 # Fallback initialization for TestClient usage
 def ensure_services_initialized():
