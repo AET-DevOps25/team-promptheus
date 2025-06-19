@@ -1,7 +1,19 @@
 import asyncio
+import os
 from datetime import datetime, timezone
 from typing import List, Dict, Optional, Any
 import structlog
+
+# LangChain imports for conversation history
+from langchain.schema import HumanMessage, SystemMessage, AIMessage
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.output_parsers import PydanticOutputParser
+from langchain_core.chat_history import BaseChatMessageHistory, InMemoryChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_core.runnables import RunnablePassthrough, RunnableParallel
+from langchain_core.messages import BaseMessage
+from pydantic import BaseModel as PydanticBaseModel, Field
 
 from .models import (
     GitHubContribution, ContributionType, QuestionRequest, QuestionResponse, 
@@ -10,25 +22,139 @@ from .models import (
 from .metrics import (
     time_operation, record_request_metrics, record_error_metrics,
     question_answering_duration, question_answering_requests, question_confidence_score, 
-    question_answering_errors
+    question_answering_errors, langchain_model_requests, langchain_model_duration, langchain_model_errors
 )
-from .contributions import ContributionsIngestionService
+from .ingest import ContributionsIngestionService
 
 logger = structlog.get_logger()
 
 
+class QuestionAnswerOutput(PydanticBaseModel):
+    """Structured output for question answering"""
+    answer: str = Field(description="Direct answer to the user's question based on the evidence")
+    confidence: float = Field(description="Confidence score between 0.0 and 1.0", ge=0.0, le=1.0)
+    reasoning_steps: List[str] = Field(description="Step-by-step reasoning process used to arrive at the answer")
+    suggested_actions: List[str] = Field(description="Actionable suggestions based on the analysis")
+
+
+class ConversationState(PydanticBaseModel):
+    """State for conversation context including evidence and metadata"""
+    user: str
+    week: str
+    question: str
+    evidence: List[QuestionEvidence]
+    focus_areas: List[str] = Field(default_factory=list)
+
+
 class QuestionAnsweringService:
-    """Service for answering questions about a user's weekly contributions using RAG"""
+    """Service for answering questions with LangChain's conversation history management"""
     
     def __init__(self, ingestion_service: ContributionsIngestionService):
         self.ingestion_service = ingestion_service
         self.questions_store: Dict[str, QuestionResponse] = {}
+        
+        # Simple in-memory conversation storage per user:week
+        self.conversation_stores: Dict[str, InMemoryChatMessageHistory] = {}
+        
+        # Initialize LangChain components
+        self.llm = ChatOpenAI(
+            model=os.getenv("LANGCHAIN_MODEL_NAME", "gpt-4-turbo"),
+            temperature=0.0,
+            max_tokens=20000
+        )
+        
+        # Create the conversation-aware chain
+        self.qa_chain = self._create_qa_chain()
+        self.qa_with_history = self._create_qa_with_history()
+    
+    def _get_session_history(self, session_id: str) -> BaseChatMessageHistory:
+        """Get or create in-memory chat message history for a session (user:week)"""
+        if session_id not in self.conversation_stores:
+            self.conversation_stores[session_id] = InMemoryChatMessageHistory()
+            logger.info("Created new conversation session", session_id=session_id)
+        return self.conversation_stores[session_id]
+    
+    def _create_qa_chain(self):
+        """Create the core Q&A chain without history"""
+        
+        # Create system prompt template with conversation history placeholder
+        system_prompt = """You are an AI assistant that analyzes developer contributions and answers questions about their work.
+
+You are analyzing contributions for developer "{user}" during week "{week}".
+
+Your task is to:
+1. Carefully analyze the provided evidence from their contributions
+2. Use conversation history to provide contextual answers and maintain conversational flow
+3. Answer the user's question directly and accurately based on the evidence
+4. Provide reasoning steps showing your analysis process
+5. Suggest actionable next steps when appropriate
+6. Assign a confidence score based on the quality and relevance of evidence
+
+Guidelines:
+- Be specific and reference actual contributions when possible
+- Reference previous questions/answers from the conversation when relevant
+- If the evidence doesn't fully support an answer, be honest about limitations
+- Focus on factual information from the contributions
+- Provide actionable insights when possible
+- Maintain a conversational tone that builds on previous interactions
+
+{focus_context}
+
+Evidence from {user}'s contributions in week {week}:
+
+{evidence_context}
+
+Return a JSON response with this exact structure:
+{{
+    "answer": "Direct answer to the user's question based on the evidence",
+    "confidence": 0.85,
+    "reasoning_steps": ["Step 1", "Step 2", "Step 3"],
+    "suggested_actions": ["Action 1", "Action 2"]
+}}"""
+
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", system_prompt),
+            MessagesPlaceholder(variable_name="history"),  # LangChain manages this
+            ("human", "{question}")
+        ])
+        
+        # Create parser
+        parser = PydanticOutputParser(pydantic_object=QuestionAnswerOutput)
+        
+        # Create the chain that returns structured output
+        structured_chain = prompt | self.llm | parser
+        
+        # Create a wrapper that returns just the answer for conversation history
+        def extract_answer(structured_output):
+            if hasattr(structured_output, 'answer'):
+                return structured_output.answer
+            return str(structured_output)
+        
+        # Chain that returns just the answer string for conversation history
+        conversation_chain = structured_chain | extract_answer
+        
+        # Store both chains - we'll use structured_chain directly in our implementation
+        self.structured_chain = structured_chain
+        
+        return conversation_chain
+    
+    def _create_qa_with_history(self):
+        """Create the Q&A chain with conversation history"""
+        return RunnableWithMessageHistory(
+            self.qa_chain,
+            self._get_session_history,
+            input_messages_key="question",
+            history_messages_key="history",
+        )
     
     @time_operation(question_answering_duration, {"user": "unknown", "week": "unknown"})
     async def answer_question(self, user: str, week: str, request: QuestionRequest) -> QuestionResponse:
-        """Answer a question about a specific user's week using RAG with embedded contributions"""
+        """Answer a question about a specific user's week using RAG with LangChain conversation history"""
         start_time = datetime.now(timezone.utc)
         question_id = generate_uuidv7()
+        
+        # Create session ID for this user/week combination
+        session_id = f"{user}:{week}"
         
         try:
             record_request_metrics(
@@ -40,8 +166,40 @@ class QuestionAnsweringService:
             # 1. Retrieve relevant contributions for this user's week
             relevant_contributions = await self._retrieve_relevant_contributions(user, week, request)
             
-            # 2. Generate answer using agentic RAG (placeholder)
-            answer_data = await self._generate_agentic_answer(user, week, request, relevant_contributions)
+            # 2. Prepare evidence context for the LLM
+            evidence, evidence_context = self._prepare_evidence_context(relevant_contributions)
+            
+            # 3. Prepare focus areas context
+            focus_context = ""
+            if request.context.focus_areas:
+                focus_context = f"\nPay special attention to these focus areas: {', '.join(request.context.focus_areas)}"
+            
+            # 4. Invoke the conversation-aware chain
+            config = {"configurable": {"session_id": session_id}}
+            
+            chain_input = {
+                "user": user,
+                "week": week,
+                "question": request.question,
+                "evidence_context": evidence_context,
+                "focus_context": focus_context
+            }
+            
+            logger.info("Calling LangChain conversation-aware Q&A",
+                       user=user,
+                       week=week,
+                       session_id=session_id,
+                       question=request.question[:100],
+                       evidence_count=len(evidence))
+            
+            # Use the conversation-aware chain to maintain history (returns just answer string)
+            conversation_answer = await self.qa_with_history.ainvoke(chain_input, config=config)
+            
+            # Also get the full structured response for our application
+            # Add empty history for the structured chain call
+            structured_input = chain_input.copy()
+            structured_input["history"] = []
+            llm_result = await self.structured_chain.ainvoke(structured_input)
             
             # Calculate response time
             response_time_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
@@ -51,13 +209,14 @@ class QuestionAnsweringService:
                 user=user,
                 week=week,
                 question=request.question,
-                answer=answer_data["answer"],
-                confidence=answer_data["confidence"],
-                evidence=answer_data["evidence"],
-                reasoning_steps=answer_data["reasoning_steps"],
-                suggested_actions=answer_data["suggested_actions"],
+                answer=llm_result.answer,
+                confidence=llm_result.confidence,
+                evidence=evidence,
+                reasoning_steps=llm_result.reasoning_steps,
+                suggested_actions=llm_result.suggested_actions,
                 asked_at=datetime.now(timezone.utc),
-                response_time_ms=response_time_ms
+                response_time_ms=response_time_ms,
+                conversation_id=session_id  # Use session_id as conversation_id
             )
             
             # Store the question for retrieval
@@ -67,7 +226,7 @@ class QuestionAnsweringService:
             question_confidence_score.labels(
                 user=user,
                 week=week
-            ).observe(answer_data["confidence"])
+            ).observe(llm_result.confidence)
             
             record_request_metrics(
                 question_answering_requests,
@@ -75,13 +234,14 @@ class QuestionAnsweringService:
                 "success"
             )
             
-            logger.info("Question answered successfully",
+            logger.info("Question answered successfully with conversation context",
                        question_id=question_id,
                        user=user,
                        week=week,
+                       session_id=session_id,
                        question_length=len(request.question),
-                       evidence_count=len(answer_data["evidence"]),
-                       confidence=answer_data["confidence"],
+                       evidence_count=len(evidence),
+                       confidence=llm_result.confidence,
                        response_time_ms=response_time_ms)
             
             return response
@@ -168,100 +328,64 @@ class QuestionAnsweringService:
             # Return empty list on error
             return []
     
-    async def _generate_agentic_answer(self, user: str, week: str, request: QuestionRequest, 
-                                     contributions: List[GitHubContribution]) -> Dict[str, Any]:
-        """Generate answer using agentic RAG with LangChain (placeholder)"""
-        await asyncio.sleep(0.5)  # Simulate LLM processing
-        
-        # This is where the agentic LangChain implementation would go
-        # For now, return a structured placeholder response
-        
-        if not contributions:
-            return {
-                "answer": f"I couldn't find any relevant contributions for {user} in week {week} to answer your question.",
-                "confidence": 0.1,
-                "evidence": [],
-                "reasoning_steps": [
-                    f"Searched through {user}'s contributions for week {week}",
-                    "No relevant contributions found matching the question"
-                ],
-                "suggested_actions": [
-                    f"Verify that {user} has contributions for week {week}",
-                    "Try rephrasing the question with different keywords"
-                ]
-            }
-        
-        # Create evidence from contributions
+    def _prepare_evidence_context(self, contributions: List[GitHubContribution]) -> tuple[List[QuestionEvidence], str]:
+        """Prepare evidence objects and formatted context for LLM"""
         evidence = []
-        for i, contrib in enumerate(contributions[:5]):  # Limit to top 5 evidence items
-            title = ""
-            if contrib.type == ContributionType.COMMIT:
-                title = contrib.message[:100]
-            elif contrib.type == ContributionType.PULL_REQUEST:
-                title = contrib.title
-            elif contrib.type == ContributionType.ISSUE:
-                title = contrib.title
-            elif contrib.type == ContributionType.RELEASE:
-                title = contrib.name
-            
-            # Extract relevant excerpt
+        evidence_context = []
+        
+        for i, contrib in enumerate(contributions):
+            title = self._extract_contribution_title(contrib)
             text_content = self.ingestion_service._extract_text_content(contrib)
-            excerpt = text_content[:200] + "..." if len(text_content) > 200 else text_content
             
             evidence.append(QuestionEvidence(
                 contribution_id=contrib.id,
                 contribution_type=contrib.type,
                 title=title,
-                excerpt=excerpt,
-                relevance_score=0.9 - (i * 0.1),  # Decreasing relevance
+                excerpt=text_content,
+                relevance_score=max(0.9 - (i * 0.1), 0.1),  # Decreasing relevance
                 timestamp=contrib.created_at
             ))
+            
+            # Format for LLM context
+            evidence_context.append(
+                f"Evidence {i+1} ({contrib.type.value}):\n"
+                f"Title: {title}\n"
+                f"Repository: {getattr(contrib, 'repository', 'unknown')}\n"
+                f"Content: {text_content}\n"
+                f"Timestamp: {contrib.created_at}\n"
+            )
         
-        # Generate contextual answer based on focus areas
-        focus_areas = request.context.focus_areas
-        reasoning_steps = [
-            f"Analyzed {len(contributions)} relevant contributions for {user} in week {week}",
-            f"Applied focus areas: {', '.join(focus_areas) if focus_areas else 'general analysis'}",
-            f"Found {len(evidence)} pieces of supporting evidence"
-        ]
-        
-        # Generate answer based on question type and focus areas
-        if any(keyword in request.question.lower() for keyword in ["blocker", "blocked", "impediment"]):
-            answer_parts = [
-                f"Based on {user}'s contributions in week {week}, I found {len(contributions)} relevant items.",
-                "Analyzing for blockers and impediments..."
-            ]
-            suggested_actions = [
-                "Review identified blockers with the team",
-                "Prioritize resolution of blocking issues"
-            ]
-        elif any(keyword in request.question.lower() for keyword in ["progress", "done", "completed"]):
-            answer_parts = [
-                f"{user} made {len(contributions)} contributions in week {week}.",
-                "Progress analysis shows active development across multiple areas."
-            ]
-            suggested_actions = [
-                "Continue current development pace",
-                "Consider documenting completed work"
-            ]
+        return evidence, "\n".join(evidence_context)
+
+    def _extract_contribution_title(self, contrib: GitHubContribution) -> str:
+        """Extract a meaningful title from a contribution"""
+        if contrib.type == ContributionType.COMMIT:
+            return contrib.message[:100] if contrib.message else "Untitled commit"
+        elif contrib.type == ContributionType.PULL_REQUEST:
+            return contrib.title or "Untitled pull request"
+        elif contrib.type == ContributionType.ISSUE:
+            return contrib.title or "Untitled issue"
+        elif contrib.type == ContributionType.RELEASE:
+            return contrib.name or f"Release {contrib.tag_name}" if hasattr(contrib, 'tag_name') else "Untitled release"
         else:
-            answer_parts = [
-                f"Based on {user}'s {len(contributions)} contributions in week {week},",
-                "I found relevant information to answer your question."
-            ]
-            suggested_actions = [
-                "Review the evidence for more details",
-                "Ask follow-up questions for specific areas"
-            ]
-        
-        return {
-            "answer": " ".join(answer_parts),
-            "confidence": 0.8 if len(contributions) > 2 else 0.6,
-            "evidence": evidence,
-            "reasoning_steps": reasoning_steps,
-            "suggested_actions": suggested_actions
-        }
+            return f"{contrib.type.value} contribution"
+    
+
     
     def get_question(self, question_id: str) -> Optional[QuestionResponse]:
         """Retrieve a previously asked question"""
-        return self.questions_store.get(question_id) 
+        return self.questions_store.get(question_id)
+    
+    def get_conversation_history(self, user: str, week: str) -> List[BaseMessage]:
+        """Get conversation history for a user/week"""
+        session_id = f"{user}:{week}"
+        if session_id in self.conversation_stores:
+            return self.conversation_stores[session_id].messages
+        return []
+    
+    def clear_conversation_history(self, user: str, week: str) -> None:
+        """Clear conversation history for a user/week"""
+        session_id = f"{user}:{week}"
+        if session_id in self.conversation_stores:
+            self.conversation_stores[session_id].clear()
+            logger.info("Cleared conversation history", user=user, week=week, session_id=session_id) 

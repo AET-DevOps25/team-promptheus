@@ -1,364 +1,488 @@
-import asyncio
-from datetime import datetime, timezone
-from typing import List, Dict, Optional, Any
+"""
+GitHub Content Service
+
+Service for fetching actual GitHub contribution content based on metadata.
+This service handles authentication and fetching of commits, pull requests, issues, and releases.
+"""
+
+import os
+from datetime import datetime, timezone, timedelta
+from typing import List, Optional
 import structlog
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from .models import (
-    GitHubContribution, ContributionType, ContributionsIngestRequest, 
-    ContributionsIngestResponse, IngestTaskResponse, IngestTaskStatus,
-    ContributionsStatusResponse, generate_uuidv7
+    ContributionType, ContributionMetadata, GitHubContribution,
+    CommitContribution, PullRequestContribution, IssueContribution, ReleaseContribution,
+    GitHubUser, CommitAuthor, CommitTree, CommitParent, CommitStats, CommitFile,
+    PullRequestRef
 )
-from .metrics import (
-    time_operation, record_request_metrics, record_error_metrics,
-    meilisearch_requests, meilisearch_duration
-)
-from .meilisearch import MeilisearchService
 
 logger = structlog.get_logger()
 
+# Configuration constants
+GITHUB_API_BASE_URL = "https://api.github.com"
+DEFAULT_TIMEOUT = 60
+REQUEST_RETRY_ATTEMPTS = 3
+RETRY_BACKOFF_FACTOR = 1
+ITEMS_PER_PAGE = 100
+USER_AGENT = "Prompteus-GenAI/1.0"
 
-class ContributionsIngestionService:
-    """Service for ingesting GitHub contributions and storing them with embeddings for [user, week] tuples"""
+# HTTP status codes that warrant retry
+RETRY_STATUS_CODES = [429, 500, 502, 503, 504]
+
+
+class GitHubContentService:
+    """Service for fetching GitHub contribution content from GitHub API"""
     
-    def __init__(self, meilisearch_service: Optional[MeilisearchService] = None):
-        # Store contributions by [user, week] key
-        self.contributions_store: Dict[str, Dict[str, GitHubContribution]] = {}
-        self.embedding_jobs: Dict[str, Dict[str, Any]] = {}
-        self.ingest_tasks: Dict[str, IngestTaskStatus] = {}  # Track ingestion tasks
-        self.meilisearch_service = meilisearch_service
+    def __init__(self, github_token: Optional[str] = None):
+        self.github_token = github_token or os.getenv("GITHUB_TOKEN") or os.getenv("GH_PAT")
+        
+        if not self.github_token:
+            logger.warning("No GitHub token provided - API requests will be rate limited")
+        
+        self.session = self._create_session()
+        self._configure_authentication()
     
-    def _get_user_week_key(self, user: str, week: str) -> str:
-        """Generate key for user-week tuple"""
-        return f"{user}:{week}"
-    
-    @time_operation(meilisearch_duration, {"operation": "ingest"})
-    async def ingest_contributions(self, request: ContributionsIngestRequest) -> ContributionsIngestResponse:
-        """Ingest contributions for a specific user's week and prepare them for embedding"""
-        try:
-            user_week_key = self._get_user_week_key(request.user, request.week)
-            
-            record_request_metrics(
-                meilisearch_requests,
-                {"operation": "ingest"},
-                "started"
-            )
-            
-            ingested_count = 0
-            failed_count = 0
-            embedding_job_id = generate_uuidv7()
-            
-            # Initialize storage for this user-week if not exists
-            if user_week_key not in self.contributions_store:
-                self.contributions_store[user_week_key] = {}
-            
-            # Process each contribution
-            for contribution in request.contributions:
-                try:
-                    # Store contribution with user-week context
-                    self.contributions_store[user_week_key][contribution.id] = contribution
-                    
-                    # Prepare for embedding (placeholder)
-                    await self._prepare_for_embedding(contribution, request.user, request.week)
-                    
-                    ingested_count += 1
-                    
-                except Exception as e:
-                    logger.error("Failed to ingest contribution",
-                               contribution_id=contribution.id,
-                               user=request.user,
-                               week=request.week,
-                               error=str(e))
-                    failed_count += 1
-            
-            # Create embedding job
-            self.embedding_jobs[embedding_job_id] = {
-                "user": request.user,
-                "week": request.week,
-                "status": "processing",
-                "total": len(request.contributions),
-                "processed": ingested_count,
-                "failed": failed_count,
-                "created_at": datetime.now(timezone.utc)
-            }
-            
-            # Start embedding process (placeholder)
-            asyncio.create_task(self._process_embeddings(embedding_job_id, request.contributions, request.user, request.week))
-            
-            record_request_metrics(
-                meilisearch_requests,
-                {"operation": "ingest"},
-                "success"
-            )
-            
-            logger.info("Contributions ingestion completed",
-                       user=request.user,
-                       week=request.week,
-                       ingested_count=ingested_count,
-                       failed_count=failed_count,
-                       embedding_job_id=embedding_job_id)
-            
-            return ContributionsIngestResponse(
-                user=request.user,
-                week=request.week,
-                ingested_count=ingested_count,
-                failed_count=failed_count,
-                embedding_job_id=embedding_job_id,
-                status="processing"
-            )
-            
-        except Exception as e:
-            record_request_metrics(
-                meilisearch_requests,
-                {"operation": "ingest"},
-                "error"
-            )
-            record_error_metrics(
-                meilisearch_requests,
-                {"operation": "ingest"},
-                type(e).__name__
-            )
-            logger.error("Contributions ingestion failed", 
-                        user=request.user, 
-                        week=request.week, 
-                        error=str(e))
-            raise
-    
-    async def _prepare_for_embedding(self, contribution: GitHubContribution, user: str, week: str) -> None:
-        """Prepare contribution for embedding by extracting text content with user-week context"""
-        # This is now handled by the Meilisearch service during indexing
-        logger.debug("Prepared contribution for embedding",
-                    contribution_id=contribution.id,
-                    user=user,
-                    week=week)
-    
-    def _extract_text_content(self, contribution: GitHubContribution) -> str:
-        """Extract searchable text content from contribution"""
-        content_parts = []
+    def _create_session(self) -> requests.Session:
+        """Create a requests session with retry strategy"""
+        session = requests.Session()
         
-        # Common fields
-        content_parts.append(f"Repository: {contribution.repository}")
-        content_parts.append(f"Author: {contribution.author}")
-        
-        if contribution.type == ContributionType.COMMIT:
-            content_parts.append(f"Commit: {contribution.message}")
-            for file in contribution.files:
-                content_parts.append(f"File: {file.filename}")
-                if file.patch:
-                    content_parts.append(f"Changes: {file.patch[:500]}")  # Truncate patch
-                    
-        elif contribution.type == ContributionType.PULL_REQUEST:
-            content_parts.append(f"Pull Request: {contribution.title}")
-            if contribution.body:
-                content_parts.append(f"Description: {contribution.body}")
-            
-            # Include comments
-            for comment in contribution.comments_data:
-                content_parts.append(f"Comment by {comment.user.login}: {comment.body}")
-            
-            # Include review comments
-            for review in contribution.reviews_data:
-                if review.body:
-                    content_parts.append(f"Review by {review.user.login}: {review.body}")
-                for comment in review.comments:
-                    content_parts.append(f"Review comment: {comment.body}")
-                    
-        elif contribution.type == ContributionType.ISSUE:
-            content_parts.append(f"Issue: {contribution.title}")
-            if contribution.body:
-                content_parts.append(f"Description: {contribution.body}")
-            
-            # Include comments
-            for comment in contribution.comments_data:
-                content_parts.append(f"Comment by {comment.user.login}: {comment.body}")
-                
-        elif contribution.type == ContributionType.RELEASE:
-            content_parts.append(f"Release: {contribution.name}")
-            if contribution.body:
-                content_parts.append(f"Release Notes: {contribution.body}")
-        
-        return "\n".join(content_parts)
-    
-    async def _process_embeddings(self, job_id: str, contributions: List[GitHubContribution], user: str, week: str) -> None:
-        """Process embeddings for contributions using Meilisearch"""
-        try:
-            if self.meilisearch_service:
-                # Index contributions in Meilisearch
-                result = await self.meilisearch_service.index_contributions(user, week, contributions)
-                
-                # Update job status
-                if job_id in self.embedding_jobs:
-                    self.embedding_jobs[job_id]["status"] = "completed"
-                    self.embedding_jobs[job_id]["completed_at"] = datetime.now(timezone.utc)
-                    self.embedding_jobs[job_id]["meilisearch_task_uid"] = result.get("task_uid")
-                    self.embedding_jobs[job_id]["indexed_count"] = result.get("indexed", 0)
-                    self.embedding_jobs[job_id]["failed_count"] = result.get("failed", 0)
-                
-                logger.info("Meilisearch indexing completed", 
-                           job_id=job_id, 
-                           user=user, 
-                           week=week,
-                           indexed_count=result.get("indexed", 0),
-                           failed_count=result.get("failed", 0))
-            else:
-                # Fallback: simulate processing without Meilisearch
-                await asyncio.sleep(1.0)
-                
-                if job_id in self.embedding_jobs:
-                    self.embedding_jobs[job_id]["status"] = "completed"
-                    self.embedding_jobs[job_id]["completed_at"] = datetime.now(timezone.utc)
-                
-                logger.info("Embedding processing completed (no Meilisearch)", 
-                           job_id=job_id, 
-                           user=user, 
-                           week=week)
-            
-        except Exception as e:
-            if job_id in self.embedding_jobs:
-                self.embedding_jobs[job_id]["status"] = "failed"
-                self.embedding_jobs[job_id]["error"] = str(e)
-            
-            logger.error("Embedding processing failed", 
-                        job_id=job_id, 
-                        user=user, 
-                        week=week, 
-                        error=str(e))
-    
-    async def get_contributions_status(self, user: str, week: str) -> ContributionsStatusResponse:
-        """Get status of contributions and embeddings for a specific user's week"""
-        user_week_key = self._get_user_week_key(user, week)
-        
-        total_contributions = len(self.contributions_store.get(user_week_key, {}))
-        
-        # Get embedded contributions count from Meilisearch
-        embedded_contributions = 0
-        meilisearch_status = "unknown"
-        
-        if self.meilisearch_service:
-            try:
-                embedded_contributions = await self.meilisearch_service.get_contributions_count(user, week)
-                health = await self.meilisearch_service.health_check()
-                meilisearch_status = health["status"]
-            except Exception as e:
-                logger.error("Failed to get Meilisearch status", error=str(e))
-                meilisearch_status = "unhealthy"
-        else:
-            # Fallback when no Meilisearch service
-            embedded_contributions = total_contributions
-            meilisearch_status = "not_configured"
-        
-        pending_embeddings = max(0, total_contributions - embedded_contributions)
-        
-        # Get last update time
-        last_updated = datetime.now(timezone.utc)
-        if user_week_key in self.contributions_store and self.contributions_store[user_week_key]:
-            last_updated = max(contrib.created_at for contrib in self.contributions_store[user_week_key].values())
-        
-        return ContributionsStatusResponse(
-            user=user,
-            week=week,
-            total_contributions=total_contributions,
-            embedded_contributions=embedded_contributions,
-            pending_embeddings=pending_embeddings,
-            last_updated=last_updated,
-            meilisearch_status=meilisearch_status
+        # Configure retry strategy
+        retry_strategy = Retry(
+            total=REQUEST_RETRY_ATTEMPTS,
+            backoff_factor=RETRY_BACKOFF_FACTOR,
+            status_forcelist=RETRY_STATUS_CODES,
         )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
+        
+        return session
     
-    def get_user_week_contributions(self, user: str, week: str) -> List[GitHubContribution]:
-        """Get all contributions for a specific user's week"""
-        user_week_key = self._get_user_week_key(user, week)
-        return list(self.contributions_store.get(user_week_key, {}).values())
+    def _configure_authentication(self) -> None:
+        """Configure GitHub API authentication headers"""
+        headers = {
+            "Accept": "application/vnd.github.v3+json",
+            "User-Agent": USER_AGENT
+        }
+        
+        if self.github_token:
+            headers["Authorization"] = f"token {self.github_token}"
+        
+        self.session.headers.update(headers)
     
-    async def start_ingestion_task(self, request: ContributionsIngestRequest) -> IngestTaskResponse:
-        """Start an asynchronous ingestion task for contributions"""
+    async def fetch_contributions(
+        self, 
+        repository: str, 
+        user: str, 
+        week: str, 
+        metadata_list: List[ContributionMetadata]
+    ) -> List[GitHubContribution]:
+        """Fetch actual contribution content based on metadata for selected contributions only"""
+        
+        # Only fetch contributions marked as selected
+        selected_metadata = [m for m in metadata_list if self._get_selected(m)]
+        
+        if not selected_metadata:
+            logger.info("No contributions selected for fetching", user=user, week=week)
+            return []
+        
+        logger.info("Fetching selected contributions", 
+                   user=user, 
+                   week=week, 
+                   repository=repository,
+                   total_metadata=len(metadata_list),
+                   selected_count=len(selected_metadata))
+        
+        contributions = []
+        week_start, week_end = self._parse_iso_week(week)
+        
+        # Group metadata by type for efficient fetching
+        metadata_by_type = {}
+        for metadata in selected_metadata:
+            contrib_type = self._get_type(metadata)
+            if contrib_type not in metadata_by_type:
+                metadata_by_type[contrib_type] = []
+            metadata_by_type[contrib_type].append(metadata)
+        
+        # Fetch each type of contribution
+        for contrib_type, type_metadata in metadata_by_type.items():
+            try:
+                if contrib_type == ContributionType.COMMIT:
+                    contributions.extend(await self._fetch_commits_by_metadata(repository, type_metadata))
+                elif contrib_type == ContributionType.PULL_REQUEST:
+                    contributions.extend(await self._fetch_pull_requests_by_metadata(repository, type_metadata))
+                elif contrib_type == ContributionType.ISSUE:
+                    contributions.extend(await self._fetch_issues_by_metadata(repository, type_metadata))
+                elif contrib_type == ContributionType.RELEASE:
+                    contributions.extend(await self._fetch_releases_by_metadata(repository, type_metadata))
+            except Exception as e:
+                logger.error("Error fetching contributions by type", 
+                           type=contrib_type, 
+                           error=str(e), 
+                           repository=repository)
+        
+        logger.info("Contributions fetched successfully", 
+                   user=user, 
+                   week=week, 
+                   repository=repository,
+                   fetched_count=len(contributions))
+        
+        return contributions
+    
+    def _get_id(self, metadata) -> str:
+        """Safely get ID from metadata (supports both dict and ContributionMetadata objects)"""
+        if hasattr(metadata, 'id'):
+            return metadata.id
+        elif isinstance(metadata, dict):
+            return metadata['id']
+        else:
+            raise ValueError(f"Cannot get id from metadata: {type(metadata)}")
+    
+    def _get_type(self, metadata):
+        """Safely get type from metadata (supports both dict and ContributionMetadata objects)"""
+        if hasattr(metadata, 'type'):
+            return metadata.type
+        elif isinstance(metadata, dict):
+            contrib_type = metadata['type']
+            # Handle string type conversion to enum
+            if isinstance(contrib_type, str):
+                return ContributionType(contrib_type.lower())
+            return contrib_type
+        else:
+            raise ValueError(f"Cannot get type from metadata: {type(metadata)}")
+    
+    def _get_selected(self, metadata) -> bool:
+        """Safely get selected from metadata (supports both dict and ContributionMetadata objects)"""
+        if hasattr(metadata, 'selected'):
+            return metadata.selected
+        elif isinstance(metadata, dict):
+            return metadata['selected']
+        else:
+            raise ValueError(f"Cannot get selected from metadata: {type(metadata)}")
+    
+    def _parse_iso_week(self, week: str) -> tuple[datetime, datetime]:
+        """Parse ISO week format (YYYY-WXX) and return start/end dates"""
+        year, week_num = week.split('-W')
+        year = int(year)
+        week_num = int(week_num)
+        
+        # Calculate week start and end dates (timezone-aware)
+        jan_1 = datetime(year, 1, 1, tzinfo=timezone.utc)
+        week_start = jan_1 + timedelta(weeks=week_num - 1)
+        week_end = week_start + timedelta(days=7)
+        
+        return week_start, week_end
+    
+    async def _fetch_commits_by_metadata(self, repository: str, metadata_list: List[ContributionMetadata]) -> List[GitHubContribution]:
+        """Fetch commits based on metadata list"""
+        commits = []
+        
+        for metadata in metadata_list:
+            try:
+                # Extract SHA from ID (format: "commit-{sha}" or just "{sha}")
+                sha = self._get_id(metadata).replace("commit-", "")
+                commit_detail = await self._get_commit_details(repository, sha)
+                if commit_detail:
+                    commits.append(commit_detail)
+            except Exception as e:
+                logger.error("Error fetching commit by metadata", 
+                           metadata_id=self._get_id(metadata), 
+                           error=str(e), 
+                           repository=repository)
+        
+        return commits
+    
+    async def _get_commit_details(self, repository: str, sha: str) -> Optional[GitHubContribution]:
+        """Get detailed information for a specific commit"""
         try:
-            task_id = generate_uuidv7()
-            created_at = datetime.now(timezone.utc)
+            url = f"{GITHUB_API_BASE_URL}/repos/{repository}/commits/{sha}"
+            response = self.session.get(url, timeout=DEFAULT_TIMEOUT)
             
-            # Create initial task status
-            task_status = IngestTaskStatus(
-                task_id=task_id,
-                user=request.user,
-                week=request.week,
-                status="queued",
-                total_contributions=len(request.contributions),
-                ingested_count=0,
-                failed_count=0,
-                created_at=created_at
-            )
-            
-            # Store the task
-            self.ingest_tasks[task_id] = task_status
-            
-            # Start the actual ingestion process asynchronously
-            asyncio.create_task(self._process_ingestion_task(task_id, request))
-            
-            logger.info("Ingestion task started",
-                       task_id=task_id,
-                       user=request.user,
-                       week=request.week,
-                       total_contributions=len(request.contributions))
-            
-            return IngestTaskResponse(
-                task_id=task_id,
-                user=request.user,
-                week=request.week,
-                status="queued",
-                total_contributions=len(request.contributions),
-                created_at=created_at
-            )
-            
-        except Exception as e:
-            logger.error("Failed to start ingestion task",
-                        user=request.user,
-                        week=request.week,
-                        error=str(e))
-            raise
-    
-    async def _process_ingestion_task(self, task_id: str, request: ContributionsIngestRequest) -> None:
-        """Process the actual ingestion task"""
-        try:
-            # Update task status to processing
-            if task_id in self.ingest_tasks:
-                self.ingest_tasks[task_id].status = "processing"
-                self.ingest_tasks[task_id].started_at = datetime.now(timezone.utc)
-            
-            # Perform the actual ingestion
-            result = await self.ingest_contributions(request)
-            
-            # Update task status to completed
-            if task_id in self.ingest_tasks:
-                completed_at = datetime.now(timezone.utc)
-                self.ingest_tasks[task_id].status = "completed"
-                self.ingest_tasks[task_id].ingested_count = result.ingested_count
-                self.ingest_tasks[task_id].failed_count = result.failed_count
-                self.ingest_tasks[task_id].embedding_job_id = result.embedding_job_id
-                self.ingest_tasks[task_id].completed_at = completed_at
+            if response.status_code == 200:
+                commit_data = response.json()
                 
-                # Calculate processing time
-                if self.ingest_tasks[task_id].started_at:
-                    processing_time = (completed_at - self.ingest_tasks[task_id].started_at).total_seconds() * 1000
-                    self.ingest_tasks[task_id].processing_time_ms = int(processing_time)
-            
-            logger.info("Ingestion task completed",
-                       task_id=task_id,
-                       user=request.user,
-                       week=request.week,
-                       ingested_count=result.ingested_count,
-                       failed_count=result.failed_count)
-            
+                # Transform to our format
+                stats_data = commit_data.get("stats", {"total": 0, "additions": 0, "deletions": 0})
+                return CommitContribution(
+                    id=f"commit-{sha}",
+                    type="commit",
+                    repository=repository,
+                    author=commit_data["author"]["login"] if commit_data.get("author") else "unknown",
+                    created_at=self._parse_datetime(commit_data["commit"]["author"]["date"]),
+                    url=commit_data["url"],
+                    sha=sha,
+                    message=commit_data["commit"]["message"],
+                    tree=CommitTree(
+                        sha=commit_data["commit"]["tree"]["sha"],
+                        url=commit_data["commit"]["tree"]["url"]
+                    ),
+                    parents=[
+                        CommitParent(sha=parent["sha"], url=parent["url"]) 
+                        for parent in commit_data.get("parents", [])
+                    ],
+                    author_info=CommitAuthor(
+                        name=commit_data["commit"]["author"]["name"],
+                        email=commit_data["commit"]["author"]["email"],
+                        date=self._parse_datetime(commit_data["commit"]["author"]["date"])
+                    ),
+                    committer=CommitAuthor(
+                        name=commit_data["commit"]["committer"]["name"],
+                        email=commit_data["commit"]["committer"]["email"],
+                        date=self._parse_datetime(commit_data["commit"]["committer"]["date"])
+                    ),
+                    stats=CommitStats(
+                        total=stats_data["total"],
+                        additions=stats_data["additions"],
+                        deletions=stats_data["deletions"]
+                    ),
+                    files=[
+                        CommitFile(
+                            filename=file["filename"],
+                            status=file["status"],
+                            additions=file.get("additions", 0),
+                            deletions=file.get("deletions", 0),
+                            changes=file.get("changes", 0),
+                            blob_url=file.get("blob_url", ""),
+                            raw_url=file.get("raw_url", ""),
+                            contents_url=file.get("contents_url", ""),
+                            patch=file.get("patch", "")
+                        )
+                        for file in commit_data.get("files", [])
+                    ]
+                )
+            else:
+                logger.warning("Failed to fetch commit details", 
+                             status_code=response.status_code,
+                             repository=repository,
+                             sha=sha)
         except Exception as e:
-            # Update task status to failed
-            if task_id in self.ingest_tasks:
-                self.ingest_tasks[task_id].status = "failed"
-                self.ingest_tasks[task_id].error_message = str(e)
-                self.ingest_tasks[task_id].completed_at = datetime.now(timezone.utc)
-            
-            logger.error("Ingestion task failed",
-                        task_id=task_id,
-                        user=request.user,
-                        week=request.week,
-                        error=str(e))
+            logger.error("Error fetching commit details", error=str(e), sha=sha, repository=repository)
+        
+        return None
     
-    def get_ingestion_task_status(self, task_id: str) -> Optional[IngestTaskStatus]:
-        """Get the status of an ingestion task"""
-        return self.ingest_tasks.get(task_id) 
+    async def _fetch_pull_requests_by_metadata(self, repository: str, metadata_list: List[ContributionMetadata]) -> List[GitHubContribution]:
+        """Fetch pull requests based on metadata list"""
+        pull_requests = []
+        
+        for metadata in metadata_list:
+            try:
+                # Extract PR number from ID (format: "pr-{number}" or just "{number}")
+                pr_number = self._get_id(metadata).replace("pr-", "")
+                pr_detail = await self._get_pull_request_details(repository, pr_number)
+                if pr_detail:
+                    pull_requests.append(pr_detail)
+            except Exception as e:
+                logger.error("Error fetching pull request by metadata", 
+                           metadata_id=self._get_id(metadata), 
+                           error=str(e), 
+                           repository=repository)
+        
+        return pull_requests
+    
+    async def _get_pull_request_details(self, repository: str, pr_number: str) -> Optional[GitHubContribution]:
+        """Get detailed information for a specific pull request"""
+        try:
+            url = f"{GITHUB_API_BASE_URL}/repos/{repository}/pulls/{pr_number}"
+            response = self.session.get(url, timeout=DEFAULT_TIMEOUT)
+            
+            if response.status_code == 200:
+                pr = response.json()
+                
+                # Transform to our format
+                return PullRequestContribution(
+                    id=f"pr-{pr['id']}",
+                    type="pull_request",
+                    repository=repository,
+                    author=pr["user"]["login"],
+                    created_at=self._parse_datetime(pr["created_at"]),
+                    url=pr["url"],
+                    number=pr["number"],
+                    title=pr["title"],
+                    body=pr.get("body", ""),
+                    state=pr["state"],
+                    locked=pr.get("locked", False),
+                    user=GitHubUser(
+                        login=pr["user"]["login"],
+                        id=pr["user"]["id"],
+                        type=pr["user"]["type"]
+                    ),
+                    head=PullRequestRef(
+                        label=pr["head"]["label"],
+                        ref=pr["head"]["ref"],
+                        sha=pr["head"]["sha"],
+                        repo={
+                            "name": pr["head"]["repo"]["name"] if pr["head"]["repo"] else "",
+                            "full_name": pr["head"]["repo"]["full_name"] if pr["head"]["repo"] else ""
+                        }
+                    ),
+                    base=PullRequestRef(
+                        label=pr["base"]["label"],
+                        ref=pr["base"]["ref"],
+                        sha=pr["base"]["sha"],
+                        repo={
+                            "name": pr["base"]["repo"]["name"],
+                            "full_name": pr["base"]["repo"]["full_name"]
+                        }
+                    ),
+                    merged=pr.get("merged", False),
+                    comments=pr.get("comments", 0),
+                    review_comments=pr.get("review_comments", 0),
+                    commits=pr.get("commits", 0),
+                    additions=pr.get("additions", 0),
+                    deletions=pr.get("deletions", 0),
+                    changed_files=pr.get("changed_files", 0),
+                    comments_data=[],
+                    reviews_data=[],
+                    commits_data=[],
+                    files_data=[]
+                )
+            else:
+                logger.warning("Failed to fetch pull request details", 
+                             status_code=response.status_code,
+                             repository=repository,
+                             pr_number=pr_number)
+        except Exception as e:
+            logger.error("Error fetching pull request details", 
+                        error=str(e), 
+                        pr_number=pr_number, 
+                        repository=repository)
+        
+        return None
+    
+    async def _fetch_issues_by_metadata(self, repository: str, metadata_list: List[ContributionMetadata]) -> List[GitHubContribution]:
+        """Fetch issues based on metadata list"""
+        issues = []
+        
+        for metadata in metadata_list:
+            try:
+                # Extract issue number from ID (format: "issue-{number}" or just "{number}")
+                issue_number = self._get_id(metadata).replace("issue-", "")
+                issue_detail = await self._get_issue_details(repository, issue_number)
+                if issue_detail:
+                    issues.append(issue_detail)
+            except Exception as e:
+                logger.error("Error fetching issue by metadata", 
+                           metadata_id=self._get_id(metadata), 
+                           error=str(e), 
+                           repository=repository)
+        
+        return issues
+    
+    async def _get_issue_details(self, repository: str, issue_number: str) -> Optional[GitHubContribution]:
+        """Get detailed information for a specific issue"""
+        try:
+            url = f"{GITHUB_API_BASE_URL}/repos/{repository}/issues/{issue_number}"
+            response = self.session.get(url, timeout=DEFAULT_TIMEOUT)
+            
+            if response.status_code == 200:
+                issue = response.json()
+                
+                # Skip pull requests (they appear in issues API)
+                if "pull_request" in issue:
+                    return None
+                
+                return IssueContribution(
+                    id=f"issue-{issue['id']}",
+                    type="issue",
+                    repository=repository,
+                    author=issue["user"]["login"],
+                    created_at=self._parse_datetime(issue["created_at"]),
+                    url=issue["url"],
+                    number=issue["number"],
+                    title=issue["title"],
+                    body=issue.get("body", ""),
+                    state=issue["state"],
+                    locked=issue.get("locked", False),
+                    user=GitHubUser(
+                        login=issue["user"]["login"],
+                        id=issue["user"]["id"],
+                        type=issue["user"]["type"]
+                    ),
+                    comments=issue.get("comments", 0),
+                    comments_data=[],
+                    events_data=[]
+                )
+            else:
+                logger.warning("Failed to fetch issue details", 
+                             status_code=response.status_code,
+                             repository=repository,
+                             issue_number=issue_number)
+        except Exception as e:
+            logger.error("Error fetching issue details", 
+                        error=str(e), 
+                        issue_number=issue_number, 
+                        repository=repository)
+        
+        return None
+    
+    async def _fetch_releases_by_metadata(self, repository: str, metadata_list: List[ContributionMetadata]) -> List[GitHubContribution]:
+        """Fetch releases based on metadata list"""
+        releases = []
+        
+        for metadata in metadata_list:
+            try:
+                # Extract release ID from ID (format: "release-{id}" or just "{id}")
+                release_id = self._get_id(metadata).replace("release-", "")
+                release_detail = await self._get_release_details(repository, release_id)
+                if release_detail:
+                    releases.append(release_detail)
+            except Exception as e:
+                logger.error("Error fetching release by metadata", 
+                           metadata_id=self._get_id(metadata), 
+                           error=str(e), 
+                           repository=repository)
+        
+        return releases
+    
+    async def _get_release_details(self, repository: str, release_id: str) -> Optional[GitHubContribution]:
+        """Get detailed information for a specific release"""
+        try:
+            url = f"{GITHUB_API_BASE_URL}/repos/{repository}/releases/{release_id}"
+            response = self.session.get(url, timeout=DEFAULT_TIMEOUT)
+            
+            if response.status_code == 200:
+                release = response.json()
+                
+                return ReleaseContribution(
+                    id=f"release-{release['id']}",
+                    type="release",
+                    repository=repository,
+                    author=release["author"]["login"],
+                    created_at=self._parse_datetime(release.get("published_at", release.get("created_at"))),
+                    url=release["url"],
+                    tag_name=release["tag_name"],
+                    target_commitish=release["target_commitish"],
+                    name=release["name"],
+                    body=release.get("body", ""),
+                    draft=release.get("draft", False),
+                    prerelease=release.get("prerelease", False),
+                    published_at=self._parse_datetime(release.get("published_at")) if release.get("published_at") else None,
+                    author_info=GitHubUser(
+                        login=release["author"]["login"],
+                        id=release["author"]["id"],
+                        type=release["author"]["type"]
+                    ),
+                    assets=[]  # Could be extended to include asset details
+                )
+            else:
+                logger.warning("Failed to fetch release details", 
+                             status_code=response.status_code,
+                             repository=repository,
+                             release_id=release_id)
+        except Exception as e:
+            logger.error("Error fetching release details", 
+                        error=str(e), 
+                        release_id=release_id, 
+                        repository=repository)
+        
+        return None
+    
+    def _parse_datetime(self, datetime_str: str) -> datetime:
+        """Parse GitHub API datetime string to datetime object"""
+        if datetime_str.endswith('Z'):
+            datetime_str = datetime_str[:-1] + '+00:00'
+        return datetime.fromisoformat(datetime_str) 

@@ -157,9 +157,71 @@ def get_test_release_contribution():
         "assets": []
     }
 
+def get_test_commit_metadata(selected=True):
+    """Get commit contribution metadata for the new API"""
+    return {
+        "type": "commit",
+        "id": "abc123def456",
+        "selected": selected
+    }
+
+
+def get_test_pull_request_metadata(selected=True):
+    """Get pull request contribution metadata for the new API"""
+    return {
+        "type": "pull_request", 
+        "id": "42",
+        "selected": selected
+    }
+
+
+def get_test_issue_metadata(selected=True):
+    """Get issue contribution metadata for the new API"""
+    return {
+        "type": "issue",
+        "id": "15", 
+        "selected": selected
+    }
+
+
+def get_test_release_metadata(selected=True):
+    """Get release contribution metadata for the new API"""
+    return {
+        "type": "release",
+        "id": "101",
+        "selected": selected
+    }
+
+
+def get_test_contributions_metadata_request(user="testuser", week="2024-W21", repository="test/repo", contribution_types=None, selected=True):
+    """Get a complete contributions request with metadata-only format (NEW API)"""
+    if contribution_types is None:
+        contribution_types = ["commit", "pull_request"]
+    
+    contributions = []
+    
+    if "commit" in contribution_types:
+        contributions.append(get_test_commit_metadata(selected=selected))
+    
+    if "pull_request" in contribution_types:
+        contributions.append(get_test_pull_request_metadata(selected=selected))
+    
+    if "issue" in contribution_types:
+        contributions.append(get_test_issue_metadata(selected=selected))
+    
+    if "release" in contribution_types:
+        contributions.append(get_test_release_metadata(selected=selected))
+    
+    return {
+        "user": user,
+        "week": week,
+        "repository": repository,
+        "contributions": contributions
+    }
+
 
 def get_test_contributions_request(user="testuser", week="2024-W21", contribution_types=None):
-    """Get a complete contributions request with multiple contribution types"""
+    """Get a complete contributions request with full contribution data (LEGACY - for backward compatibility)"""
     if contribution_types is None:
         contribution_types = ["commit", "pull_request"]
     
@@ -206,14 +268,22 @@ def get_minimal_commit_contribution():
             "date": "2024-05-20T10:00:00Z"
         },
         "committer": {
-            "name": "Test User",
+            "name": "Test User", 
             "email": "testuser@example.com",
             "date": "2024-05-20T10:00:00Z"
         },
         "stats": {
-            "total": 1,
-            "additions": 1,
-            "deletions": 0
+            "total": 5,
+            "additions": 3,
+            "deletions": 2
         },
         "files": []
+    }
+
+def get_minimal_commit_metadata(selected=True):
+    """Get minimal commit metadata for simple tests (NEW API)"""
+    return {
+        "type": "commit",
+        "id": "simple123",
+        "selected": selected
     } 
