@@ -24,8 +24,7 @@ import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { fetchGitHubContributions } from "@/lib/github"
-import type { GitHubContribution, GitHubUser } from "@/services/api"
+import { fetchGitHubContributions, type GitHubContribution, type GitHubUser } from "@/services/api"
 
 // Helper function to get start and end of a week
 const getWeekBounds = (date: Date) => {
@@ -165,7 +164,7 @@ export default function GitHubContributions() {
     setError(null)
 
     try {
-      const data = await fetchGitHubContributions(token, currentWeek.start, currentWeek.end)
+      const data = await fetchGitHubContributions("alinkcode", currentWeek.start, currentWeek.end)
       setUserData(data.user)
       setContributions(data.contributions)
     } catch (err) {
@@ -223,13 +222,13 @@ export default function GitHubContributions() {
                   </Button>
                 </div>
               )}
-              <div className="flex items-center gap-2">
+             {/*  <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={userData.avatar_url || "/placeholder.svg"} alt={userData.login} />
                   <AvatarFallback>{userData.login.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <span className="font-medium">{userData.login}</span>
-              </div>
+              </div> */}
             </div>
           )}
         </div>
@@ -320,19 +319,10 @@ export default function GitHubContributions() {
                         </Badge>
                         <span className="text-sm text-muted-foreground">{contribution.repo}</span>
                       </div>
+
+
                       
-                      <Button asChild>
-                        <a
-                          href={contribution.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="hover:underline"
-                        >
-                          {contribution.title}
-                        </a>
-                      </Button>
-                      
-                      {/* <Label
+                      <Label
                         htmlFor={`contribution-${contribution.id}`}
                         className={`font-medium ${isSelectedWeekCurrentWeek() ? "cursor-pointer hover:text-primary" : ""}`}
                       >
@@ -344,7 +334,7 @@ export default function GitHubContributions() {
                         >
                           {contribution.title}
                         </a>
-                      </Label> */}
+                      </Label>
                     </div>
                     <div className="hidden sm:flex items-center gap-1 text-sm text-muted-foreground">
                       <Clock className="h-3 w-3" />

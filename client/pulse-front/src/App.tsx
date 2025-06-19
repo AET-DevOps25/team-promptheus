@@ -34,7 +34,7 @@ function ProtectedLayout() {
       }
       else {
         console.log("Context detected. Loading a different layout!")
-        return  ( <> <Header />  </>);
+        return  ( <>  <GithubUserProvider>   <Header />   </GithubUserProvider>  </>);
       }
     } 
     if (loading == true) {
@@ -67,7 +67,6 @@ function App() {
 
 
 
-          <GithubUserProvider> { /* keeps track which gh user is selected */}
 
             <Route element={<ProtectedLayout />}>
               <Route path="/" element={<WelcomePage />} />
@@ -78,8 +77,7 @@ function App() {
               <Route path="/selectuser" element={<SelectUserPage />} />
             </Route>
 
-          </GithubUserProvider>
-
+          
           <Route 
             path="/:uuid" 
             element={<UUIDForwarder />} 

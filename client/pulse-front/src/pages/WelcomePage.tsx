@@ -4,10 +4,11 @@ import { GithubUserProviderContext } from "@/contextproviders/siteprovider";
 import { getFromCookie } from "@/services/cookieutils";
 import { createContext, useContext, useState } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 export function WelcomePage() {
 
-
+  const navigate = useNavigate();
   console.log("loading consumers");
   // loading context consumers
   const { user, loading} = useContext(AuthContext);
@@ -33,7 +34,7 @@ export function WelcomePage() {
   }
 
   const handleSelectUserButtonClick = () => {
-    <Navigate to="/landing" replace />
+    navigate('/selectuser', { replace: true });
   }
   
 
@@ -52,6 +53,8 @@ export function WelcomePage() {
       (
         <div>
           <p>You have not selected for which contributor you would like to use this service for. Please select a user:</p>
+          
+          
           <Button variant="outline" onClick={handleSelectUserButtonClick}>
             Select github user contributor
           </Button>

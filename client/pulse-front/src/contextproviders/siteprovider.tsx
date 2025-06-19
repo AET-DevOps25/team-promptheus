@@ -39,7 +39,4 @@ export function GithubUserProvider({ children }: { children: React.ReactNode }) 
     </GithubUserProviderContext.Provider>
   );
 
-
-
-
 }

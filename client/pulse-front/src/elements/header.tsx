@@ -1,10 +1,11 @@
 
-import React, { useEffect, useState } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contextproviders/authprovider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getLocalStorageItem } from "@/services/localstorageservice";
 import { User } from "lucide-react";
+import { GithubUserProviderContext } from "@/contextproviders/siteprovider";
 
 
 const navItems = [
@@ -19,18 +20,24 @@ const navItems = [
 export function Header() {
 
     const { user, loading } = useAuth();
+    const { selectedUser ,setSelectedUser} = useContext(GithubUserProviderContext);
+    const navigate = useNavigate();
     let location = useLocation();
-    const [selectedUser, setSelectedUser] = useState<{ login: string; avatar_url: string } | null>(null)
+
+    const handleAvatarClick = () => {
+      navigate('/selectuser', { replace: true });
+    }
+    //const [selectedUser, setSelectedUser] = useState<{ login: string; avatar_url: string } | null>(null)
     
 
-    // update react state
+/*     // update react state
     useEffect(() => {
       const saved = getLocalStorageItem("selectedGitHubUser") // localStorage.getItem("selectedGitHubUser")
       if (saved) {
         setSelectedUser(saved)
       }
     }, [])
-    
+     */
 
     return (
       <div>
@@ -61,7 +68,17 @@ export function Header() {
 
             {/* avatar */}
 
-            <div className="flex items-center gap-2">
+            <div
+              className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={handleAvatarClick}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  handleAvatarClick()
+                }
+              }}
+            >
             <Avatar className="h-8 w-8">
               {selectedUser ? (
                 <>

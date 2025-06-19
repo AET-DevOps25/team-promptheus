@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthContext } from "@/contextproviders/authprovider";
 import { GithubUserProviderContext } from "@/contextproviders/siteprovider";
-import type { GitHubContributor } from "@/services/api";
+import { fetchRepoContributors, type GitHubContributor } from "@/services/api";
 import { Avatar } from "@radix-ui/react-avatar";
 import { AlertCircle, Check, Github, Loader2, Users } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
@@ -17,7 +17,7 @@ export function SelectUserPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [contributors, setContributors] = useState<GitHubContributor[]>([]);
     const [error, setError] = useState<string | null>(null)
-
+    
     // load slower context
     const { user, loading} = useContext(AuthContext);
     const { selectedUser ,setSelectedUser} = useContext(GithubUserProviderContext);
@@ -34,7 +34,7 @@ export function SelectUserPage() {
         setError(null)
 
         try {
-            const contributorsList = await fetchRepoContributors(...)
+            const contributorsList = await fetchRepoContributors("thelinktoken", "gihubreponame")
             setContributors(contributorsList)
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to fetch contributors")
@@ -46,11 +46,15 @@ export function SelectUserPage() {
 
     const handleSelectUser = (user: GitHubContributor) => {
 
-        setSelectedUser(user)
+        setSelectedUser(user);
         //localStorage.setItem("selectedGitHubUser", JSON.stringify(user))
 
         // Dispatch custom event to notify other components
         // not needed. TODO: remove window.dispatchEvent(new Event("selectedUserChanged"))
+    }
+
+    const handleClearSelection = () => {
+        setSelectedUser(null);
     }
 
 
