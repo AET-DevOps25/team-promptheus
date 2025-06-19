@@ -7,15 +7,15 @@ import { Header } from "@/elements/header";
 //import { Route, Routes } from "react-router-dom";
 import { BrowserRouter, Routes, Route } from "react-router";
 
-import { useAuth } from "./auth";
+import { useAuth } from "../contextproviders/authprovider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Navigate } from 'react-router-dom';
 
-import search from "@/pages/search";
+import search from "@/pages/SearchPage";
 import selectcontent from "@/pages/selectcontent";
-import summaryviewing from "@/pages/summaryviewing";
-import questionandanswers from "@/pages/questionsandanswers";
-import about from "@/pages/about"
+import summaryviewing from "@/pages/SummaryViewing";
+import questionandanswers from "@/pages/QnAPage";
+import about from "@/pages/About"
 
 
 // Define props type for TypeScript (optional but recommended)
@@ -43,7 +43,7 @@ export function Layout( {children}:{children: React.ReactNode} ) {
     }
     if (!user) return <Navigate to="/nopage" />;
     
-
+    
     return (
 
         <div style={{ textAlign: "center" }}>

@@ -44,7 +44,7 @@ public class GitRepoService {
         String pat = patRequest.pat();
 
         //TODO: testing that repolink can be accessed with the pat
-        if (repoLink == null || pat == null || repoLink.isEmpty() || pat.isEmpty()) {
+        if (repoLink == null || pat == null || repoLink.isBlank() || pat.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "repo or pat are invalid");
         }
 
@@ -52,14 +52,14 @@ public class GitRepoService {
         GitRepo repoEntity = gitRepoRepository.findByRepositoryLink(repoLink);
         if (repoEntity == null) {
             // we create a (GitRepo) object
-            repoEntity = gitRepoRepository.save(new GitRepo(repoLink));
+            repoEntity = gitRepoRepository.save(GitRepo.builder().repositoryLink(repoLink).build());
             PersonalAccessToken patEntity = patRepository.save(new PersonalAccessToken(pat));
             pat2gitRepository.save(new PersonalAccessTokensGitRepository(patEntity, repoEntity));
         }
 
         // we create one link for developer and manager
-        Link devLinkEntity = linkRepository.save(new Link(repoEntity, false));
-        Link manLinkEntity = linkRepository.save(new Link(repoEntity, true));
+        Link devLinkEntity = linkRepository.save(Link.builder().gitRepositoryId(repoEntity.getId()).isMaintainer(false).build());
+        Link manLinkEntity = linkRepository.save(Link.builder().gitRepositoryId(repoEntity.getId()).isMaintainer(true).build());
 
         // we put the links together in a LinkConstruct and send it
         return LinkConstruct.builder().developerview(devLinkEntity.getId().toString()).stakeholderview(manLinkEntity.getId().toString()).build();
