@@ -16,7 +16,11 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import DisplayLinks from './displaylinks'
-import { LinkListProp } from "../components/LinkList";
+import { useAuth } from '@/contextproviders/authprovider'
+import { signupWithPat } from '@/services/api'
+
+
+
 
 const formSchema = z.object({
     patstr: z.string().startsWith('ghp_', {
@@ -32,12 +36,11 @@ function SignupMain() {
 
     const [displayinglinks, setDisplayinglinks] = useState(false);
     const [linklist, setLinkList] = useState(["",""]); // TODO wiiiee??
-    
 
     function ProfileForm() {
         // ...
-    
-        const [patsubmitted, setPatSubmitting] = useState(0)  
+        
+        const [patsubmitted, setPatSubmitting] = useState(0);
     
         const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -48,42 +51,26 @@ function SignupMain() {
     
     
     
-        function onSubmit(values: z.infer<typeof formSchema>) {
+        async function onSubmit(values: z.infer<typeof formSchema>) {
         // Do something with the form values.
         // ✅ This will be type-safe and validated.
     
-        setPatSubmitting(1)
-        
-        console.log("Submitting PAT")
-        
-        const pack = {
-            pat : values.patstr,
-            repolink: values.repolink
-        };
-    
-    /*     const [linkdev, setLinkdev] = useState([]);
-        const [linkman, setLinkman] = useState([]); */
-    
-    
-    
-            fetch('http://localhost:8090/api/providePAT' , 
-            {
-                method: "POST",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(pack)
-            }
-            ).then(response => {
-            if (!response.ok) {
-                setPatSubmitting(0);
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-            }).then(data => {
-            console.log(data);
+            setPatSubmitting(1)
+            
+            console.log("Submitting PAT")
+            
+            const pack = {
+                pat : values.patstr,
+                repolink: values.repolink
+            };
+            
+            const signupresponse = await signupWithPat( pack);
+            
+            
+            console.log(signupresponse);
             setPatSubmitting(0);
-            setLinkList([data[0], data[1]]);
+            setLinkList([signupresponse[0], signupresponse[1]]);
             setDisplayinglinks(true);
-            });
     
         
         }
@@ -135,21 +122,21 @@ function SignupMain() {
                     Setting up. Please wait...
                     </Button>
                     ) :
-                    ( <Button type="submit">Start summarising</Button>)
+                    ( <Button type="submit">Start</Button>)
                 }
             </form>
         </Form>
         )
     }
-  
-
-
+    
+    const asdf = ['asdf', 'sfda'] as [string, string];
+    
     // main content
     return (
         <div>
 
             <div className="flex flex-col items-center justify-center min-h-svh">
-            {displayinglinks ? <DisplayLinks links={ <LinkListProp links =  /> } /> : <ProfileForm></ProfileForm> }
+            {displayinglinks ? <DisplayLinks links={ linklist } /> : <ProfileForm></ProfileForm> }
             </div>
             
         </div>
@@ -161,4 +148,8 @@ function SignupMain() {
 
 
 export default SignupMain
+
+function handleAsyncErrors(signupWithPat: (pack: any) => Promise<any>, pack: any) {
+    throw new Error('Function not implemented.')
+}
 
