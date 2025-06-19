@@ -19,15 +19,23 @@ spec:
         ports:
         - containerPort: 8080
         livenessProbe:
-          exec:
-            command:
-            - node
-            - -e
-            - "fetch('http://localhost:8080/').then(x=>x.status==200?process.exit(0):process.exit(1)).catch(()=>process.exit(1))"
-          initialDelaySeconds: 1
-          periodSeconds: 10
-          timeoutSeconds: 3
-          failureThreshold: 5
+            exec:
+                command:
+                - curl
+                - -f
+                - http://localhost:8080/actuator/health
+
+          #livenessProbe:
+          #  exec:
+          #    command:
+          #    - node
+          #    - -e
+          #    - "fetch('http://localhost:8080/').then(x=>x.status==200?process.exit(0):process.exit(1)).catch(()=>process.exit(1))"
+            initialDelaySeconds: 1
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 5
+          
         readinessProbe:
           exec:
             command:

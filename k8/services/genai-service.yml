@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: genai-service
+  namespace: promptheus
+spec:
+  selector:
+    app: genai
+  ports:
+    - protocol: TCP
+      port: 3003
+      targetPort: 3003
