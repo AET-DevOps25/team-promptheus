@@ -18,7 +18,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/${{ inputs.image_suffix }}
+  IMAGE_NAME: ${{ github.repository_owner }}/promptheus-${{ inputs.image_suffix }}
 
 jobs:
   build:
