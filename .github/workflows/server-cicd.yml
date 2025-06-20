@@ -25,6 +25,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
       - name: ${{ matrix.gradleCommand }} with Gradle
         run: gradle ${{ matrix.gradleCommand }}
+        working-directory: server
   docker-build:
     uses: ./.github/workflows/_docker-build.yml
     needs:
