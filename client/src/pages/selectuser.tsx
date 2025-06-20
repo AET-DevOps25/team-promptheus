@@ -17,7 +17,7 @@ export function SelectUserPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [contributors, setContributors] = useState<GitHubContributor[]>([]);
     const [error, setError] = useState<string | null>(null)
-    
+
     // load slower context
     const { user, loading} = useContext(AuthContext);
     const { selectedUser ,setSelectedUser} = useContext(GithubUserProviderContext);

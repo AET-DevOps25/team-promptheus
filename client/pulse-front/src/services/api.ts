@@ -179,63 +179,7 @@ const generateMockIssuesAndPRs = (startDate: Date, endDate: Date): GitHubIssue[]
 
 ///////////////////////////////////////////////////////////////
 
-
-
-
-
-// Function to fetch user profile (mocked)
-export async function fetchGitHubUser(token: string): Promise<GitHubUser> {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 500))
-
-  return {
-    login: "current_user",
-    avatar_url: `https://avatars.githubusercontent.com/u/12345?v=4`,
-    name: "Current User",
-  }
-}
-
-// Function to fetch user repositories (mocked)
-export async function fetchUserRepos(token: string): Promise<GitHubRepo[]> {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 300))
-
-  return mockRepos
-}
-
-// Function to fetch commits for a repository within a date range (mocked)
-export async function fetchRepoCommits(
-  token: string,
-  repoFullName: string,
-  since: string,
-  until: string,
-): Promise<GitHubCommit[]> {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 400))
-
-  const startDate = new Date(since)
-  const endDate = new Date(until)
-
-  return generateMockCommits(startDate, endDate)
-}
-
-// Function to fetch issues and PRs for a repository within a date range (mocked)
-export async function fetchRepoIssuesAndPRs(
-  token: string,
-  repoFullName: string,
-  since: string,
-): Promise<GitHubIssue[]> {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 350))
-
-  const startDate = new Date(since)
-  const endDate = new Date()
-
-  return generateMockIssuesAndPRs(startDate, endDate)
-}
-
-// Function to fetch contributors for a repository (mocked)
-export async function fetchRepoContributors(token: string, repoFullName: string): Promise<GitHubContributor[]> {
+export async function fetchRepoContributors( repoFullName: string): Promise<GitHubContributor[]> {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 600))
 
@@ -248,20 +192,19 @@ export async function fetchRepoContributors(token: string, repoFullName: string)
   }))
 }
 
+export async function fetchRepoCommits(
+  repoFullName: string,
+  since: string,
+  until: string,
+): Promise<GitHubCommit[]> {
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 400))
 
+  const startDate = new Date(since)
+  const endDate = new Date(until)
 
-
-
-
-
-
-
-
-
-
-
-////////////////////////////////////////////////////////////////
-
+  return generateMockCommits(startDate, endDate)
+}
 
 //sign-up for a repository
 export async function signupWithPat(pack: any){
@@ -297,89 +240,6 @@ export async function fetchUser(uuid: string) {
   }
   return response.json();
   
-}
-
-
-
-
-
-export interface GitHubData {
-  user: GitHubUser
-  contributions: GitHubContribution[]
-}
-
-export async function fetchGitHubContributions(uuid: string, startDate: Date, endDate: Date): Promise<GitHubData> {
-  try {
-    // Format dates for GitHub API
-    const sinceDate = formatDateForGitHub(startDate)
-    const untilDate = formatDateForGitHub(endDate)
-
-    const token = "asdfdsaf"; // TODO: away!
-    // Fetch user data using mocked function
-    const user = await fetchGitHubUser(token)
-
-    // Fetch repositories using mocked function
-    const repos = await fetchUserRepos(token)
-
-    // Collect all contributions
-    const contributions: GitHubContribution[] = []
-
-    // Process each repository to get contributions
-    for (const repo of repos.slice(0, 5)) {
-      // Limit to 5 repos to avoid rate limiting
-      try {
-        // Fetch commits using mocked function
-        const commits = await fetchRepoCommits(token, repo.full_name, sinceDate, untilDate)
-
-        // Add commits to contributions
-        for (const commit of commits) {
-          if (isDateInRange(commit.commit.author.date, startDate, endDate)) {
-            contributions.push({
-              id: commit.sha,
-              type: "commit",
-              repo: repo.name,
-              repoFullName: repo.full_name,
-              title: commit.commit.message.split("\n")[0], // First line of commit message
-              date: commit.commit.author.date,
-              url: commit.html_url,
-            })
-          }
-        }
-
-        // Fetch issues and PRs using mocked function
-        const issuesAndPRs = await fetchRepoIssuesAndPRs(token, repo.full_name, sinceDate)
-
-        // Add issues and PRs to contributions
-        for (const item of issuesAndPRs) {
-          if (isDateInRange(item.created_at, startDate, endDate)) {
-            contributions.push({
-              id: `issue-${item.id}`,
-              type: item.pull_request ? "pull_request" : "issue",
-              repo: repo.name,
-              repoFullName: repo.full_name,
-              title: item.title,
-              date: item.created_at,
-              url: item.html_url,
-            })
-          }
-        }
-      } catch (error) {
-        console.error(`Error processing repo ${repo.name}:`, error)
-        // Continue with other repos
-      }
-    }
-
-    // Sort contributions by date (newest first)
-    contributions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-
-    return {
-      user,
-      contributions,
-    }
-  } catch (error) {
-    console.error("Error in server action:", error)
-    throw error
-  }
 }
 
 

@@ -48,18 +48,6 @@ public class GitRepoController {
         return ResponseEntity.ok(lc);
     }
 
-    @PostMapping("/pingpost")
-    public ResponseEntity<String> testpong(@RequestBody PATConstruct patRequest) {
-        //meterRegistry.counter("pat_registration_total").increment();
-        return ResponseEntity.ok("pong");
-    }
-
-
-    @GetMapping("/ping")
-    public ResponseEntity<String> testping() { // TODO: to be removed
-        return ResponseEntity.ok("pong");
-    }
-
 
     @Operation(summary = "Get the git repository information", description = "Auth is handled via the provided UUID")
     @ApiResponses(value = {
@@ -126,7 +114,7 @@ public class GitRepoController {
                 description = "Question to create",
                 required = true,
                 content = @Content(
-                        mediaType = "text/plain",
+                        mediaType = "application/json",
                         schema = @Schema(implementation = QuestionSubmission.class),
                         examples = @ExampleObject(value = "{ \"question\": \"Why are these developer raving about 42?\" }"))
                 )
