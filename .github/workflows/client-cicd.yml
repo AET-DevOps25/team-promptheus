@@ -1,4 +1,4 @@
-name: Webclient CI/CD
+name: Client CI/CD
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  webclient-linting:
+  client-linting:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,14 +18,14 @@ jobs:
       - run: pnpm run lint
         working-directory: client
       - run: pnpm run type-check
-        working-directory: webclient
-  webclient-build:
+        working-directory: client
+  client-build:
     uses: ./.github/workflows/_docker-build.yml
     needs:
-      - webclient-linting
+      - client-linting
     with:
-      image_suffix: webclient
-      context: ./webclient
+      image_suffix: client
+      context: ./client
       dockerfile: Dockerfile
     permissions:
       id-token: write
