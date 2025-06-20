@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "type-refresh-server": "openapi-typescript ../server/openapi.json --output src/services/server.ts --export-type --immutable-types --support-array-length",
+    "type-refresh-genai": "openapi-typescript ../genai/openapi.json --output src/services/genai.ts --export-type --immutable-types --support-array-length"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -28,6 +30,7 @@
     "zod": "^3.24.4"
   },
   "devDependencies": {
+    "openapi-typescript": "6.7.6",
     "@eslint/js": "^9.25.0",
     "@types/node": "^22.15.18",
     "@types/react": "^19.1.2",
