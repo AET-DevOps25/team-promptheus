@@ -111,7 +111,7 @@ public class GitRepoController {
                 description = "Question to create",
                 required = true,
                 content = @Content(
-                        mediaType = "text/plain",
+                        mediaType = "application/json",
                         schema = @Schema(implementation = QuestionSubmission.class),
                         examples = @ExampleObject(value = "{ \"question\": \"Why are these developer raving about 42?\" }"))
                 )
