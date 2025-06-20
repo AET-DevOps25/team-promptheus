@@ -23,8 +23,8 @@ jobs:
           java-version: 17
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-      - name: Build with Gradle
-        run: gradle $gradleCommand
+      - name: ${{ matrix.gradleCommand }} with Gradle
+        run: gradle ${{ matrix.gradleCommand }}
   docker-build:
     uses: ./.github/workflows/_docker-build.yml
     needs:
