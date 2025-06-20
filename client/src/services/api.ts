@@ -1,5 +1,5 @@
 import type {operations as serverOps} from "./server"
-import type {operations as genaiOps} from "./genai"
+//import type {operations as genaiOps} from "./genai"
 
 type NewRepoResponse = serverOps["createFromPAT"]["responses"][200]["content"]["application/json"];
 export async function createFromPAT(repoLink:string,pat:string):Promise<NewRepoResponse>{

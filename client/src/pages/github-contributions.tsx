@@ -1,6 +1,5 @@
 "use client"
 
-import type React from "react"
 
 import { useState, useEffect } from "react"
 import {
@@ -20,12 +19,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { fetchGitHubContributions } from "@/lib/github"
-import type { GitHubContribution, GitHubUser } from "@/services/api"
 
 // Helper function to get start and end of a week
 const getWeekBounds = (date: Date) => {
@@ -165,9 +160,12 @@ export default function GitHubContributions() {
     setError(null)
 
     try {
-      const data = await fetchGitHubContributions(token, currentWeek.start, currentWeek.end)
+      /*
+      const data = await fetchGitHubContributions("alinkcode", currentWeek.start, currentWeek.end)
       setUserData(data.user)
       setContributions(data.contributions)
+       */
+       throw "fetchGitHubContributions is only a stub"
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch GitHub data")
     } finally {
