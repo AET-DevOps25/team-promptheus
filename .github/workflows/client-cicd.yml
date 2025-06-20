@@ -15,9 +15,9 @@ jobs:
       - uses: actions/checkout@v4
       - run:  npm i --frozen-lockfile --strict-peer-dependencies
         working-directory: client
-      - run: pnpm run lint
+      - run: npm run lint
         working-directory: client
-      - run: pnpm run type-check
+      - run: npm run type-check
         working-directory: client
   client-build:
     uses: ./.github/workflows/_docker-build.yml
