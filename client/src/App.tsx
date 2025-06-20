@@ -1,18 +1,16 @@
 
 import './App.css'
-import React, { useContext } from "react";
-import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route, Outlet } from "react-router";
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { useContext } from "react";
+import { BrowserRouter, Routes, Route } from "react-router";
+import { Navigate } from 'react-router-dom';
 import LandingPage from './pages/landing'
-import { AuthContext, AuthProvider, useAuth } from './contextproviders/authprovider';
+import { AuthContext, AuthProvider } from './contextproviders/authprovider';
 import { UUIDForwarder } from './components/ui/UUIDForwarder';
 import { Header } from './elements/header';
 import { About } from './pages/About';
 import SignupMain from './pages/signup';
 import { WelcomePage } from './pages/WelcomePage';
 import { SummaryViewing } from './pages/SummaryViewing';
-import { Search } from 'lucide-react';
 import { QnAPage } from './pages/QnAPage';
 import GitHubContributions from './pages/github-contributions';
 import { NoPage } from './pages/nopage';

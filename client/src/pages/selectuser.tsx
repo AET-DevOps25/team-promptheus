@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthContext } from "@/contextproviders/authprovider";
 import { GithubUserProviderContext } from "@/contextproviders/siteprovider";
-import type { GitHubContributor } from "@/services/api";
+import { fetchRepoContributors, type GitHubContributor } from "@/services/api";
 import { Avatar } from "@radix-ui/react-avatar";
 import { AlertCircle, Check, Github, Loader2, Users } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
@@ -34,7 +34,7 @@ export function SelectUserPage() {
         setError(null)
 
         try {
-            const contributorsList = await fetchRepoContributors(...)
+            const contributorsList = await fetchRepoContributors("TODO")
             setContributors(contributorsList)
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to fetch contributors")
@@ -73,7 +73,7 @@ export function SelectUserPage() {
                         <Check className="h-3 w-3" />
                         Selected: {selectedUser.login}
                     </Badge>
-                    <Button variant="outline" size="sm" onClick={handleClearSelection}>
+                    <Button variant="outline" size="sm" onClick={()=>handleSelectUser(selectedUser)}>
                         Clear
                     </Button>
                     </div>
