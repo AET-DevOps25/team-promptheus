@@ -8,9 +8,9 @@
     "type-check": "tsc",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "preview": "vite preview",
     "type-refresh-server": "openapi-typescript ../server/openapi.json --output src/services/server.ts --export-type --immutable-types --support-array-length",
     "type-refresh-genai": "openapi-typescript ../genai/openapi.json --output src/services/genai.ts --export-type --immutable-types --support-array-length"
-    "preview": "vite preview"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
