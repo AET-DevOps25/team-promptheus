@@ -130,10 +130,10 @@ services:
     build:
       context: frontend
     ports:
-      - 8080:${CLIENT_PORT:-8080}
+      - 8081:${CLIENT_PORT:-8081}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "-e 'fetch(`http://localhost:${CLIENT_PORT:-8080}/`).then(x=>x.status==200?process.exit(0):process.exit(1)).catch(()=>process.exit(1))'"]
+      test: ["CMD", "node", "-e", "-e 'fetch(`http://localhost:${CLIENT_PORT:-8081}/`).then(x=>x.status==200?process.exit(0):process.exit(1)).catch(()=>process.exit(1))'"]
       interval: 10s
       timeout: 3s
       retries: 5
