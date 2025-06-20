@@ -22,10 +22,6 @@ pytest_plugins = ('pytest_asyncio',)
 @pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def meilisearch_service():
     """Create and initialize a real Meilisearch service for testing"""
-    # Set test environment variables
-    os.environ["MEILISEARCH_URL"] = "http://meilisearch:7700"
-    os.environ["MEILI_MASTER_KEY"] = "CHANGE_ME_CHANGE_ME"
-    
     service = MeilisearchService()
     
     try:
