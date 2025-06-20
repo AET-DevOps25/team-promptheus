@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthContext } from "@/contextproviders/authprovider";
 import { GithubUserProviderContext } from "@/contextproviders/siteprovider";
-import { fetchRepoContributors, type GitHubContributor } from "@/services/api";
 import { Avatar } from "@radix-ui/react-avatar";
 import { AlertCircle, Check, Github, Loader2, Users } from "lucide-react";
 import { useContext, useEffect, useState } from "react";

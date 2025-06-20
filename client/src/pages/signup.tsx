@@ -1,5 +1,5 @@
 "use client"
-import { useState } from 'react'
+import { useState, type Dispatch, type SetStateAction } from 'react'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -24,8 +24,8 @@ const formSchema = z.object({
 })
 
 interface SignupForm{
-  setDeveloperView: (link: string)=>void,
-  setManagerView: (link: string)=>void,
+  setDeveloperView: Dispatch<SetStateAction<string>>,
+  setManagerView: Dispatch<SetStateAction<string>>,
 }
 
 function ProfileForm({setDeveloperView,setManagerView}:SignupForm) {
@@ -104,8 +104,8 @@ function ProfileForm({setDeveloperView,setManagerView}:SignupForm) {
 }
 
 export default function SignupMain() {
-    const [developerView, setDeveloperView] = useState(null);
-    const [managerView, setManagerView] = useState(null);
+    const [developerView, setDeveloperView] = useState<string>("");
+    const [managerView, setManagerView] = useState<string>("");
     
     return (
         <div>
