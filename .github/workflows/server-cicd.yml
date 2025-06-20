@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        gradleCommand: [build, test]
+        gradleCommand: [test, bootJar]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Java
