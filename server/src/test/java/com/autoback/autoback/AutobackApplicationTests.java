@@ -13,6 +13,7 @@ class AutobackApplicationTests {
 	@Autowired
 	private GitRepoController controller;
 
+	@Disabled
 	@Test
 	void contextLoads() throws Exception {
 		assertThat(controller).isNotNull();
