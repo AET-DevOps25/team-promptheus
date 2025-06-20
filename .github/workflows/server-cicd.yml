@@ -24,7 +24,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: Build with Gradle
-        run: ./gradlew ${gradleCommand}
+        run: gradle ${gradleCommand}
   docker-build:
     uses: ./.github/workflows/_docker-build.yml
     needs:
