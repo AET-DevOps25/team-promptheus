@@ -1,0 +1,51 @@
+name: Genai CI/CD
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, reopened, synchronize ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  genai-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build test image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./genai
+          file: ./genai/Dockerfile
+          push: false
+          tags: genai-test:latest
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=min
+      
+      - name: Run tests in Docker container
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/genai:/app \
+            -w /app \
+            genai-test:latest \
+            pytest -v --tb=short
+
+  genai-build:
+    needs:
+      - genai-test
+    uses: ./.github/workflows/_docker-build.yml
+    with:
+      image_suffix: genai
+      context: ./genai
+      dockerfile: Dockerfile
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+      attestations: write

@@ -49,12 +49,12 @@ class GitRepoServiceTest {
         String pat = "ghp_validPatToken123";
         PATConstruct patRequest = new PATConstruct(repoLink, pat);
 
-        GitRepo savedRepo = new GitRepo(repoLink);
+        GitRepo savedRepo = GitRepo.builder().repositoryLink(repoLink).build();
         UUID devLinkUuid = UUID.randomUUID();
         UUID managerLinkUuid = UUID.randomUUID();
         
-        Link devLink = new Link(savedRepo, true);
-        Link managerLink = new Link(savedRepo, false);
+        Link devLink = new Link(UUID.randomUUID(),savedRepo.getId(), true);
+        Link managerLink = new Link(UUID.randomUUID(),savedRepo.getId(), false);
         // Set UUIDs for the links
         setId(devLink, devLinkUuid);
         setId(managerLink, managerLinkUuid);
@@ -90,12 +90,12 @@ class GitRepoServiceTest {
         String pat = "ghp_validPatToken123";
         PATConstruct patRequest = new PATConstruct(repoLink, pat);
 
-        GitRepo existingRepo = new GitRepo(repoLink);
+        GitRepo existingRepo = GitRepo.builder().repositoryLink(repoLink).build();
         UUID devLinkUuid = UUID.randomUUID();
         UUID managerLinkUuid = UUID.randomUUID();
         
-        Link devLink = new Link(existingRepo, true);
-        Link managerLink = new Link(existingRepo, false);
+        Link devLink = new Link(UUID.randomUUID(), existingRepo.getId(), true);
+        Link managerLink = new Link(UUID.randomUUID(), existingRepo.getId(), false);
         setId(devLink, devLinkUuid);
         setId(managerLink, managerLinkUuid);
 
@@ -162,7 +162,7 @@ class GitRepoServiceTest {
                 .repositoryLink("https://github.com/test/repo")
                 .build();
 
-        Link validLink = new Link(validRepo, true);
+        Link validLink = new Link(UUID.randomUUID(),validRepo.getId(), true);
         setId(validLink, validAccessId);
 
         when(linkRepository.findById(validAccessId)).thenReturn(Optional.of(validLink));
@@ -210,7 +210,7 @@ class GitRepoServiceTest {
 
         GitRepo validRepo = GitRepo.builder().repositoryLink("https://github.com/test/repo").id(repoId).build();
 
-        Link validLink = new Link(validRepo, true);
+        Link validLink = new Link(UUID.randomUUID(), validRepo.getId(), true);
         setId(validLink, validAccessId);
 
         when(linkRepository.findById(validAccessId)).thenReturn(Optional.of(validLink));
@@ -233,8 +233,8 @@ class GitRepoServiceTest {
         Content c1 = Content.builder().id("asdsda").build();
         Content c2 = Content.builder().id("ladsad").build();
         SelectionSubmission selection = new SelectionSubmission(Set.of(c1.getId(), c2.getId()));
-        GitRepo validRepo = new GitRepo("https://github.com/test/repo");
-        Link validLink = new Link(validRepo, true);
+        GitRepo validRepo = GitRepo.builder().repositoryLink("https://github.com/test/repo").build();
+        Link validLink = new Link(UUID.randomUUID(), validRepo.getId(), true);
         validLink.setGitRepositoryId(42L);
 
         when(linkRepository.findById(validAccessId)).thenReturn(Optional.of(validLink));

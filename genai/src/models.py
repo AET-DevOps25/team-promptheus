@@ -573,10 +573,7 @@ def generate_uuidv7() -> str:
     """Generate a UUIDv7-like (time-ordered UUID) for consistent sorting"""
     # uuid7 is only available in Python 3.12+, use uuid4 as fallback
     try:
-        return str(uuid.uuid7())
+        return str(uuid.uuid7())  # type: ignore[attr-defined]
     except AttributeError:
         # Fallback to uuid4 for older Python versions
         return str(uuid.uuid4())
-
-
- 

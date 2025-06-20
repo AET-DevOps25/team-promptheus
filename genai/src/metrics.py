@@ -1,3 +1,4 @@
+
 """
 Prometheus Metrics Configuration for Prompteus GenAI Service
 
@@ -44,7 +45,7 @@ class SummaryGenerationMetrics:
     tokens = Histogram(
         'genai_summary_generation_tokens_total',
         'Number of tokens used in summary generation',
-        ['model', 'type'],  # type: input/output
+        ['model', 'type'],  # type is input/output
         buckets=TOKEN_BUCKETS
     )
 
