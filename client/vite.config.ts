@@ -17,7 +17,6 @@ export default defineConfig({
     host: true,
     origin: "http://0.0.0.0:8080",
   },
-
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
