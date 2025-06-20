@@ -13,8 +13,9 @@ from typing import Optional
 
 import structlog
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException, Path
+from fastapi import Depends, FastAPI, HTTPException, Path, Response
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry import trace
@@ -251,7 +252,8 @@ async def health_check():
 @app.get("/metrics")
 async def get_prometheus_metrics():
     """Prometheus metrics endpoint for monitoring"""
-    return generate_latest(REGISTRY).decode('utf-8'), {"Content-Type": CONTENT_TYPE_LATEST}
+    data = generate_latest(REGISTRY).decode('utf-8')
+    return Response(content=data, media_type=CONTENT_TYPE_LATEST)
 
 
 # Contributions ingestion endpoints
