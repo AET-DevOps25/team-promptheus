@@ -143,7 +143,8 @@ def create_application() -> FastAPI:
         title=APP_TITLE,
         description=APP_DESCRIPTION,
         version=APP_VERSION,
-        lifespan=application_lifespan
+        lifespan=application_lifespan,
+        root_path="/api/genai"
     )
     
     # Configure CORS middleware
