@@ -186,7 +186,7 @@ class GitHubContentService:
             try:
                 # Extract SHA from ID (format: "commit-{sha}" or just "{sha}")
                 sha = self._get_id(metadata).replace("commit-", "")
-                commit_detail = await self._get_commit_details(repository, sha)
+                commit_detail = await self.get_commit_details(repository, sha)
                 if commit_detail:
                     commits.append(commit_detail)
             except Exception as e:
