@@ -13,6 +13,8 @@ AI-powered service for analyzing GitHub contributions and providing intelligent 
 - **Semantic Search**: Meilisearch integration for finding relevant contributions
 - **Prometheus Metrics**: Comprehensive observability and monitoring
 - **GitHub Content Service**: Secure token-based GitHub API integration
+- **GitHub Agent Tools**: Langchain-compatible tools for real-time access to GitHub repositories
+- **Reflection**: Langchain-powered reflection on the conversation history to improve the answer
 
 For complete API documentation, see the **[Scalar API Reference](/reference)** when the service is running.
 
@@ -268,3 +270,18 @@ curl -X POST "http://localhost:3003/users/octocat/weeks/2024-W21/questions" \
 ```
 
 The question answering system automatically maintains conversation context for each user/week combination. Follow-up questions can reference previous Q&As without repeating context. Sessions are isolated per user and week.
+
+## 🤖 GitHub Agent Tools (Langchain)
+
+The GenAI service provides a set of Langchain-compatible tools for real-time access to GitHub repositories.
+At time of writing, these tools allow agents to:
+
+- **search_github_code**: Search for code in a repository (find implementations, functions, code patterns)
+- **search_github_issues**: Search for issues (bug reports, feature requests, project discussions)
+- **search_github_pull_requests**: Search for pull requests (code reviews, merges, workflow tracking)
+- **get_github_file_content**: Retrieve the content of a specific file
+- **get_commit_details**: Get details for a specific commit by SHA
+- **get_issue_details**: Get details for a specific issue by number
+- **get_pull_request_details**: Get details for a specific pull request by number
+
+These tools are implemented in [`src/agent_tools.py`](src/agent_tools.py) and are designed for use in Langchain agent workflows. They use the `GitHubContentService` for robust, authenticated GitHub API access.

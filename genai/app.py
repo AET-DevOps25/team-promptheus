@@ -13,10 +13,15 @@ from typing import Optional
 
 import structlog
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException, Path
+from fastapi import Depends, FastAPI, HTTPException, Path, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 from src.meilisearch import MeilisearchService
 from src.metrics import initialize_service_info
@@ -150,6 +155,19 @@ def create_application() -> FastAPI:
         allow_headers=["*"],
     )
     
+    
+    # Initialize OpenTelemetry
+    trace.set_tracer_provider(TracerProvider())
+    tracer = trace.get_tracer(__name__)
+    
+    # Set up OTLP exporter
+    otlp_exporter = OTLPSpanExporter(endpoint=os.environ.get('OTEL_EXPORTER_OTLP_TRACES_ENDPOINT', "http://localhost:4317/v1/traces"))
+    span_processor = BatchSpanProcessor(otlp_exporter)
+    trace.get_tracer_provider().add_span_processor(span_processor)
+    
+    # Instrument FastAPI with OpenTelemetry
+    FastAPIInstrumentor.instrument_app(app)
+    
     return app
 
 
@@ -234,7 +252,8 @@ async def health_check():
 @app.get("/metrics")
 async def get_prometheus_metrics():
     """Prometheus metrics endpoint for monitoring"""
-    return generate_latest(REGISTRY).decode('utf-8'), {"Content-Type": CONTENT_TYPE_LATEST}
+    data = generate_latest(REGISTRY).decode('utf-8')
+    return Response(content=data, media_type=CONTENT_TYPE_LATEST)
 
 
 # Contributions ingestion endpoints
@@ -658,7 +677,6 @@ async def handle_general_exception(request, exc: Exception):
             timestamp=datetime.now(timezone.utc)
         ).model_dump(mode='json')
     )
-
 
 # Fallback initialization for TestClient usage
 def ensure_services_initialized():

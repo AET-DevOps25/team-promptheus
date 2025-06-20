@@ -16,9 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/repositories")
@@ -113,7 +111,7 @@ public class GitRepoController {
                 description = "Question to create",
                 required = true,
                 content = @Content(
-                        mediaType = "text/plain",
+                        mediaType = "application/json",
                         schema = @Schema(implementation = QuestionSubmission.class),
                         examples = @ExampleObject(value = "{ \"question\": \"Why are these developer raving about 42?\" }"))
                 )

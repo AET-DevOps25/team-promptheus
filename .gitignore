@@ -185,7 +185,7 @@ develop-eggs/
 downloads/
 eggs/
 .eggs/
-lib/
+genai/lib/
 lib64/
 parts/
 sdist/
