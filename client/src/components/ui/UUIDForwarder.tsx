@@ -1,8 +1,6 @@
-import { useAuth } from "@/contextproviders/authprovider";
-import { fetchUser } from "@/services/api";
 import { updateCookie } from "@/services/cookieutils";
 import { useEffect } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 export function UUIDForwarder() {
 

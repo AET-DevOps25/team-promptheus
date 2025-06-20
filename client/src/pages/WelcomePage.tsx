@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { AuthContext, useAuth } from "@/contextproviders/authprovider";
+import { AuthContext } from "@/contextproviders/authprovider";
 import { GithubUserProviderContext } from "@/contextproviders/siteprovider";
 import { getFromCookie } from "@/services/cookieutils";
-import { createContext, useContext, useState } from 'react';
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { useContext, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 
 export function WelcomePage() {
 

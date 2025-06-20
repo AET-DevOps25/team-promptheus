@@ -4,9 +4,8 @@
 // it sets a cookie
 
 
-import { getCookie, getFromCookie } from '@/services/cookieutils';
+import { getFromCookie } from '@/services/cookieutils';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { useNavigate } from "react-router-dom";
 
 type Userrole = {
     uuid: string;

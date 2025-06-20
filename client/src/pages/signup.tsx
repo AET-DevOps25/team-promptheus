@@ -1,7 +1,7 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useFieldArray, useForm } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -16,8 +16,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import DisplayLinks from './displaylinks'
-import { useAuth } from '@/contextproviders/authprovider'
-import { signupWithPat } from '@/services/api'
+import { createFromPAT } from '@/services/api'
 
 
 
@@ -56,20 +55,14 @@ function SignupMain() {
         // ✅ This will be type-safe and validated.
     
             setPatSubmitting(1)
-            
             console.log("Submitting PAT")
             
-            const pack = {
-                pat : values.patstr,
-                repolink: values.repolink
-            };
-            
-            const signupresponse = await signupWithPat( pack);
+            const signupresponse = await createFromPAT(values.repolink,values.patstr);
             
             
             console.log(signupresponse);
             setPatSubmitting(0);
-            setLinkList([signupresponse[0], signupresponse[1]]);
+            setLinkList([signupresponse.developerview, signupresponse.stakeholderview]);
             setDisplayinglinks(true);
     
         
