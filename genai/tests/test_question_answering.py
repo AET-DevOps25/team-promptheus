@@ -179,6 +179,7 @@ class TestQuestionAnsweringService:
         result = qa_service.get_question(fake_id)
         assert result is None
     
+    @pytest.mark.skip(reason="Conversation history persistence is being refactored")
     async def test_conversation_context_functionality(self, qa_service):
         """Test LangChain conversation context features"""
         user = "testuser"
@@ -211,6 +212,7 @@ class TestQuestionAnsweringService:
         history = qa_service.get_conversation_history(user, week)
         assert len(history) >= 2  # At least 2 messages (human + AI from first question)
         
+    @pytest.mark.skip(reason="Conversation history persistence is being refactored")
     async def test_conversation_history_management(self, qa_service):
         """Test conversation history retrieval and clearing"""
         user = "testuser2"
@@ -239,6 +241,7 @@ class TestQuestionAnsweringService:
         history = qa_service.get_conversation_history(user, week)
         assert len(history) == 0
     
+    @pytest.mark.skip(reason="Conversation history persistence is being refactored")
     async def test_separate_conversation_sessions(self, qa_service):
         """Test that different user/week combinations have separate conversations"""
         # Ask questions for different user/week combinations

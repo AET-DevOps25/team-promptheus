@@ -125,15 +125,15 @@ services:
       meilisearch:
         condition: service_healthy
 
-  frontend:
-    image: ghcr.io/aet-devops25/promptheus-frontend:latest
+  client:
+    image: ghcr.io/aet-devops25/promptheus-client:latest
     build:
       context: frontend
     ports:
-      - 3000:${FRONTEND_PORT:-3000}
+      - 8081:${CLIENT_PORT:-8081}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "-e 'fetch(`http://localhost:${FRONTEND_PORT:-3000}/`).then(x=>x.status==200?process.exit(0):process.exit(1)).catch(()=>process.exit(1))'"]
+      test: ["CMD", "node", "-e", "-e 'fetch(`http://localhost:${CLIENT_PORT:-8081}/`).then(x=>x.status==200?process.exit(0):process.exit(1)).catch(()=>process.exit(1))'"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -142,25 +142,25 @@ services:
     develop:
       watch:
         - action: rebuild
-          path: ./frontend/package.json
+          path: ./client/package.json
         - action: rebuild
-          path: ./frontend/package-lock.json
+          path: ./client/package-lock.json
         - action: rebuild
-          path: ./frontend/next.config.ts
+          path: ./client/vite.config.ts
         - action: rebuild
-          path: ./frontend/next-env.d.ts
+          path: ./client/tsconfig.json
         - action: rebuild
-          path: ./frontend/tsconfig.json
+          path: ./client/components.json
         - action: rebuild
-          path: ./frontend/postcss.config.mjs
+          path: ./client/vite.config.ts
         - action: rebuild
-          path: ./frontend/src/app
+          path: ./client/src
         - action: rebuild
-          path: ./frontend/public
+          path: ./client/public
   monitoring:
     image: grafana/otel-lgtm:latest
     ports:
-      - 3001:3000
+      - 3000:3000
       - 4317:4317
       - 4318:4318
     volumes:
