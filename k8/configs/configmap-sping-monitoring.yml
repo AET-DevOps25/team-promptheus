@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: server-config
+  namespace: team-promptheus
+data:
+  spring.datasource.url: "jdbc:postgresql://postgres-service:5432/postgres"
+  app.meiliHost: "http://meilisearch-service:7700"
+  management.otlp.tracing.endpoint: "http://monitoring-service:4318/v1/traces"
+  management.otlp.metrics.export.url: "http://monitoring-service:4318/v1/metrics"
+  management.otlp.logging.endpoint: "http://monitoring-service:4318/v1/logs"
