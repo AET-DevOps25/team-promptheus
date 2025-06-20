@@ -140,7 +140,7 @@ class CommitContribution(BaseModel):
     author: str
     created_at: datetime
     url: str
-
+    
     # GitHub Commits API fields
     sha: str
     message: str
@@ -229,7 +229,7 @@ class PullRequestContribution(BaseModel):
     author: str
     created_at: datetime
     url: str
-
+    
     # GitHub Pull Requests API fields
     number: int
     title: str
@@ -254,7 +254,7 @@ class PullRequestContribution(BaseModel):
     additions: int = 0
     deletions: int = 0
     changed_files: int = 0
-
+    
     # Extended data
     comments_data: List[PullRequestComment] = Field(default_factory=list)
     reviews_data: List[PullRequestReview] = Field(default_factory=list)
@@ -295,7 +295,7 @@ class IssueContribution(BaseModel):
     author: str
     created_at: datetime
     url: str
-
+    
     # GitHub Issues API fields
     number: int
     title: str
@@ -310,7 +310,7 @@ class IssueContribution(BaseModel):
     closed_at: Optional[datetime] = None
     closed_by: Optional[GitHubUser] = None
     comments: int = 0
-
+    
     # Extended data
     comments_data: List[IssueComment] = Field(default_factory=list)
     events_data: List[IssueEvent] = Field(default_factory=list)
@@ -343,7 +343,7 @@ class ReleaseContribution(BaseModel):
     author: str
     created_at: datetime
     url: str
-
+    
     # GitHub Releases API fields
     tag_name: str
     target_commitish: str
@@ -353,7 +353,7 @@ class ReleaseContribution(BaseModel):
     prerelease: bool = False
     published_at: Optional[datetime] = None
     author_info: GitHubUser
-
+    
     # Extended data
     assets: List[ReleaseAsset] = Field(default_factory=list)
 
@@ -577,5 +577,3 @@ def generate_uuidv7() -> str:
     except AttributeError:
         # Fallback to uuid4 for older Python versions
         return str(uuid.uuid4())
-
-
