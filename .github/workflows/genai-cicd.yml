@@ -1,0 +1,50 @@
+name: Genai CI/CD
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, reopened, synchronize ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  genai-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.13" ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: pip install -r genai/requirements.txt -r requirements-dev.txt
+      - run: pytest genai
+  #type-check:
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - uses: actions/checkout@v4
+  #    - name: Set up Python ${{ matrix.python-version }}
+  #      uses: actions/setup-python@v5
+  #      with:
+  #        python-version: ${{ matrix.python-version }}
+  #    - name: Install dependencies
+  #      run: pip install -r genai/requirements.txt
+  #    - name: Run mypy
+  #      run: mypy --strict genai
+  genai-build:
+    needs:
+      - genai-test
+    uses: ./.github/workflows/_docker-build.yml
+    with:
+      image_suffix: genai
+      context: ./genai
+      dockerfile: Dockerfile
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+      attestations: write
