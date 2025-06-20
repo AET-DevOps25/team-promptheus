@@ -15,7 +15,7 @@ export default defineConfig({
     port: 8080,
     strictPort: true,
     host: true,
-    origin: "http://0.0.0.0:8081",
+    origin: "http://0.0.0.0:8080",
   },
   resolve: {
     alias: {
