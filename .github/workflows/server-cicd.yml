@@ -48,8 +48,8 @@ jobs:
     needs:
       - server-checks
     with:
-      image_suffix: client
-      context: ./client
+      image_suffix: server
+      context: ./server
       dockerfile: Dockerfile
     permissions:
       id-token: write
