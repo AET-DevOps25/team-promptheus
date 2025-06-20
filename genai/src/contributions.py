@@ -6,6 +6,7 @@ This service handles authentication and fetching of commits, pull requests, issu
 """
 
 import os
+import base64
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 import structlog
@@ -185,7 +186,7 @@ class GitHubContentService:
             try:
                 # Extract SHA from ID (format: "commit-{sha}" or just "{sha}")
                 sha = self._get_id(metadata).replace("commit-", "")
-                commit_detail = await self._get_commit_details(repository, sha)
+                commit_detail = await self.get_commit_details(repository, sha)
                 if commit_detail:
                     commits.append(commit_detail)
             except Exception as e:
@@ -196,7 +197,7 @@ class GitHubContentService:
         
         return commits
     
-    async def _get_commit_details(self, repository: str, sha: str) -> Optional[GitHubContribution]:
+    async def get_commit_details(self, repository: str, sha: str) -> Optional[GitHubContribution]:
         """Get detailed information for a specific commit"""
         try:
             url = f"{GITHUB_API_BASE_URL}/repos/{repository}/commits/{sha}"
@@ -272,7 +273,7 @@ class GitHubContentService:
             try:
                 # Extract PR number from ID (format: "pr-{number}" or just "{number}")
                 pr_number = self._get_id(metadata).replace("pr-", "")
-                pr_detail = await self._get_pull_request_details(repository, pr_number)
+                pr_detail = await self.get_pull_request_details(repository, pr_number)
                 if pr_detail:
                     pull_requests.append(pr_detail)
             except Exception as e:
@@ -283,7 +284,7 @@ class GitHubContentService:
         
         return pull_requests
     
-    async def _get_pull_request_details(self, repository: str, pr_number: str) -> Optional[GitHubContribution]:
+    async def get_pull_request_details(self, repository: str, pr_number: str) -> Optional[GitHubContribution]:
         """Get detailed information for a specific pull request"""
         try:
             url = f"{GITHUB_API_BASE_URL}/repos/{repository}/pulls/{pr_number}"
@@ -361,7 +362,7 @@ class GitHubContentService:
             try:
                 # Extract issue number from ID (format: "issue-{number}" or just "{number}")
                 issue_number = self._get_id(metadata).replace("issue-", "")
-                issue_detail = await self._get_issue_details(repository, issue_number)
+                issue_detail = await self.get_issue_details(repository, issue_number)
                 if issue_detail:
                     issues.append(issue_detail)
             except Exception as e:
@@ -372,7 +373,7 @@ class GitHubContentService:
         
         return issues
     
-    async def _get_issue_details(self, repository: str, issue_number: str) -> Optional[GitHubContribution]:
+    async def get_issue_details(self, repository: str, issue_number: str) -> Optional[GitHubContribution]:
         """Get detailed information for a specific issue"""
         try:
             url = f"{GITHUB_API_BASE_URL}/repos/{repository}/issues/{issue_number}"
@@ -480,9 +481,122 @@ class GitHubContentService:
                         repository=repository)
         
         return None
+
+    async def get_file_content(self, repository: str, file_path: str) -> Optional[str]:
+        """Get content of a file in a repository."""
+        try:
+            url = f"{GITHUB_API_BASE_URL}/repos/{repository}/contents/{file_path}"
+            response = self.session.get(url, timeout=DEFAULT_TIMEOUT)
+
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("type") == "file" and "content" in data:
+                    content_b64 = data["content"]
+                    return base64.b64decode(content_b64).decode('utf-8')
+                else:
+                    logger.warning("Path is not a file or has no content", 
+                                 repository=repository,
+                                 file_path=file_path)
+                    return f"Path '{file_path}' is not a file or has no content."
+            elif response.status_code == 404:
+                logger.warning("File not found",
+                             status_code=response.status_code,
+                             repository=repository,
+                             file_path=file_path)
+                return f"File '{file_path}' not found in repository '{repository}'."
+            else:
+                logger.warning("Failed to get file content", 
+                             status_code=response.status_code,
+                             repository=repository,
+                             file_path=file_path)
+                return f"Failed to get file content for '{file_path}'. Status: {response.status_code}"
+        except Exception as e:
+            logger.error("Error getting file content", error=str(e), file_path=file_path, repository=repository)
+        
+        return None
+
+    async def search_code(self, repository: str, query: str) -> List[dict]:
+        """Search for code in a repository"""
+        try:
+            url = f"{GITHUB_API_BASE_URL}/search/code"
+            params = {
+                "q": f"{query} repo:{repository}"
+            }
+            response = self.session.get(url, params=params, timeout=DEFAULT_TIMEOUT)
+            
+            if response.status_code == 200:
+                return response.json().get("items", [])
+            else:
+                logger.warning("Failed to search code", 
+                             status_code=response.status_code,
+                             repository=repository,
+                             query=query,
+                             response_text=response.text)
+                return []
+        except Exception as e:
+            logger.error("Error searching code", error=str(e), query=query, repository=repository)
+            return []
+
+    async def search_issues_and_prs(self, repository: str, query: str, is_pr: bool = False, is_open: Optional[bool] = None) -> List[dict]:
+        """Search for issues and PRs in a repository"""
+        try:
+            url = f"{GITHUB_API_BASE_URL}/search/issues"
+            
+            pr_filter = "is:pr" if is_pr else "is:issue"
+            state_filter = ""
+            if is_open is True:
+                state_filter = "is:open"
+            elif is_open is False:
+                state_filter = "is:closed"
+
+            params = {
+                "q": f"repo:{repository} {pr_filter} {state_filter} {query}".strip()
+            }
+            response = self.session.get(url, params=params, timeout=DEFAULT_TIMEOUT)
+            
+            if response.status_code == 200:
+                return response.json().get("items", [])
+            else:
+                logger.warning("Failed to search issues/prs", 
+                             status_code=response.status_code,
+                             repository=repository,
+                             query=query,
+                             response_text=response.text)
+                return []
+        except Exception as e:
+            logger.error("Error searching issues/prs", error=str(e), query=query, repository=repository)
+            return []
+
+    async def search_commits(self, repository: str, query: str) -> List[dict]:
+        """Search for commits in a repository"""
+        try:
+            url = f"{GITHUB_API_BASE_URL}/search/commits"
+            params = {
+                "q": f"repo:{repository} {query}"
+            }
+            # Special header for commit search API preview
+            headers = self.session.headers.copy()
+            headers["Accept"] = "application/vnd.github.cloak-preview+json"
+
+            response = self.session.get(url, params=params, headers=headers, timeout=DEFAULT_TIMEOUT)
+            
+            if response.status_code == 200:
+                return response.json().get("items", [])
+            else:
+                logger.warning("Failed to search commits", 
+                             status_code=response.status_code,
+                             repository=repository,
+                             query=query,
+                             response_text=response.text)
+                return []
+        except Exception as e:
+            logger.error("Error searching commits", error=str(e), query=query, repository=repository)
+            return []
     
-    def _parse_datetime(self, datetime_str: str) -> datetime:
+    def _parse_datetime(self, datetime_str: Optional[str]) -> Optional[datetime]:
         """Parse GitHub API datetime string to datetime object"""
+        if not datetime_str:
+            return None
         if datetime_str.endswith('Z'):
             datetime_str = datetime_str[:-1] + '+00:00'
-        return datetime.fromisoformat(datetime_str) 
+        return datetime.fromisoformat(datetime_str)
