@@ -11,6 +11,19 @@ on:
 jobs:
   genai-test:
     runs-on: ubuntu-latest
+    services:
+      meilisearch:
+        image: getmeili/meilisearch:latest
+        ports:
+          - 7700:7700
+        env:
+          MEILI_MASTER_KEY: CHANGE_ME_CHANGE_ME
+          MEILI_ENV: development
+        options: >-
+          --health-cmd "curl --silent http://localhost:7700/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       
@@ -28,9 +41,16 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=min
       
+      - name: Wait for Meilisearch to be ready
+        run: |
+          timeout 30 bash -c 'until curl -s http://localhost:7700/health; do sleep 1; done'
+      
       - name: Run tests in Docker container
         run: |
           docker run --rm \
+            --network host \
+            -e MEILISEARCH_URL=http://127.0.0.1:7700 \
+            -e MEILI_MASTER_KEY=CHANGE_ME_CHANGE_ME \
             -v ${{ github.workspace }}/genai:/app \
             -w /app \
             genai-test:latest \
