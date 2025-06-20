@@ -1,60 +1,32 @@
 "use client"
-import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Copy } from 'lucide-react';
 
-const formSchema = z.object({
-  patstr: z.string().startsWith('ghp_', {
-    message: "This is not a valid Github Token.",
-  }),
+export type CopyTextInputProps = {
+  text: string
+}
 
-  repolink: z.string().url({ message: "Invalid url" })
-
-})
-
-
-
-export type LinkListProps = {   // TODO: sync with api
-  links: string[]; // Tuple of exactly 2 links
+export function CopyTextInput( { text }: CopyTextInputProps  ) {
+  return <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+    {text}
+    
+    <Button onClick={() => navigator.clipboard.writeText(text)} variant="outline" size="icon">
+      <Copy />
+    </Button>
+  </div>
+} 
+  
+export type LinkListProps = {
+  developerView: string;
+  managerView: string;
 };
 
-
-
-export function DisplayLinks( { links }: LinkListProps  ) {
-  // ...
-
-
-  const copytoclipboard = (text: string) => {
-
-
-    // include pop up
-    navigator.clipboard.writeText(text);
-
-  }
-
+export default function DisplayLinks( { developerView, managerView }: LinkListProps  ) {
   return (
       <div className="space-y-3 max-w-md mx-auto">
-
           <h3>These are the links you should share with the developers and managers respectively.</h3>
 
-          {links.map((link, index) => 
-          
-          <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-            {link}
-            
-            <Button 
-              onClick={() => copytoclipboard(link)} 
-              variant="outline" 
-              size="icon">
-              <Copy />
-            </Button>
-
-          </div>
-          
-          )}
-
-
-      </div>
-  )
+          <CopyTextInput text={developerView}/>
+          <CopyTextInput text={managerView}/>
+      </div>)
 }
-export default DisplayLinks

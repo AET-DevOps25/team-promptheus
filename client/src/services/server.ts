@@ -45,8 +45,8 @@ export type components = {
       readonly pat?: string;
     };
     readonly LinkConstruct: {
-      readonly developerview?: string;
-      readonly stakeholderview?: string;
+      readonly developerview: string;
+      readonly stakeholderview: string;
     };
     readonly ContentConstruct: {
       readonly id?: string;
