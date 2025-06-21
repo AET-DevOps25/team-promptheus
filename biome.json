@@ -1,0 +1,21 @@
+{
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on",
+				"useSortedAttributes": "on",
+				"useSortedKeys": "on"
+			}
+		}
+	},
+	"linter": {
+		"domains": {
+			"react": "recommended"
+		},
+		"rules": {
+			"correctness": {
+				"useExhaustiveDependencies": "off"
+			}
+		}
+	}
+}

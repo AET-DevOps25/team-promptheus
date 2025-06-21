@@ -40,7 +40,7 @@ const getWeekBounds = (date: Date) => {
 	sunday.setDate(monday.getDate() + 6);
 	sunday.setHours(23, 59, 59, 999);
 
-	return { end: sunday , start: monday};
+	return { end: sunday, start: monday };
 };
 
 export default function GitHubContributions() {
@@ -109,7 +109,7 @@ export default function GitHubContributions() {
 			newStart.setDate(newStart.getDate() - 7);
 			const newEnd = new Date(prev.end);
 			newEnd.setDate(newEnd.getDate() - 7);
-			return { end: newEnd , start: newStart};
+			return { end: newEnd, start: newStart };
 		});
 	};
 
@@ -126,7 +126,7 @@ export default function GitHubContributions() {
 			newStart.setDate(newStart.getDate() + 7);
 			const newEnd = new Date(prev.end);
 			newEnd.setDate(newEnd.getDate() + 7);
-			return { end: newEnd , start: newStart};
+			return { end: newEnd, start: newStart };
 		});
 	};
 
@@ -168,11 +168,6 @@ export default function GitHubContributions() {
 
 	// Fetch contributions when week changes
 	useEffect(() => {
-		fetchContributions();
-	}, [currentWeek]);
-
-	// Fetch contributions
-	const fetchContributions = async () => {
 		setIsLoading(true);
 		setError(null);
 
@@ -190,7 +185,7 @@ export default function GitHubContributions() {
 		} finally {
 			setIsLoading(false);
 		}
-	};
+	}, []);
 
 	// Export selected contributions
 	const exportContributions = () => {

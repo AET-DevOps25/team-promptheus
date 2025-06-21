@@ -23,7 +23,7 @@ type GitRepoResponse =
 export async function getGitRepoContent(
 	uuid: string,
 ): Promise<GitRepoResponse> {
-	return await (await fetch("/api/repositories/" + uuid)).json();
+	return await (await fetch(`/api/repositories/${uuid}`)).json();
 }
 
 type SearchRepoResponse =

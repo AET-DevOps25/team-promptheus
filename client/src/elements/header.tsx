@@ -1,5 +1,5 @@
 import { User } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getLocalStorageItem } from "@/services/localstorageservice";
@@ -49,6 +49,7 @@ export function Header() {
 											? "bg-primary text-primary-foreground"
 											: "text-muted-foreground hover:text-foreground hover:bg-muted"
 									}`}
+									key={item.href}
 									to={item.href}
 								>
 									{item.label}

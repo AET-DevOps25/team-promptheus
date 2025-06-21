@@ -1,7 +1,5 @@
 // Layout for the normal non-landing pages
-
-//import { Route, Routes } from "react-router-dom";
-import { BrowserRouter, Route, Routes } from "react-router";
+import { Route, Routes } from "react-router";
 import { Navigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 // src/components/Layout.tsx
@@ -13,13 +11,11 @@ import summaryviewing from "@/pages/SummaryViewing";
 import selectcontent from "@/pages/selectcontent";
 import { useAuth } from "../contextproviders/authprovider";
 
-// Define props type for TypeScript (optional but recommended)
 type LayoutProps = {
 	children: React.ReactNode;
 };
 
-// export function Layout( {children}: LayoutProps ) {
-export function Layout({ children }: { children: React.ReactNode }) {
+export function Layout({ children }: LayoutProps) {
 	const { user, loading } = useAuth();
 	if (loading) {
 		return (

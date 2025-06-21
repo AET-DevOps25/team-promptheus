@@ -1,7 +1,6 @@
-import React from "react";
 import { useAuth } from "@/contextproviders/authprovider";
 
-export function QnAPage() {
+export default function QnAPage() {
 	const { user, loading } = useAuth();
 	return (
 		<div>
