@@ -24,7 +24,7 @@ function ProtectedLayout() {
 	const { user, loading } = useContext(AuthContext);
 	console.log("We load useAuth and got:");
 	console.log(user);
-	if (loading == false) {
+	if (!loading) {
 		if (user == null) {
 			return <Navigate replace to="/landing" />;
 		} else {
@@ -37,7 +37,7 @@ function ProtectedLayout() {
 			);
 		}
 	}
-	if (loading == true) {
+	if (loading) {
 		console.log("Loading...");
 		return (
 			<>
@@ -50,9 +50,7 @@ function ProtectedLayout() {
 	}
 }
 
-{
-	/*  -------- App Logic Providing Tree ----------- */
-}
+/*  -------- App Logic Providing Tree ----------- */
 function App() {
 	return (
 		//<AuthProvider>

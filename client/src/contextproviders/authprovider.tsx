@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		// no cookie and not uuid
 		//navigate("/nopage");
 		//}
-	}, [setUser, setLoading]);
+	}, []);
 
 	return (
 		<AuthContext.Provider value={{ loading, user }}>

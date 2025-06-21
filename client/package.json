@@ -18,14 +18,11 @@
 		"zod": "^3.24.4"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.25.0",
+		"@biomejs/biome": "2.0.0",
 		"@types/node": "^22.15.18",
 		"@types/react": "^19.1.2",
 		"@types/react-dom": "^19.1.2",
 		"@vitejs/plugin-react": "^4.4.1",
-		"eslint": "^9.25.0",
-		"eslint-plugin-react-hooks": "^5.2.0",
-		"eslint-plugin-react-refresh": "^0.4.19",
 		"globals": "^16.0.0",
 		"openapi-typescript": "6.7.6",
 		"react-router-dom": "^7.6.0",
@@ -39,9 +36,11 @@
 	"scripts": {
 		"build": "tsc -b && vite build",
 		"dev": "vite",
-		"lint": "eslint .",
+		"format": "biome format --write && biome check --formatter-enabled=false --linter-enabled=false --write",
+		"lint": "biome check --error-on-warnings",
+		"lint-fix": "biome check --write",
 		"preview": "vite preview",
-		"type-check": "tsc",
+		"type-check": "tsc --noEmit",
 		"type-refresh-genai": "openapi-typescript ../genai/openapi.json --output src/services/genai.ts --export-type --immutable-types --support-array-length",
 		"type-refresh-server": "openapi-typescript ../server/openapi.json --output src/services/server.ts --export-type --immutable-types --support-array-length"
 	},

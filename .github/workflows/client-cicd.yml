@@ -9,19 +9,23 @@ on:
   workflow_dispatch:
 
 jobs:
-  client-linting:
+  client-type-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run:  npm i --frozen-lockfile --strict-peer-dependencies
         working-directory: client
-      - run: npm run lint
-        working-directory: client
       - run: npm run type-check
         working-directory: client
+  client-linting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run:  npx @biomejs/biome ci
   client-build:
     uses: ./.github/workflows/_docker-build.yml
     needs:
+      - client-type-check
       - client-linting
     with:
       image_suffix: client

@@ -1,7 +1,6 @@
-import React from "react";
 import { useAuth } from "@/contextproviders/authprovider";
 
-export function SummaryViewing() {
+export default function SummaryViewing() {
 	const { user } = useAuth();
 	return (
 		<div>
