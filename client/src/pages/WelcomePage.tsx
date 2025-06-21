@@ -16,14 +16,10 @@ export function WelcomePage() {
 	console.log("Loaded the context in welcome page");
 	console.log(user);
 
-	const [welcomeloaded, setwelcomeloaded] = useState(false);
-
-	const userData = ["asfdsafsa", "asfsad"]; //await fetchUser(uuid!);
-
 	// store in cookie
 	const v = getFromCookie("selectedgithubuser"); // TODO : put all cookie keys into cookie util script
 
-	if (v == undefined) {
+	if (v === undefined) {
 		console.log("no github user selected yet");
 	} else {
 		console.log("");

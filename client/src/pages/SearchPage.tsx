@@ -1,4 +1,4 @@
-export function SearchPage() {
+export default function SearchPage() {
 	return (
 		<div>
 			<h1>Searching content</h1>
