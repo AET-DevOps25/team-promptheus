@@ -27,28 +27,22 @@ export function SelectUserPage() {
 		GithubUserProviderContext,
 	);
 
-	// load even slower api call
-
 	useEffect(() => {
-		handleFetchContributors();
-	}, []);
-
-	const handleFetchContributors = async () => {
 		setIsLoading(true);
 		setError(null);
 
-		try {
-			const contributorsList = await fetchRepoContributors("TODO");
-			setContributors(contributorsList);
-		} catch (err) {
-			setError(
-				err instanceof Error ? err.message : "Failed to fetch contributors",
-			);
-		} finally {
-			setIsLoading(false);
-		}
-	};
-
+		fetchRepoContributors()
+			.then((contributorsList) => setContributors(contributorsList))
+			.catch((err) =>
+				setError(
+					err instanceof Error ? err.message : "Failed to fetch contributors",
+				),
+			)
+			.finally(() => setIsLoading(false));
+	}, []);
+	async function fetchRepoContributors() {
+		return [];
+	}
 	const handleSelectUser = (user: GitHubContributor) => {
 		setSelectedUser(user);
 		//localStorage.setItem("selectedGitHubUser", JSON.stringify(user))

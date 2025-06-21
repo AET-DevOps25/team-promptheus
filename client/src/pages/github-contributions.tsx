@@ -168,11 +168,6 @@ export default function GitHubContributions() {
 
 	// Fetch contributions when week changes
 	useEffect(() => {
-		fetchContributions();
-	}, [currentWeek]);
-
-	// Fetch contributions
-	const fetchContributions = async () => {
 		setIsLoading(true);
 		setError(null);
 
@@ -190,7 +185,7 @@ export default function GitHubContributions() {
 		} finally {
 			setIsLoading(false);
 		}
-	};
+	}, []);
 
 	// Export selected contributions
 	const exportContributions = () => {

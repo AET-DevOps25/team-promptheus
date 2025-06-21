@@ -27,7 +27,7 @@ export function UUIDForwarder() {
 		}
 
 		handleUUID();
-	}, [uuid]);
+	}, []);
 
 	return <Navigate replace to="/" />;
 }
