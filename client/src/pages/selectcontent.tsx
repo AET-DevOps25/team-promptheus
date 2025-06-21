@@ -1,8 +1,2 @@
-const selectcontent = () => (
-
-    <div>
-        Selecting content
-    </div>
-
-);
+const selectcontent = () => <div>Selecting content</div>;
 export default selectcontent;

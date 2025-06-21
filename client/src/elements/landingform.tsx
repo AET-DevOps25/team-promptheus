@@ -1,9 +1,1 @@
-
-
-
-
-function ButtonMaker(){
-  
-  
-}
-
+function ButtonMaker() {}

@@ -1,1 +1,191 @@
-{"id":"fd6fda99-0756-4858-9573-201d8798190d","title":"Class Diagram","model":{"version":"3.0.0","type":"UseCaseDiagram","size":{"width":1340,"height":840},"interactive":{"elements":{},"relationships":{}},"elements":{"281380be-3a6b-4303-8532-5067f9803fa9":{"id":"281380be-3a6b-4303-8532-5067f9803fa9","name":"View and search (AI improved) weekly activity items","type":"UseCase","owner":null,"bounds":{"x":-60,"y":-150,"width":420,"height":100}},"f6c51d22-0a42-41c2-ad95-c52d9baa7874":{"id":"f6c51d22-0a42-41c2-ad95-c52d9baa7874","name":"Developer","type":"UseCaseActor","owner":null,"bounds":{"x":-650,"y":-250,"width":80,"height":140}},"c379435e-fdbb-42a5-9522-57cab68a1dbe":{"id":"c379435e-fdbb-42a5-9522-57cab68a1dbe","name":"Exclude/include items for summarization","type":"UseCase","owner":null,"bounds":{"x":-20,"y":-300,"width":330,"height":100}},"14991a8e-1af9-4d8e-ab50-ffa5a3c632e5":{"id":"14991a8e-1af9-4d8e-ab50-ffa5a3c632e5","name":"Ask questions about team activity (Q&A)","type":"UseCase","owner":null,"bounds":{"x":-20,"y":0,"width":330,"height":100}},"c382b2ae-a26b-4b6f-b58a-e105a0de8366":{"id":"c382b2ae-a26b-4b6f-b58a-e105a0de8366","name":"Manager","type":"UseCaseActor","owner":null,"bounds":{"x":-640,"y":-20,"width":80,"height":140}},"d8f876bd-c3c4-430e-9ac8-87b712447046":{"id":"d8f876bd-c3c4-430e-9ac8-87b712447046","name":"View AI-enhanced progress summaries","type":"UseCase","owner":null,"bounds":{"x":-10,"y":150,"width":320,"height":100}},"4bb4f554-8bae-4296-b223-f96d66f28e83":{"id":"4bb4f554-8bae-4296-b223-f96d66f28e83","name":"Stakeholder","type":"UseCaseActor","owner":null,"bounds":{"x":-640,"y":200,"width":80,"height":140}},"0e80d361-5d06-45e1-91bf-98904b9cae08":{"id":"0e80d361-5d06-45e1-91bf-98904b9cae08","name":"Access weekly summarys","type":"UseCase","owner":null,"bounds":{"x":-10,"y":300,"width":330,"height":100}}},"relationships":{"aeb06ffd-4d92-49f4-b0bb-84690653b368":{"id":"aeb06ffd-4d92-49f4-b0bb-84690653b368","name":"","type":"UseCaseAssociation","owner":null,"bounds":{"x":-570,"y":-180,"width":510,"height":80},"path":[{"x":0,"y":0},{"x":510,"y":80}],"source":{"direction":"Right","element":"f6c51d22-0a42-41c2-ad95-c52d9baa7874"},"target":{"direction":"Left","element":"281380be-3a6b-4303-8532-5067f9803fa9"},"isManuallyLayouted":false},"cf37466c-0902-45b7-b26e-764faf7e60f3":{"id":"cf37466c-0902-45b7-b26e-764faf7e60f3","name":"","type":"UseCaseAssociation","owner":null,"bounds":{"x":-570,"y":-250,"width":550,"height":70},"path":[{"x":550,"y":0},{"x":0,"y":70}],"source":{"direction":"Left","element":"c379435e-fdbb-42a5-9522-57cab68a1dbe"},"target":{"direction":"Right","element":"f6c51d22-0a42-41c2-ad95-c52d9baa7874"},"isManuallyLayouted":false},"62211904-b4a8-4989-a83d-58ced88577cc":{"id":"62211904-b4a8-4989-a83d-58ced88577cc","name":"","type":"UseCaseAssociation","owner":null,"bounds":{"x":-560,"y":50,"width":540,"height":1},"path":[{"x":0,"y":0},{"x":540,"y":0}],"source":{"direction":"Right","element":"c382b2ae-a26b-4b6f-b58a-e105a0de8366"},"target":{"direction":"Left","element":"14991a8e-1af9-4d8e-ab50-ffa5a3c632e5"},"isManuallyLayouted":false},"40dfad29-f220-4dc9-900b-fd5a84809147":{"id":"40dfad29-f220-4dc9-900b-fd5a84809147","name":"","type":"UseCaseAssociation","owner":null,"bounds":{"x":-560,"y":50,"width":550,"height":150},"path":[{"x":0,"y":0},{"x":550,"y":150}],"source":{"direction":"Right","element":"c382b2ae-a26b-4b6f-b58a-e105a0de8366"},"target":{"direction":"Left","element":"d8f876bd-c3c4-430e-9ac8-87b712447046"},"isManuallyLayouted":false},"0d5f2610-3c57-472e-9558-9eb1a208d5e6":{"id":"0d5f2610-3c57-472e-9558-9eb1a208d5e6","name":"","type":"UseCaseAssociation","owner":null,"bounds":{"x":-560,"y":-100,"width":500,"height":150},"path":[{"x":0,"y":150},{"x":500,"y":0}],"source":{"direction":"Right","element":"c382b2ae-a26b-4b6f-b58a-e105a0de8366"},"target":{"direction":"Left","element":"281380be-3a6b-4303-8532-5067f9803fa9"},"isManuallyLayouted":false},"98f6c550-222d-46ef-9667-b68f8ba5ffc3":{"id":"98f6c550-222d-46ef-9667-b68f8ba5ffc3","name":"","type":"UseCaseAssociation","owner":null,"bounds":{"x":-560,"y":200,"width":550,"height":70},"path":[{"x":0,"y":70},{"x":550,"y":0}],"source":{"direction":"Right","element":"4bb4f554-8bae-4296-b223-f96d66f28e83"},"target":{"direction":"Left","element":"d8f876bd-c3c4-430e-9ac8-87b712447046"},"isManuallyLayouted":false},"17235fa9-f676-4a6f-8a65-6be8c238a320":{"id":"17235fa9-f676-4a6f-8a65-6be8c238a320","name":"","type":"UseCaseAssociation","owner":null,"bounds":{"x":-560,"y":270,"width":550,"height":80},"path":[{"x":0,"y":0},{"x":550,"y":80}],"source":{"direction":"Right","element":"4bb4f554-8bae-4296-b223-f96d66f28e83"},"target":{"direction":"Left","element":"0e80d361-5d06-45e1-91bf-98904b9cae08"},"isManuallyLayouted":false}},"assessments":{}},"lastUpdate":"2025-05-09T12:50:22.870Z"}
+{
+	"id": "fd6fda99-0756-4858-9573-201d8798190d",
+	"title": "Class Diagram",
+	"model": {
+		"version": "3.0.0",
+		"type": "UseCaseDiagram",
+		"size": { "width": 1340, "height": 840 },
+		"interactive": { "elements": {}, "relationships": {} },
+		"elements": {
+			"281380be-3a6b-4303-8532-5067f9803fa9": {
+				"id": "281380be-3a6b-4303-8532-5067f9803fa9",
+				"name": "View and search (AI improved) weekly activity items",
+				"type": "UseCase",
+				"owner": null,
+				"bounds": { "x": -60, "y": -150, "width": 420, "height": 100 }
+			},
+			"f6c51d22-0a42-41c2-ad95-c52d9baa7874": {
+				"id": "f6c51d22-0a42-41c2-ad95-c52d9baa7874",
+				"name": "Developer",
+				"type": "UseCaseActor",
+				"owner": null,
+				"bounds": { "x": -650, "y": -250, "width": 80, "height": 140 }
+			},
+			"c379435e-fdbb-42a5-9522-57cab68a1dbe": {
+				"id": "c379435e-fdbb-42a5-9522-57cab68a1dbe",
+				"name": "Exclude/include items for summarization",
+				"type": "UseCase",
+				"owner": null,
+				"bounds": { "x": -20, "y": -300, "width": 330, "height": 100 }
+			},
+			"14991a8e-1af9-4d8e-ab50-ffa5a3c632e5": {
+				"id": "14991a8e-1af9-4d8e-ab50-ffa5a3c632e5",
+				"name": "Ask questions about team activity (Q&A)",
+				"type": "UseCase",
+				"owner": null,
+				"bounds": { "x": -20, "y": 0, "width": 330, "height": 100 }
+			},
+			"c382b2ae-a26b-4b6f-b58a-e105a0de8366": {
+				"id": "c382b2ae-a26b-4b6f-b58a-e105a0de8366",
+				"name": "Manager",
+				"type": "UseCaseActor",
+				"owner": null,
+				"bounds": { "x": -640, "y": -20, "width": 80, "height": 140 }
+			},
+			"d8f876bd-c3c4-430e-9ac8-87b712447046": {
+				"id": "d8f876bd-c3c4-430e-9ac8-87b712447046",
+				"name": "View AI-enhanced progress summaries",
+				"type": "UseCase",
+				"owner": null,
+				"bounds": { "x": -10, "y": 150, "width": 320, "height": 100 }
+			},
+			"4bb4f554-8bae-4296-b223-f96d66f28e83": {
+				"id": "4bb4f554-8bae-4296-b223-f96d66f28e83",
+				"name": "Stakeholder",
+				"type": "UseCaseActor",
+				"owner": null,
+				"bounds": { "x": -640, "y": 200, "width": 80, "height": 140 }
+			},
+			"0e80d361-5d06-45e1-91bf-98904b9cae08": {
+				"id": "0e80d361-5d06-45e1-91bf-98904b9cae08",
+				"name": "Access weekly summarys",
+				"type": "UseCase",
+				"owner": null,
+				"bounds": { "x": -10, "y": 300, "width": 330, "height": 100 }
+			}
+		},
+		"relationships": {
+			"aeb06ffd-4d92-49f4-b0bb-84690653b368": {
+				"id": "aeb06ffd-4d92-49f4-b0bb-84690653b368",
+				"name": "",
+				"type": "UseCaseAssociation",
+				"owner": null,
+				"bounds": { "x": -570, "y": -180, "width": 510, "height": 80 },
+				"path": [{ "x": 0, "y": 0 }, { "x": 510, "y": 80 }],
+				"source": {
+					"direction": "Right",
+					"element": "f6c51d22-0a42-41c2-ad95-c52d9baa7874"
+				},
+				"target": {
+					"direction": "Left",
+					"element": "281380be-3a6b-4303-8532-5067f9803fa9"
+				},
+				"isManuallyLayouted": false
+			},
+			"cf37466c-0902-45b7-b26e-764faf7e60f3": {
+				"id": "cf37466c-0902-45b7-b26e-764faf7e60f3",
+				"name": "",
+				"type": "UseCaseAssociation",
+				"owner": null,
+				"bounds": { "x": -570, "y": -250, "width": 550, "height": 70 },
+				"path": [{ "x": 550, "y": 0 }, { "x": 0, "y": 70 }],
+				"source": {
+					"direction": "Left",
+					"element": "c379435e-fdbb-42a5-9522-57cab68a1dbe"
+				},
+				"target": {
+					"direction": "Right",
+					"element": "f6c51d22-0a42-41c2-ad95-c52d9baa7874"
+				},
+				"isManuallyLayouted": false
+			},
+			"62211904-b4a8-4989-a83d-58ced88577cc": {
+				"id": "62211904-b4a8-4989-a83d-58ced88577cc",
+				"name": "",
+				"type": "UseCaseAssociation",
+				"owner": null,
+				"bounds": { "x": -560, "y": 50, "width": 540, "height": 1 },
+				"path": [{ "x": 0, "y": 0 }, { "x": 540, "y": 0 }],
+				"source": {
+					"direction": "Right",
+					"element": "c382b2ae-a26b-4b6f-b58a-e105a0de8366"
+				},
+				"target": {
+					"direction": "Left",
+					"element": "14991a8e-1af9-4d8e-ab50-ffa5a3c632e5"
+				},
+				"isManuallyLayouted": false
+			},
+			"40dfad29-f220-4dc9-900b-fd5a84809147": {
+				"id": "40dfad29-f220-4dc9-900b-fd5a84809147",
+				"name": "",
+				"type": "UseCaseAssociation",
+				"owner": null,
+				"bounds": { "x": -560, "y": 50, "width": 550, "height": 150 },
+				"path": [{ "x": 0, "y": 0 }, { "x": 550, "y": 150 }],
+				"source": {
+					"direction": "Right",
+					"element": "c382b2ae-a26b-4b6f-b58a-e105a0de8366"
+				},
+				"target": {
+					"direction": "Left",
+					"element": "d8f876bd-c3c4-430e-9ac8-87b712447046"
+				},
+				"isManuallyLayouted": false
+			},
+			"0d5f2610-3c57-472e-9558-9eb1a208d5e6": {
+				"id": "0d5f2610-3c57-472e-9558-9eb1a208d5e6",
+				"name": "",
+				"type": "UseCaseAssociation",
+				"owner": null,
+				"bounds": { "x": -560, "y": -100, "width": 500, "height": 150 },
+				"path": [{ "x": 0, "y": 150 }, { "x": 500, "y": 0 }],
+				"source": {
+					"direction": "Right",
+					"element": "c382b2ae-a26b-4b6f-b58a-e105a0de8366"
+				},
+				"target": {
+					"direction": "Left",
+					"element": "281380be-3a6b-4303-8532-5067f9803fa9"
+				},
+				"isManuallyLayouted": false
+			},
+			"98f6c550-222d-46ef-9667-b68f8ba5ffc3": {
+				"id": "98f6c550-222d-46ef-9667-b68f8ba5ffc3",
+				"name": "",
+				"type": "UseCaseAssociation",
+				"owner": null,
+				"bounds": { "x": -560, "y": 200, "width": 550, "height": 70 },
+				"path": [{ "x": 0, "y": 70 }, { "x": 550, "y": 0 }],
+				"source": {
+					"direction": "Right",
+					"element": "4bb4f554-8bae-4296-b223-f96d66f28e83"
+				},
+				"target": {
+					"direction": "Left",
+					"element": "d8f876bd-c3c4-430e-9ac8-87b712447046"
+				},
+				"isManuallyLayouted": false
+			},
+			"17235fa9-f676-4a6f-8a65-6be8c238a320": {
+				"id": "17235fa9-f676-4a6f-8a65-6be8c238a320",
+				"name": "",
+				"type": "UseCaseAssociation",
+				"owner": null,
+				"bounds": { "x": -560, "y": 270, "width": 550, "height": 80 },
+				"path": [{ "x": 0, "y": 0 }, { "x": 550, "y": 80 }],
+				"source": {
+					"direction": "Right",
+					"element": "4bb4f554-8bae-4296-b223-f96d66f28e83"
+				},
+				"target": {
+					"direction": "Left",
+					"element": "0e80d361-5d06-45e1-91bf-98904b9cae08"
+				},
+				"isManuallyLayouted": false
+			}
+		},
+		"assessments": {}
+	},
+	"lastUpdate": "2025-05-09T12:50:22.870Z"
+}

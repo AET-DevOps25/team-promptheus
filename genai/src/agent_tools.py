@@ -8,7 +8,7 @@ The tools are built on top of the GitHubContentService.
 """
 
 import json
-from typing import Optional, Annotated
+from typing import Optional
 
 from langchain.tools import tool
 from .contributions import GitHubContentService
@@ -136,12 +136,15 @@ def get_tool_descriptions(tools) -> str:
     """Return a formatted string containing all tool names and their descriptions."""
     tool_names = [t.name for t in tools]
     tool_descriptions = []
-    
-    for tool in tools:
-        description = getattr(tool, 'description', '').strip() or ''
-        tool_descriptions.append(f"{tool.name}:\n{description}")
-    
-    return f"Available tools: {', '.join(tool_names)}\n\n" + "\n\n".join(tool_descriptions)
+
+    for t in tools:
+        description = getattr(t, "description", "").strip() or ""
+        tool_descriptions.append(f"{t.name}:\n{description}")
+
+    return f"Available tools: {', '.join(tool_names)}\n\n" + "\n\n".join(
+        tool_descriptions
+    )
+
 
 all_tools = [
     search_github_code,
@@ -151,4 +154,4 @@ all_tools = [
     get_commit_details,
     get_issue_details,
     get_pull_request_details,
-] 
+]

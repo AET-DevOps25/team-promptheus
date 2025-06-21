@@ -26,10 +26,10 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Build test image
         uses: docker/build-push-action@v6
         with:
@@ -40,11 +40,11 @@ jobs:
           load: true
           cache-from: type=gha
           cache-to: type=gha,mode=min
-      
+
       - name: Wait for Meilisearch to be ready
         run: |
           timeout 30 bash -c 'until curl -s http://localhost:7700/health; do sleep 1; done'
-      
+
       - name: Run tests in Docker container
         run: |
           docker run --rm \

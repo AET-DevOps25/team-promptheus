@@ -21,18 +21,18 @@ TBD
 ## Architecture of the systems
 
 ### High level systems architecture diagram
-  
+
 > [!TIP]
 > The architecture digagram is [also avaliable as a pdf](docs/components.pdf)
 
 ![High level systems architecture diagram](docs/components.png)
-  
+
 ### Usecase diagram
-  
+
 ![the usecases we are optimising for](docs/usecase.png)
-  
+
 ### database layout diagram
-  
+
 > [!TIP]
 > You can view the DBML diagram interactively here:
 <https://www.dbdiagram.io/d/681e071a5b2fc4582fec9d54>
@@ -41,7 +41,7 @@ TBD
 
 ## Getting Started
 
-To get a local demo environment running, you can run 
+To get a local demo environment running, you can run
 
 ```shell
 COMPOSE_BAKE=true docker compose up
@@ -71,10 +71,26 @@ docker compose exec genai python scripts/demo.py --user <your-username> --repo <
 
 The demo showcases:
 - 📥 **GitHub Integration**: Fetch contributions automatically via GitHub API
-- 🤖 **AI Summary Generation**: Live streaming summaries of your weekly work 
+- 🤖 **AI Summary Generation**: Live streaming summaries of your weekly work
 - 💬 **Interactive Q&A**: Ask questions about your contributions with evidence-based answers
 - 📊 **Rich Analytics**: Detailed contribution analysis and insights
 
 **Coming Soon**: Conversational Q&A sessions with context retention and broader insights beyond evidence.
 
 See [`genai/README.md`](genai/README.md) for detailed API documentation and configuration options.
+
+### Linting
+
+In this repository, we use [pre-commit](https://pre-commit.com/) to ensure code quality and consistency. To set it up, follow these steps:
+
+```shell
+pip install pre-commit
+# Install the hooks
+pre-commit install
+```
+
+It can also be run manually:
+
+```shell
+pre-commit run --all-files
+```
