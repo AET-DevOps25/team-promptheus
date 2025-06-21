@@ -1,7 +1,5 @@
 "use client";
 
-import type React from "react";
-
 import { useState, useEffect } from "react";
 import {
 	Calendar,
@@ -27,13 +25,8 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-	fetchGitHubContributions,
-	type GitHubContribution,
-	type GitHubUser,
-} from "@/services/api";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 
 // Helper function to get start and end of a week
 const getWeekBounds = (date: Date) => {
@@ -184,13 +177,12 @@ export default function GitHubContributions() {
 		setError(null);
 
 		try {
-			const data = await fetchGitHubContributions(
-				"alinkcode",
-				currentWeek.start,
-				currentWeek.end,
-			);
-			setUserData(data.user);
-			setContributions(data.contributions);
+			/*
+      const data = await fetchGitHubContributions("alinkcode", currentWeek.start, currentWeek.end)
+      setUserData(data.user)
+      setContributions(data.contributions)
+       */
+			throw "fetchGitHubContributions is only a stub";
 		} catch (err) {
 			setError(
 				err instanceof Error ? err.message : "Failed to fetch GitHub data",
@@ -254,13 +246,18 @@ export default function GitHubContributions() {
 									</Button>
 								</div>
 							)}
-							{/*  <div className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={userData.avatar_url || "/placeholder.svg"} alt={userData.login} />
-                  <AvatarFallback>{userData.login.substring(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <span className="font-medium">{userData.login}</span>
-              </div> */}
+							<div className="flex items-center gap-2">
+								<Avatar className="h-8 w-8">
+									<AvatarImage
+										src={userData.avatar_url || "/placeholder.svg"}
+										alt={userData.login}
+									/>
+									<AvatarFallback>
+										{userData.login.substring(0, 2).toUpperCase()}
+									</AvatarFallback>
+								</Avatar>
+								<span className="font-medium">{userData.login}</span>
+							</div>
 						</div>
 					)}
 				</div>
@@ -374,10 +371,7 @@ export default function GitHubContributions() {
 												</span>
 											</div>
 
-											<Label
-												htmlFor={`contribution-${contribution.id}`}
-												className={`font-medium ${isSelectedWeekCurrentWeek() ? "cursor-pointer hover:text-primary" : ""}`}
-											>
+											<Button asChild>
 												<a
 													href={contribution.url}
 													target="_blank"

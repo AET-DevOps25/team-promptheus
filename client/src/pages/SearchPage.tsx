@@ -1,6 +1,3 @@
-import { getFromCookie, updateCookie } from "@/services/cookieutils";
-import React from "react";
-
 export function SearchPage() {
 	return (
 		<div>

@@ -6,13 +6,15 @@ AI-powered service for analyzing GitHub contributions and providing intelligent 
 
 ### Core Functionality
 - **Metadata-Only Ingestion**: Efficient processing with GitHub API integration for on-demand content fetching
-- **Unified Task Workflow**: Single endpoint handles ingestion, processing, and summarization 
+- **Unified Task Workflow**: Single endpoint handles ingestion, processing, and summarization
 - **AI Summary Generation**: LangChain/LangGraph-powered structured summaries with real-time progress tracking
 - **Context-Aware Q&A**: Ask questions about contributions with evidence and confidence scoring
 - **Conversation Context**: Follow-up questions maintain context from previous Q&As in the same session
 - **Semantic Search**: Meilisearch integration for finding relevant contributions
 - **Prometheus Metrics**: Comprehensive observability and monitoring
 - **GitHub Content Service**: Secure token-based GitHub API integration
+- **GitHub Agent Tools**: Langchain-compatible tools for real-time access to GitHub repositories
+- **Reflection**: Langchain-powered reflection on the conversation history to improve the answer
 
 For complete API documentation, see the **[Scalar API Reference](/reference)** when the service is running.
 
@@ -26,34 +28,34 @@ graph TB
         API[FastAPI App]
         DEPS[Dependency Injection]
     end
-    
+
     subgraph "Business Services"
         ING[ContributionsIngestionService]
         SUM[SummaryService]
         QA[QuestionAnsweringService]
         GH[GitHubContentService]
     end
-    
+
     subgraph "External APIs"
         GITHUB[GitHub API]
     end
-    
+
     subgraph "Data & AI"
         MEILI[Meilisearch Service]
         LC[LangChain/LangGraph]
         LLM[OpenAI GPT]
     end
-    
+
     subgraph "Observability"
         METRICS[Prometheus Metrics]
         LOGS[Structured Logging]
     end
-    
+
     API --> DEPS
     DEPS --> ING
     DEPS --> SUM
     DEPS --> QA
-    
+
     ING --> GH
     ING --> SUM
     ING --> MEILI
@@ -62,12 +64,12 @@ graph TB
     QA --> ING
     QA --> LC
     QA --> MEILI
-    
+
     LC --> LLM
-    
+
     API --> METRICS
     API --> LOGS
-    
+
     style API fill:#e1f5fe
     style LC fill:#f3e5f5
     style MEILI fill:#fff3e0
@@ -86,19 +88,19 @@ sequenceDiagram
     participant Meilisearch
     participant Summary
     participant LangChain
-    
+
     Note over Client,LangChain: Unified: Ingestion + Summarization
     Client->>API: POST /contributions (metadata only)
     API->>Ingestion: start_ingestion_task()
     Ingestion-->>API: task_id (immediate response)
     API-->>Client: IngestTaskResponse{task_id, status: "queued"}
-    
+
     Note over Ingestion,LangChain: Background Processing Phase 1: Ingestion
     Ingestion->>Ingestion: update status to "ingesting"
     Ingestion->>GitHub: fetch_contributions() (selected only)
     GitHub-->>Ingestion: GitHubContribution objects
     Ingestion->>Meilisearch: store + embed
-    
+
     Note over Ingestion,LangChain: Background Processing Phase 2: Summarization
     Ingestion->>Ingestion: update status to "summarizing"
     Ingestion->>Summary: generate_summary()
@@ -106,13 +108,13 @@ sequenceDiagram
     LangChain-->>Summary: structured summary
     Summary-->>Ingestion: SummaryResponse
     Ingestion->>Ingestion: update status to "done" + store summary
-    
+
     Note over Client,LangChain: Status Polling & Completion
     Client->>API: GET /ingest/{task_id}
     API->>Ingestion: get_task_status()
     Ingestion-->>API: IngestTaskStatus{status: "done", summary: SummaryResponse}
     API-->>Client: Complete task with summary
-    
+
     Note over Client,LangChain: Optional: Question Answering
     Client->>API: POST /users/{user}/weeks/{week}/questions
     API->>QA: answer_question()
@@ -135,12 +137,12 @@ stateDiagram-v2
     SUMMARIZING --> FAILED: Error during summarization
     DONE --> [*]: GET /ingest/{task_id} returns summary
     FAILED --> [*]: GET /ingest/{task_id} returns error
-    
+
     note right of QUEUED
         Client gets immediate response
         with task_id for polling
     end note
-    
+
     note right of DONE
         Final status includes
         complete summary response
@@ -161,7 +163,7 @@ stateDiagram-v2
 - `genai_summary_generation_duration_seconds` - Processing time
 - `genai_summary_generation_tokens_total` - Token usage tracking
 
-#### Question Answering  
+#### Question Answering
 - `genai_question_answering_requests_total` - Q&A requests by status
 - `genai_question_answering_duration_seconds` - Response time
 - `genai_question_confidence_score` - Confidence distribution
@@ -218,7 +220,7 @@ docker compose exec genai python scripts/demo.py
 Features:
 - Ask follow-up questions that maintain context
 - View conversation history with `history` command
-- Clear conversation with `clear` command  
+- Clear conversation with `clear` command
 - Visual indicators (🔗) when answers reference previous Q&As
 
 ### API Usage Examples
@@ -230,7 +232,7 @@ curl -X POST "http://localhost:3003/contributions" \
   -H "Content-Type: application/json" \
   -d '{
     "user": "octocat",
-    "week": "2024-W21", 
+    "week": "2024-W21",
     "repository": "octocat/Hello-World",
     "contributions": [
       {"type": "commit", "id": "abc123", "selected": true},
@@ -268,3 +270,18 @@ curl -X POST "http://localhost:3003/users/octocat/weeks/2024-W21/questions" \
 ```
 
 The question answering system automatically maintains conversation context for each user/week combination. Follow-up questions can reference previous Q&As without repeating context. Sessions are isolated per user and week.
+
+## 🤖 GitHub Agent Tools (Langchain)
+
+The GenAI service provides a set of Langchain-compatible tools for real-time access to GitHub repositories.
+At time of writing, these tools allow agents to:
+
+- **search_github_code**: Search for code in a repository (find implementations, functions, code patterns)
+- **search_github_issues**: Search for issues (bug reports, feature requests, project discussions)
+- **search_github_pull_requests**: Search for pull requests (code reviews, merges, workflow tracking)
+- **get_github_file_content**: Retrieve the content of a specific file
+- **get_commit_details**: Get details for a specific commit by SHA
+- **get_issue_details**: Get details for a specific issue by number
+- **get_pull_request_details**: Get details for a specific pull request by number
+
+These tools are implemented in [`src/agent_tools.py`](src/agent_tools.py) and are designed for use in Langchain agent workflows. They use the `GitHubContentService` for robust, authenticated GitHub API access.

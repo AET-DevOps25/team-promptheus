@@ -6,7 +6,7 @@ from .contributions import GitHubContentService
 
 __all__ = [
     "ContributionsIngestionService",
-    "QuestionAnsweringService", 
+    "QuestionAnsweringService",
     "SummaryService",
-    "GitHubContentService"
-] 
+    "GitHubContentService",
+]

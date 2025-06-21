@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/card";
 import { AuthContext } from "@/contextproviders/authprovider";
 import { GithubUserProviderContext } from "@/contextproviders/siteprovider";
-import { fetchRepoContributors, type GitHubContributor } from "@/services/api";
 import { Avatar } from "@radix-ui/react-avatar";
 import { AlertCircle, Check, Github, Loader2, Users } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
@@ -39,11 +38,10 @@ export function SelectUserPage() {
 		setError(null);
 
 		try {
-			const contributorsList = await fetchRepoContributors(
-				"thelinktoken",
-				"gihubreponame",
-			);
-			setContributors(contributorsList);
+			//const contributorsList = await fetchRepoContributors("TODO");
+			//const contributorsList = await fetchRepoContributors("TODO");
+			throw "fetchRepoContributors not implemented"
+			setContributors([]);
 		} catch (err) {
 			setError(
 				err instanceof Error ? err.message : "Failed to fetch contributors",
@@ -59,10 +57,6 @@ export function SelectUserPage() {
 
 		// Dispatch custom event to notify other components
 		// not needed. TODO: remove window.dispatchEvent(new Event("selectedUserChanged"))
-	};
-
-	const handleClearSelection = () => {
-		setSelectedUser(null);
 	};
 
 	return (
@@ -87,7 +81,7 @@ export function SelectUserPage() {
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={handleClearSelection}
+								onClick={() => handleSelectUser(selectedUser)}
 							>
 								Clear
 							</Button>

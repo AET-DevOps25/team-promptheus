@@ -16,9 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/repositories")
@@ -44,10 +42,9 @@ public class GitRepoController {
     @PostMapping("/PAT")
     public ResponseEntity<LinkConstruct> createFromPAT(@RequestBody PATConstruct patRequest) {
         LinkConstruct lc = gitRepoService.createAccessLinks(patRequest);
-        //meterRegistry.counter("pat_registration_total").increment();
+        meterRegistry.counter("pat_registration_total").increment();
         return ResponseEntity.ok(lc);
     }
-
 
     @Operation(summary = "Get the git repository information", description = "Auth is handled via the provided UUID")
     @ApiResponses(value = {

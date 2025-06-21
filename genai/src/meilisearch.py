@@ -1,7 +1,7 @@
 import asyncio
 import os
-from typing import List, Dict, Optional, Any
-from datetime import datetime
+from typing import List, Dict, Any
+from datetime import datetime  # noqa: F401
 import structlog
 import meilisearch
 from meilisearch.errors import MeilisearchApiError
@@ -13,22 +13,24 @@ logger = structlog.get_logger()
 
 class MeilisearchService:
     """Service for managing Meilisearch operations for GitHub contributions"""
-    
+
     def __init__(self):
         self.host = os.getenv("MEILISEARCH_URL", "http://localhost:7700")
         self.master_key = os.getenv("MEILI_MASTER_KEY", "CHANGE_ME_CHANGE_ME")
         self.client = meilisearch.Client(self.host, self.master_key)
-        
+
         # Index names
         self.contributions_index_name = "contributions"
         self.contributions_index = None
-        
+
     async def initialize(self) -> bool:
         """Initialize Meilisearch indices and settings"""
         try:
             # Create or get the contributions index
             try:
-                self.contributions_index = self.client.index(self.contributions_index_name)
+                self.contributions_index = self.client.index(
+                    self.contributions_index_name
+                )
                 # Test if index exists by getting stats
                 await asyncio.to_thread(self.contributions_index.get_stats)
                 logger.info("Meilisearch contributions index already exists")
@@ -38,25 +40,27 @@ class MeilisearchService:
                     task = await asyncio.to_thread(
                         self.client.create_index,
                         self.contributions_index_name,
-                        {"primaryKey": "id"}
+                        {"primaryKey": "id"},
                     )
                     # Wait for index creation
                     await asyncio.to_thread(self.client.wait_for_task, task.task_uid)
-                    self.contributions_index = self.client.index(self.contributions_index_name)
+                    self.contributions_index = self.client.index(
+                        self.contributions_index_name
+                    )
                     logger.info("Created Meilisearch contributions index")
                 else:
                     raise
-            
+
             # Configure index settings
             await self._configure_index_settings()
-            
+
             logger.info("Meilisearch service initialized successfully")
             return True
-            
+
         except Exception as e:
             logger.error("Failed to initialize Meilisearch service", error=str(e))
             return False
-    
+
     async def _configure_index_settings(self):
         """Configure search settings for the contributions index"""
         try:
@@ -64,40 +68,37 @@ class MeilisearchService:
             searchable_attributes = [
                 "content",
                 "title",
-                "message", 
+                "message",
                 "body",
                 "repository",
                 "author",
                 "filename",
-                "patch"
+                "patch",
             ]
-            
+
             # Configure filterable attributes
             filterable_attributes = [
                 "user",
-                "week", 
+                "week",
                 "contribution_type",
                 "repository",
                 "author",
-                "created_at_timestamp"
-            ]
-            
-            # Configure sortable attributes
-            sortable_attributes = [
                 "created_at_timestamp",
-                "relevance_score"
             ]
-            
+
+            # Configure sortable attributes
+            sortable_attributes = ["created_at_timestamp", "relevance_score"]
+
             # Configure ranking rules
             ranking_rules = [
                 "words",
-                "typo", 
+                "typo",
                 "proximity",
                 "attribute",
                 "sort",
-                "exactness"
+                "exactness",
             ]
-            
+
             # Configure embedders for AI-powered search
             embedders = {}
             openai_key = os.getenv("OPENAI_API_KEY")
@@ -106,12 +107,14 @@ class MeilisearchService:
                     "source": "openAi",
                     "apiKey": openai_key,
                     "model": "text-embedding-3-small",
-                    "documentTemplate": "Repository: {{doc.repository}} Author: {{doc.author}} Type: {{doc.contribution_type}} Title: {{doc.title}} Content: {{doc.content|truncatewords: 50}}"
+                    "documentTemplate": "Repository: {{doc.repository}} Author: {{doc.author}} Type: {{doc.contribution_type}} Title: {{doc.title}} Content: {{doc.content|truncatewords: 50}}",
                 }
                 logger.info("Configured OpenAI embedder for semantic search")
             else:
-                logger.warning("OPENAI_API_KEY not found, semantic search will not be available")
-            
+                logger.warning(
+                    "OPENAI_API_KEY not found, semantic search will not be available"
+                )
+
             # Apply settings
             settings_task = await asyncio.to_thread(
                 self.contributions_index.update_settings,
@@ -120,100 +123,124 @@ class MeilisearchService:
                     "filterableAttributes": filterable_attributes,
                     "sortableAttributes": sortable_attributes,
                     "rankingRules": ranking_rules,
-                    "stopWords": ["the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by"],
+                    "stopWords": [
+                        "the",
+                        "a",
+                        "an",
+                        "and",
+                        "or",
+                        "but",
+                        "in",
+                        "on",
+                        "at",
+                        "to",
+                        "for",
+                        "of",
+                        "with",
+                        "by",
+                    ],
                     "synonyms": {
                         "bug": ["issue", "problem", "error", "defect"],
                         "feature": ["enhancement", "improvement", "addition"],
                         "fix": ["repair", "resolve", "correct"],
-                        "test": ["testing", "spec", "unit test", "integration test"]
+                        "test": ["testing", "spec", "unit test", "integration test"],
                     },
-                    "embedders": embedders
-                }
+                    "embedders": embedders,
+                },
             )
-            
+
             # Wait for settings update
             await asyncio.to_thread(self.client.wait_for_task, settings_task.task_uid)
-            
+
             logger.info("Meilisearch index settings configured successfully")
-            
+
         except Exception as e:
             logger.error("Failed to configure Meilisearch index settings", error=str(e))
             raise
-    
-    async def index_contributions(self, user: str, week: str, contributions: List[GitHubContribution]) -> Dict[str, Any]:
+
+    async def index_contributions(
+        self, user: str, week: str, contributions: List[GitHubContribution]
+    ) -> Dict[str, Any]:
         """Index contributions for a specific user's week"""
         try:
             documents = []
-            
+
             for contribution in contributions:
                 # Create document for Meilisearch
                 document = self._create_document(user, week, contribution)
                 documents.append(document)
-            
+
             if not documents:
                 return {"indexed": 0, "failed": 0, "task_uid": None}
-            
+
             # Index documents
             task = await asyncio.to_thread(
-                self.contributions_index.add_documents,
-                documents
+                self.contributions_index.add_documents, documents
             )
-            
+
             # Wait for indexing to complete
             await asyncio.to_thread(self.client.wait_for_task, task.task_uid)
-            
+
             # Get task details
             task_info = await asyncio.to_thread(self.client.get_task, task.task_uid)
-            
+
             indexed_count = len(documents)
             failed_count = 0
-            
+
             if task_info.status == "failed":
                 failed_count = len(documents)
                 indexed_count = 0
-                logger.error("Meilisearch indexing failed", 
-                           task_uid=task.task_uid, 
-                           error=task_info.error)
-            
-            logger.info("Contributions indexed in Meilisearch",
-                       user=user,
-                       week=week,
-                       indexed_count=indexed_count,
-                       failed_count=failed_count,
-                       task_uid=task.task_uid)
-            
+                logger.error(
+                    "Meilisearch indexing failed",
+                    task_uid=task.task_uid,
+                    error=task_info.error,
+                )
+
+            logger.info(
+                "Contributions indexed in Meilisearch",
+                user=user,
+                week=week,
+                indexed_count=indexed_count,
+                failed_count=failed_count,
+                task_uid=task.task_uid,
+            )
+
             return {
                 "indexed": indexed_count,
                 "failed": failed_count,
-                "task_uid": task.task_uid
+                "task_uid": task.task_uid,
             }
-            
+
         except Exception as e:
-            logger.error("Failed to index contributions in Meilisearch",
-                        user=user,
-                        week=week,
-                        error=str(e))
+            logger.error(
+                "Failed to index contributions in Meilisearch",
+                user=user,
+                week=week,
+                error=str(e),
+            )
             raise
-    
-    def _create_document(self, user: str, week: str, contribution: GitHubContribution) -> Dict[str, Any]:
+
+    def _create_document(
+        self, user: str, week: str, contribution: GitHubContribution
+    ) -> Dict[str, Any]:
         """Create a Meilisearch document from a contribution"""
         # Extract text content for search
         content_parts = []
-        
+
         # Common fields
         content_parts.append(f"Repository: {contribution.repository}")
         content_parts.append(f"Author: {contribution.author}")
-        
+
         # Type-specific content
         title = ""
         body = ""
         filename = ""
         patch = ""
-        
+
         if contribution.type == ContributionType.COMMIT:
             title = contribution.message
             content_parts.append(f"Commit: {contribution.message}")
-            
+
             # Include file information
             for file in contribution.files:
                 content_parts.append(f"File: {file.filename}")
@@ -221,43 +248,45 @@ class MeilisearchService:
                 if file.patch:
                     content_parts.append(f"Changes: {file.patch[:500]}")
                     patch += f"{file.patch[:500]} "
-                    
+
         elif contribution.type == ContributionType.PULL_REQUEST:
             title = contribution.title
             body = contribution.body or ""
             content_parts.append(f"Pull Request: {contribution.title}")
             if contribution.body:
                 content_parts.append(f"Description: {contribution.body}")
-            
+
             # Include comments
             for comment in contribution.comments_data:
                 content_parts.append(f"Comment by {comment.user.login}: {comment.body}")
-            
+
             # Include review comments
             for review in contribution.reviews_data:
                 if review.body:
-                    content_parts.append(f"Review by {review.user.login}: {review.body}")
+                    content_parts.append(
+                        f"Review by {review.user.login}: {review.body}"
+                    )
                 for comment in review.comments:
                     content_parts.append(f"Review comment: {comment.body}")
-                    
+
         elif contribution.type == ContributionType.ISSUE:
             title = contribution.title
             body = contribution.body or ""
             content_parts.append(f"Issue: {contribution.title}")
             if contribution.body:
                 content_parts.append(f"Description: {contribution.body}")
-            
+
             # Include comments
             for comment in contribution.comments_data:
                 content_parts.append(f"Comment by {comment.user.login}: {comment.body}")
-                
+
         elif contribution.type == ContributionType.RELEASE:
             title = contribution.name
             body = contribution.body or ""
             content_parts.append(f"Release: {contribution.name}")
             if contribution.body:
                 content_parts.append(f"Release Notes: {contribution.body}")
-        
+
         # Create the document
         document = {
             "id": f"{user}-{week}-{contribution.id}",
@@ -270,22 +299,24 @@ class MeilisearchService:
             "created_at": contribution.created_at.isoformat(),
             "created_at_timestamp": int(contribution.created_at.timestamp()),
             "title": title,
-            "message": getattr(contribution, 'message', ''),
+            "message": getattr(contribution, "message", ""),
             "body": body,
             "filename": filename.strip(),
             "patch": patch.strip(),
             "content": "\n".join(content_parts),
-            "relevance_score": 1.0  # Default relevance score
+            "relevance_score": 1.0,  # Default relevance score
         }
-        
+
         return document
-    
-    async def search_contributions(self, user: str, week: str, query: str, limit: int = 10) -> List[Dict[str, Any]]:
+
+    async def search_contributions(
+        self, user: str, week: str, query: str, limit: int = 10
+    ) -> List[Dict[str, Any]]:
         """Search contributions for a specific user's week"""
         try:
             # Build search filters
             filters = f'user = "{user}" AND week = "{week}"'
-            
+
             # Check if embedders are configured by checking for OpenAI key
             openai_key = os.getenv("OPENAI_API_KEY")
             search_params = {
@@ -294,133 +325,139 @@ class MeilisearchService:
                 "attributesToHighlight": ["content", "title", "message", "body"],
                 "highlightPreTag": "<mark>",
                 "highlightPostTag": "</mark>",
-                "sort": ["created_at_timestamp:desc"]
+                "sort": ["created_at_timestamp:desc"],
             }
-            
+
             # Use hybrid search if OpenAI embedder is available
             if openai_key:
                 search_params["hybrid"] = {
                     "embedder": "default",
-                    "semanticRatio": 0.5  # 50% semantic, 50% full-text
+                    "semanticRatio": 0.5,  # 50% semantic, 50% full-text
                 }
                 logger.debug("Using hybrid search with OpenAI embeddings")
             else:
                 logger.debug("Using full-text search only (no OpenAI embedder)")
-            
+
             # Perform search
             search_results = await asyncio.to_thread(
-                self.contributions_index.search,
-                query,
-                search_params
+                self.contributions_index.search, query, search_params
             )
-            
-            logger.info("Meilisearch search completed",
-                       user=user,
-                       week=week,
-                       query=query,
-                       results_count=len(search_results["hits"]),
-                       search_type="hybrid" if openai_key else "full-text")
-            
+
+            logger.info(
+                "Meilisearch search completed",
+                user=user,
+                week=week,
+                query=query,
+                results_count=len(search_results["hits"]),
+                search_type="hybrid" if openai_key else "full-text",
+            )
+
             return search_results["hits"]
-            
+
         except Exception as e:
-            logger.error("Failed to search contributions in Meilisearch",
-                        user=user,
-                        week=week,
-                        query=query,
-                        error=str(e))
+            logger.error(
+                "Failed to search contributions in Meilisearch",
+                user=user,
+                week=week,
+                query=query,
+                error=str(e),
+            )
             raise
-    
+
     async def get_contributions_count(self, user: str, week: str) -> int:
         """Get the count of contributions for a specific user's week"""
         try:
             filters = f'user = "{user}" AND week = "{week}"'
-            
+
             search_results = await asyncio.to_thread(
                 self.contributions_index.search,
                 "",
                 {
                     "filter": filters,
-                    "limit": 0  # We only want the count
-                }
+                    "limit": 0,  # We only want the count
+                },
             )
-            
+
             return search_results["estimatedTotalHits"]
-            
+
         except Exception as e:
-            logger.error("Failed to get contributions count from Meilisearch",
-                        user=user,
-                        week=week,
-                        error=str(e))
+            logger.error(
+                "Failed to get contributions count from Meilisearch",
+                user=user,
+                week=week,
+                error=str(e),
+            )
             return 0
-    
+
     async def delete_user_week_contributions(self, user: str, week: str) -> bool:
         """Delete all contributions for a specific user's week"""
         try:
             # First, search for documents to get their IDs
             filters = f'user = "{user}" AND week = "{week}"'
-            
+
             search_results = await asyncio.to_thread(
                 self.contributions_index.search,
                 "",
                 {
                     "filter": filters,
                     "limit": 1000,  # Get all matching documents
-                    "attributesToRetrieve": ["id"]
-                }
+                    "attributesToRetrieve": ["id"],
+                },
             )
-            
+
             if not search_results["hits"]:
-                logger.info("No contributions found to delete",
-                           user=user,
-                           week=week)
+                logger.info("No contributions found to delete", user=user, week=week)
                 return True
-            
+
             # Extract document IDs
             document_ids = [hit["id"] for hit in search_results["hits"]]
-            
+
             # Delete documents by IDs
             task = await asyncio.to_thread(
-                self.contributions_index.delete_documents,
-                document_ids
+                self.contributions_index.delete_documents, document_ids
             )
-            
+
             # Wait for deletion to complete
             await asyncio.to_thread(self.client.wait_for_task, task.task_uid)
-            
-            logger.info("Deleted contributions from Meilisearch",
-                       user=user,
-                       week=week,
-                       count=len(document_ids),
-                       task_uid=task.task_uid)
-            
+
+            logger.info(
+                "Deleted contributions from Meilisearch",
+                user=user,
+                week=week,
+                count=len(document_ids),
+                task_uid=task.task_uid,
+            )
+
             return True
-            
+
         except Exception as e:
-            logger.error("Failed to delete contributions from Meilisearch",
-                        user=user,
-                        week=week,
-                        error=str(e))
+            logger.error(
+                "Failed to delete contributions from Meilisearch",
+                user=user,
+                week=week,
+                error=str(e),
+            )
             return False
-    
+
     async def health_check(self) -> Dict[str, Any]:
         """Check Meilisearch health and return status"""
         try:
             # Check if we can connect and get health
             health = await asyncio.to_thread(self.client.health)
-            
+
             # Get index stats
-            stats = await asyncio.to_thread(self.contributions_index.get_stats) if self.contributions_index else {}
-            
+            stats = (
+                await asyncio.to_thread(self.contributions_index.get_stats)
+                if self.contributions_index
+                else {}
+            )
+
             return {
                 "status": "healthy",
                 "health": health,
-                "contributions_index_stats": stats
+                "contributions_index_stats": stats,
             }
-            
+
         except Exception as e:
             logger.error("Meilisearch health check failed", error=str(e))
-            return {
-                "status": "unhealthy",
-                "error": str(e)
-            } 
+            return {"status": "unhealthy", "error": str(e)}

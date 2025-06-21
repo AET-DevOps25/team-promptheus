@@ -58,7 +58,7 @@ class GitRepoControllerTest {
                 .andExpect(content().json(objectMapper.writeValueAsString(expectedResponse)));
         verify(meterRegistry,only()).counter("pat_registration_total");
         verify(patRegistrationCnt,only()).increment();
-        verify(gitRepoService,only()).createAccessLinks(any(PATConstruct.class));
+        verify(gitRepoService, only()).createAccessLinks(any(PATConstruct.class));
     }
 
     @Test

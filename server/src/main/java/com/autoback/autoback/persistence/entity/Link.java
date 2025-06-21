@@ -25,6 +25,7 @@ public class Link {
 
     @NotNull
     @Column(name = "is_maintainer", nullable = false)
+    @Builder.Default
     private Boolean isMaintainer = false;
 
 }

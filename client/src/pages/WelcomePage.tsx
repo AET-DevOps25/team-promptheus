@@ -1,17 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { AuthContext, useAuth } from "@/contextproviders/authprovider";
+import { AuthContext } from "@/contextproviders/authprovider";
 import { GithubUserProviderContext } from "@/contextproviders/siteprovider";
 import { getFromCookie } from "@/services/cookieutils";
-import { createContext, useContext, useState } from "react";
-import {
-	createBrowserRouter,
-	RouterProvider,
-	Navigate,
-} from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { useContext, useState } from "react";
+import { Navigate } from "react-router-dom";
 
 export function WelcomePage() {
-	const navigate = useNavigate();
 	console.log("loading consumers");
 	// loading context consumers
 	const { user, loading } = useContext(AuthContext);
@@ -36,7 +30,7 @@ export function WelcomePage() {
 	}
 
 	const handleSelectUserButtonClick = () => {
-		navigate("/selectuser", { replace: true });
+		<Navigate to="/selectuser" replace={true} />;
 	};
 
 	return (
@@ -58,7 +52,6 @@ export function WelcomePage() {
 						You have not selected for which contributor you would like to use
 						this service for. Please select a user:
 					</p>
-
 					<Button variant="outline" onClick={handleSelectUserButtonClick}>
 						Select github user contributor
 					</Button>

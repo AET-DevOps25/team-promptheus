@@ -32,10 +32,7 @@ function ProtectedLayout() {
 			return (
 				<>
 					{" "}
-					<GithubUserProvider>
-						{" "}
-						<Header />{" "}
-					</GithubUserProvider>{" "}
+					<Header />{" "}
 				</>
 			);
 		}
@@ -68,14 +65,18 @@ function App() {
 					<Route path="/landing" element={<LandingPage />} />
 					<Route path="/signup" element={<SignupMain />} />
 
-					<Route element={<ProtectedLayout />}>
-						<Route path="/" element={<WelcomePage />} />
-						<Route path="/selectcontent" element={<GitHubContributions />} />
-						<Route path="/qna" element={<QnAPage />} />
-						<Route path="/summaryviewing" element={<SummaryViewing />} />
-						<Route path="/search" element={<SearchPage />} />
-						<Route path="/selectuser" element={<SelectUserPage />} />
-					</Route>
+					<GithubUserProvider>
+						{" "}
+						{/* keeps track which gh user is selected */}
+						<Route element={<ProtectedLayout />}>
+							<Route path="/" element={<WelcomePage />} />
+							<Route path="/selectcontent" element={<GitHubContributions />} />
+							<Route path="/qna" element={<QnAPage />} />
+							<Route path="/summaryviewing" element={<SummaryViewing />} />
+							<Route path="/search" element={<SearchPage />} />
+							<Route path="/selectuser" element={<SelectUserPage />} />
+						</Route>
+					</GithubUserProvider>
 
 					<Route path="/:uuid" element={<UUIDForwarder />} />
 
