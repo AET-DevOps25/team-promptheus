@@ -14,6 +14,7 @@ import {
 	MessageSquare,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-
 
 // Helper function to get start and end of a week
 const getWeekBounds = (date: Date) => {
@@ -380,7 +380,21 @@ export default function GitHubContributions() {
 												>
 													{contribution.title}
 												</a>
-											</Label>
+											</Button>
+
+											{/* <Label
+                        htmlFor={`contribution-${contribution.id}`}
+                        className={`font-medium ${isSelectedWeekCurrentWeek() ? "cursor-pointer hover:text-primary" : ""}`}
+                      >
+                        <a
+                          href={contribution.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          {contribution.title}
+                        </a>
+                      </Label> */}
 										</div>
 										<div className="hidden sm:flex items-center gap-1 text-sm text-muted-foreground">
 											<Clock className="h-3 w-3" />

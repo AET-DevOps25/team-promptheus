@@ -30,7 +30,7 @@ export function WelcomePage() {
 	}
 
 	const handleSelectUserButtonClick = () => {
-		<Navigate replace={true} to="/selectuser" />;
+		<Navigate replace to="/selectuser" />;
 	};
 
 	return (

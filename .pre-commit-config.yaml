@@ -11,8 +11,8 @@ repos:
     - repo: https://github.com/biomejs/pre-commit
       rev: "v0.6.1"
       hooks:
-      -   id: biome-format
-          additional_dependencies: ["@biomejs/biome@2.0.0"]
+      - id: biome-format
+        additional_dependencies: ["@biomejs/biome@2.0.0"]
     - repo: https://github.com/astral-sh/ruff-pre-commit
       rev: v0.12.0
       hooks:
