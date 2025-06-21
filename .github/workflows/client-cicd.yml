@@ -21,8 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run:  npx @biomejs/biome=2.0.0 ci
-        working-directory: client
+      - run:  npx @biomejs/biome ci
   client-build:
     uses: ./.github/workflows/_docker-build.yml
     needs:

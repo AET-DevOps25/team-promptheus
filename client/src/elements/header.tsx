@@ -49,7 +49,7 @@ export function Header() {
 											? "bg-primary text-primary-foreground"
 											: "text-muted-foreground hover:text-foreground hover:bg-muted"
 									}`}
-                                    key={item.href}
+									key={item.href}
 									to={item.href}
 								>
 									{item.label}
