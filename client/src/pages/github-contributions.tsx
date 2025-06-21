@@ -1,19 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
+	AlertCircle,
 	Calendar,
+	ChevronLeft,
+	ChevronRight,
 	Clock,
 	Code,
 	GitCommit,
-	GitPullRequest,
-	MessageSquare,
-	ChevronLeft,
-	ChevronRight,
-	Loader2,
-	AlertCircle,
 	Github,
+	GitPullRequest,
+	Loader2,
+	MessageSquare,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,8 +27,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Helper function to get start and end of a week
 const getWeekBounds = (date: Date) => {
@@ -40,7 +40,7 @@ const getWeekBounds = (date: Date) => {
 	sunday.setDate(monday.getDate() + 6);
 	sunday.setHours(23, 59, 59, 999);
 
-	return { start: monday, end: sunday };
+	return { end: sunday, start: monday };
 };
 
 export default function GitHubContributions() {
@@ -109,7 +109,7 @@ export default function GitHubContributions() {
 			newStart.setDate(newStart.getDate() - 7);
 			const newEnd = new Date(prev.end);
 			newEnd.setDate(newEnd.getDate() - 7);
-			return { start: newStart, end: newEnd };
+			return { end: newEnd, start: newStart };
 		});
 	};
 
@@ -126,15 +126,15 @@ export default function GitHubContributions() {
 			newStart.setDate(newStart.getDate() + 7);
 			const newEnd = new Date(prev.end);
 			newEnd.setDate(newEnd.getDate() + 7);
-			return { start: newStart, end: newEnd };
+			return { end: newEnd, start: newStart };
 		});
 	};
 
 	// Format date range for display
 	const formatDateRange = () => {
 		const options: Intl.DateTimeFormatOptions = {
-			month: "short",
 			day: "numeric",
+			month: "short",
 			year: "numeric",
 		};
 		const startStr = currentWeek.start.toLocaleDateString("en-US", options);
@@ -160,8 +160,8 @@ export default function GitHubContributions() {
 	const formatDate = (dateString: string) => {
 		const date = new Date(dateString);
 		return date.toLocaleDateString("en-US", {
-			month: "short",
 			day: "numeric",
+			month: "short",
 			year: "numeric",
 		});
 	};
@@ -198,15 +198,15 @@ export default function GitHubContributions() {
 			selectedContributions.includes(c.id),
 		);
 		const exportData = {
-			user: userData?.login,
-			week: formatDateRange(),
 			contributions: selectedItems.map((c) => ({
-				type: c.type,
+				date: c.date,
 				repo: c.repoFullName,
 				title: c.title,
-				date: c.date,
+				type: c.type,
 				url: c.url,
 			})),
+			user: userData?.login,
+			week: formatDateRange(),
 		};
 
 		const dataStr = JSON.stringify(exportData, null, 2);
@@ -233,14 +233,14 @@ export default function GitHubContributions() {
 							{selectedRepo && (
 								<div className="text-sm text-muted-foreground">
 									Repository:
-									<Badge variant="outline" className="ml-2">
+									<Badge className="ml-2" variant="outline">
 										{selectedRepo}
 									</Badge>
 									<Button
-										variant="ghost"
-										size="sm"
 										className="h-6 ml-1 px-2"
 										onClick={() => setSelectedRepo(null)}
+										size="sm"
+										variant="ghost"
 									>
 										Clear
 									</Button>
@@ -249,8 +249,8 @@ export default function GitHubContributions() {
 							<div className="flex items-center gap-2">
 								<Avatar className="h-8 w-8">
 									<AvatarImage
-										src={userData.avatar_url || "/placeholder.svg"}
 										alt={userData.login}
+										src={userData.avatar_url || "/placeholder.svg"}
 									/>
 									<AvatarFallback>
 										{userData.login.substring(0, 2).toUpperCase()}
@@ -268,7 +268,7 @@ export default function GitHubContributions() {
 			<CardContent className="space-y-6">
 				<div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
 					<div className="flex items-center gap-2">
-						<Button variant="outline" size="icon" onClick={goToPreviousWeek}>
+						<Button onClick={goToPreviousWeek} size="icon" variant="outline">
 							<ChevronLeft className="h-4 w-4" />
 						</Button>
 						<div className="flex items-center gap-2">
@@ -276,10 +276,10 @@ export default function GitHubContributions() {
 							<span className="font-medium">{formatDateRange()}</span>
 						</div>
 						<Button
-							variant="outline"
-							size="icon"
-							onClick={goToNextWeek}
 							disabled={isSelectedWeekCurrentWeek()}
+							onClick={goToNextWeek}
+							size="icon"
+							variant="outline"
 						>
 							<ChevronRight className="h-4 w-4" />
 						</Button>
@@ -301,10 +301,10 @@ export default function GitHubContributions() {
 						)}
 						{isSelectedWeekCurrentWeek() && (
 							<>
-								<Button variant="outline" size="sm" onClick={selectAll}>
+								<Button onClick={selectAll} size="sm" variant="outline">
 									Select All
 								</Button>
-								<Button variant="outline" size="sm" onClick={deselectAll}>
+								<Button onClick={deselectAll} size="sm" variant="outline">
 									Deselect All
 								</Button>
 							</>
@@ -344,22 +344,22 @@ export default function GitHubContributions() {
 							<div className="divide-y">
 								{weekContributions.map((contribution) => (
 									<div
-										key={contribution.id}
 										className="grid grid-cols-[25px_1fr] sm:grid-cols-[25px_1fr_200px] items-center gap-4 p-4 hover:bg-muted/50 transition-colors"
+										key={contribution.id}
 									>
 										<Checkbox
-											id={`contribution-${contribution.id}`}
 											checked={selectedContributions.includes(contribution.id)}
+											disabled={!isSelectedWeekCurrentWeek()}
+											id={`contribution-${contribution.id}`}
 											onCheckedChange={() =>
 												toggleContribution(contribution.id)
 											}
-											disabled={!isSelectedWeekCurrentWeek()}
 										/>
 										<div className="space-y-1">
 											<div className="flex items-center gap-2">
 												<Badge
-													variant="outline"
 													className="flex items-center gap-1"
+													variant="outline"
 												>
 													{getContributionIcon(contribution.type)}
 													<span className="capitalize">
@@ -373,10 +373,10 @@ export default function GitHubContributions() {
 
 											<Button asChild>
 												<a
-													href={contribution.url}
-													target="_blank"
-													rel="noopener noreferrer"
 													className="hover:underline"
+													href={contribution.url}
+													rel="noopener noreferrer"
+													target="_blank"
 												>
 													{contribution.title}
 												</a>

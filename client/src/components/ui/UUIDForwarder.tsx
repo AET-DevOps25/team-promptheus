@@ -1,6 +1,6 @@
-import { updateCookie } from "@/services/cookieutils";
 import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
+import { updateCookie } from "@/services/cookieutils";
 
 export function UUIDForwarder() {
 	//const { uuid } = useParams();
@@ -29,5 +29,5 @@ export function UUIDForwarder() {
 		handleUUID();
 	}, [uuid]);
 
-	return <Navigate to="/" replace />;
+	return <Navigate replace to="/" />;
 }

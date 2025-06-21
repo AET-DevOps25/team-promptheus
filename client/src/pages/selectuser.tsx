@@ -1,3 +1,6 @@
+import { Avatar } from "@radix-ui/react-avatar";
+import { AlertCircle, Check, Github, Loader2, Users } from "lucide-react";
+import { useContext, useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -11,9 +14,6 @@ import {
 } from "@/components/ui/card";
 import { AuthContext } from "@/contextproviders/authprovider";
 import { GithubUserProviderContext } from "@/contextproviders/siteprovider";
-import { Avatar } from "@radix-ui/react-avatar";
-import { AlertCircle, Check, Github, Loader2, Users } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
 
 export function SelectUserPage() {
 	// initialise fast loading react states
@@ -72,14 +72,14 @@ export function SelectUserPage() {
 					</div>
 					{selectedUser && (
 						<div className="flex items-center gap-2">
-							<Badge variant="secondary" className="flex items-center gap-2">
+							<Badge className="flex items-center gap-2" variant="secondary">
 								<Check className="h-3 w-3" />
 								Selected: {selectedUser.login}
 							</Badge>
 							<Button
-								variant="outline"
-								size="sm"
 								onClick={() => handleSelectUser(selectedUser)}
+								size="sm"
+								variant="outline"
 							>
 								Clear
 							</Button>
@@ -109,20 +109,20 @@ export function SelectUserPage() {
 					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 						{contributors.map((contributor) => (
 							<Card
-								key={contributor.id}
 								className={`cursor-pointer transition-all hover:shadow-md ${
 									selectedUser?.id === contributor.id
 										? "ring-2 ring-primary bg-primary/5"
 										: "hover:bg-muted/50"
 								}`}
+								key={contributor.id}
 								onClick={() => handleSelectUser(contributor)}
 							>
 								<CardContent className="p-4">
 									<div className="flex items-center gap-3">
 										<Avatar className="h-12 w-12">
 											<AvatarImage
-												src={contributor.avatar_url || "/placeholder.svg"}
 												alt={contributor.login}
+												src={contributor.avatar_url || "/placeholder.svg"}
 											/>
 											<AvatarFallback>
 												{contributor.login.substring(0, 2).toUpperCase()}

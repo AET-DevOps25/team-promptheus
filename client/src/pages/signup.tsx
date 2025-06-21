@@ -1,9 +1,9 @@
 "use client";
-import { useState, type Dispatch, type SetStateAction } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import { type Dispatch, type SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Form,
@@ -15,8 +15,8 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import DisplayLinks from "./displaylinks";
 import { createFromPAT } from "@/services/api";
+import DisplayLinks from "./displaylinks";
 
 const formSchema = z.object({
 	patstr: z
@@ -34,10 +34,10 @@ function ProfileForm({ setDeveloperView, setManagerView }: SignupForm) {
 	const [patsubmitted, setPatSubmitting] = useState(false);
 
 	const form = useForm<z.infer<typeof formSchema>>({
-		resolver: zodResolver(formSchema),
 		defaultValues: {
 			patstr: "",
 		},
+		resolver: zodResolver(formSchema),
 	});
 
 	async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -53,7 +53,7 @@ function ProfileForm({ setDeveloperView, setManagerView }: SignupForm) {
 
 	return (
 		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+			<form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
 				<FormField
 					control={form.control}
 					name="patstr"
@@ -62,8 +62,8 @@ function ProfileForm({ setDeveloperView, setManagerView }: SignupForm) {
 							<FormLabel>Personal Access Token</FormLabel>
 							<FormControl>
 								<Input
-									type="password"
 									placeholder="Your token here..."
+									type="password"
 									{...field}
 								/>
 							</FormControl>
@@ -83,8 +83,8 @@ function ProfileForm({ setDeveloperView, setManagerView }: SignupForm) {
 							<FormLabel>Github Repository Link</FormLabel>
 							<FormControl>
 								<Input
-									type="text"
 									placeholder="Repository link here..."
+									type="text"
 									{...field}
 								/>
 							</FormControl>

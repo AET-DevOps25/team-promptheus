@@ -1,5 +1,5 @@
-import { useAuth } from "@/contextproviders/authprovider";
 import React from "react";
+import { useAuth } from "@/contextproviders/authprovider";
 
 export function SummaryViewing() {
 	const { user } = useAuth();

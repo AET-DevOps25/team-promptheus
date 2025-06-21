@@ -1,9 +1,9 @@
+import { useContext, useState } from "react";
+import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { AuthContext } from "@/contextproviders/authprovider";
 import { GithubUserProviderContext } from "@/contextproviders/siteprovider";
 import { getFromCookie } from "@/services/cookieutils";
-import { useContext, useState } from "react";
-import { Navigate } from "react-router-dom";
 
 export function WelcomePage() {
 	console.log("loading consumers");
@@ -21,7 +21,7 @@ export function WelcomePage() {
 	const userData = ["asfdsafsa", "asfsad"]; //await fetchUser(uuid!);
 
 	// store in cookie
-	let v = getFromCookie("selectedgithubuser"); // TODO : put all cookie keys into cookie util script
+	const v = getFromCookie("selectedgithubuser"); // TODO : put all cookie keys into cookie util script
 
 	if (v == undefined) {
 		console.log("no github user selected yet");
@@ -30,7 +30,7 @@ export function WelcomePage() {
 	}
 
 	const handleSelectUserButtonClick = () => {
-		<Navigate to="/landing" replace />;
+		<Navigate replace to="/landing" />;
 	};
 
 	return (
@@ -52,7 +52,7 @@ export function WelcomePage() {
 						You have not selected for which contributor you would like to use
 						this service for. Please select a user:
 					</p>
-					<Button variant="outline" onClick={handleSelectUserButtonClick}>
+					<Button onClick={handleSelectUserButtonClick} variant="outline">
 						Select github user contributor
 					</Button>
 				</div>

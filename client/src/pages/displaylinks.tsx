@@ -1,6 +1,6 @@
 "use client";
-import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export type CopyTextInputProps = {
 	text: string;
@@ -13,8 +13,8 @@ export function CopyTextInput({ text }: CopyTextInputProps) {
 
 			<Button
 				onClick={() => navigator.clipboard.writeText(text)}
-				variant="outline"
 				size="icon"
+				variant="outline"
 			>
 				<Copy />
 			</Button>
