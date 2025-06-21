@@ -1,9 +1,9 @@
+import { User } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { useAuth } from "../contextproviders/authprovider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getLocalStorageItem } from "@/services/localstorageservice";
-import { User } from "lucide-react";
+import { useAuth } from "../contextproviders/authprovider";
 
 const navItems = [
 	{ href: "/", label: "Home" },
@@ -15,7 +15,7 @@ const navItems = [
 
 export function Header() {
 	const { user, loading } = useAuth();
-	let location = useLocation();
+	const location = useLocation();
 	const [selectedUser, setSelectedUser] = useState<{
 		login: string;
 		avatar_url: string;
@@ -44,12 +44,12 @@ export function Header() {
 						<nav className="flex flex-wrap gap-1">
 							{navItems.map((item) => (
 								<Link
-									to={item.href}
 									className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
 										location.pathname === item.href
 											? "bg-primary text-primary-foreground"
 											: "text-muted-foreground hover:text-foreground hover:bg-muted"
 									}`}
+									to={item.href}
 								>
 									{item.label}
 								</Link>
@@ -63,8 +63,8 @@ export function Header() {
 								{selectedUser ? (
 									<>
 										<AvatarImage
-											src={selectedUser.avatar_url || "/placeholder.svg"}
 											alt={selectedUser.login}
+											src={selectedUser.avatar_url || "/placeholder.svg"}
 										/>
 										<AvatarFallback>
 											{selectedUser.login.substring(0, 2).toUpperCase()}

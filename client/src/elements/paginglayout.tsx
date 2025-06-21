@@ -1,19 +1,17 @@
 // Layout for the normal non-landing pages
 
+//import { Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router";
+import { Navigate } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 // src/components/Layout.tsx
 import { Header } from "@/elements/header";
-//import { Route, Routes } from "react-router-dom";
-import { BrowserRouter, Routes, Route } from "react-router";
-
-import { useAuth } from "../contextproviders/authprovider";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Navigate } from "react-router-dom";
-
-import search from "@/pages/SearchPage";
-import selectcontent from "@/pages/selectcontent";
-import summaryviewing from "@/pages/SummaryViewing";
-import questionandanswers from "@/pages/QnAPage";
 import about from "@/pages/About";
+import questionandanswers from "@/pages/QnAPage";
+import search from "@/pages/SearchPage";
+import summaryviewing from "@/pages/SummaryViewing";
+import selectcontent from "@/pages/selectcontent";
+import { useAuth } from "../contextproviders/authprovider";
 
 // Define props type for TypeScript (optional but recommended)
 type LayoutProps = {
@@ -44,7 +42,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 				<Routes>
 					<Route
-						path="/"
 						element={
 							<div>
 								Welcome! You are a viewing as a{" "}
@@ -52,12 +49,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 								{user.reponame}.
 							</div>
 						}
+						path="/"
 					/>
-					<Route path="/selectcontent" element={{ selectcontent }} />
-					<Route path="/summaryviewing" element={{ summaryviewing }} />
-					<Route path="/questionandanswers" element={{ questionandanswers }} />
-					<Route path="/search" element={{ search }} />
-					<Route path="/about" element={{ about }} />
+					<Route element={{ selectcontent }} path="/selectcontent" />
+					<Route element={{ summaryviewing }} path="/summaryviewing" />
+					<Route element={{ questionandanswers }} path="/questionandanswers" />
+					<Route element={{ search }} path="/search" />
+					<Route element={{ about }} path="/about" />
 				</Routes>
 
 				<main className="pt-16">

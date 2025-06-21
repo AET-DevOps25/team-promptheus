@@ -1,8 +1,8 @@
 // this is the client side of the logic implementing the mapping between link <-> (repository, dev/manager)
 // it sets a cookie
 
-import { getFromCookie } from "@/services/cookieutils";
 import { createContext, useContext, useEffect, useState } from "react";
+import { getFromCookie } from "@/services/cookieutils";
 
 type Userrole = {
 	uuid: string;
@@ -14,8 +14,8 @@ export const AuthContext = createContext<{
 	user: Userrole;
 	loading: boolean;
 }>({
-	user: null,
 	loading: true,
+	user: null,
 }); //({ user: null, loading: true, api: null });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -45,9 +45,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			})();
 
 			setUser({
-				uuid: "7f2c97bd-fc21-4eb0-a3d8-f4ac7986ee64",
 				reponame: "reponames",
 				role: "arole",
+				uuid: "7f2c97bd-fc21-4eb0-a3d8-f4ac7986ee64",
 			});
 			setLoading(false);
 		} else {
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	}, [setUser, setLoading]);
 
 	return (
-		<AuthContext.Provider value={{ user, loading }}>
+		<AuthContext.Provider value={{ loading, user }}>
 			{children}
 		</AuthContext.Provider>
 	);

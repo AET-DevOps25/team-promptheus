@@ -1,4 +1,5 @@
 import type { operations as serverOps } from "./server";
+
 //import type {operations as genaiOps} from "./genai"
 
 type NewRepoResponse =
@@ -9,10 +10,10 @@ export async function createFromPAT(
 ): Promise<NewRepoResponse> {
 	type Req =
 		serverOps["createFromPAT"]["requestBody"]["content"]["application/json"];
-	const body: Req = { repolink: repoLink, pat };
+	const body: Req = { pat, repolink: repoLink };
 	const resp = await fetch("/api/repositories/PAT", {
-		method: "POST",
 		body: JSON.stringify(body),
+		method: "POST",
 	});
 	return await resp.json();
 }
@@ -43,8 +44,8 @@ export async function createSelection(
 		serverOps["createCommitSelectionForSummary"]["requestBody"]["content"]["application/json"];
 	const body: Req = { selection };
 	const resp = await fetch(`/api/repositories/${uuid}/selection`, {
-		method: "POST",
 		body: JSON.stringify(body),
+		method: "POST",
 	});
 	return await resp.json();
 }
@@ -57,8 +58,8 @@ export async function createQuestion(
 		serverOps["createQuestion"]["requestBody"]["content"]["application/json"];
 	const body: Req = { question };
 	const resp = await fetch(`/api/repositories/${uuid}/question`, {
-		method: "POST",
 		body: JSON.stringify(body),
+		method: "POST",
 	});
 	await resp.text();
 }

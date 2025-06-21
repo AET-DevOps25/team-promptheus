@@ -1,6 +1,6 @@
-import path from "path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import path from "path";
 import { defineConfig } from "vite";
 
 // https://vite.dev/config/
@@ -11,20 +11,20 @@ export default defineConfig({
 		port: 8081,
 		strictPort: true,
 	},
-	server: {
-		proxy: {
-			"/api/repositories": "http://localhost:8080/api/repositories",
-			"/api/search": "http://localhost:8082/api/search",
-			"/api/genai": "http://localhost:3003/api/genai",
-		},
-		port: 8081,
-		strictPort: true,
-		host: true,
-		origin: "http://0.0.0.0:8081",
-	},
 	resolve: {
 		alias: {
 			"@": path.resolve(__dirname, "./src"),
 		},
+	},
+	server: {
+		host: true,
+		origin: "http://0.0.0.0:8081",
+		port: 8081,
+		proxy: {
+			"/api/genai": "http://localhost:3003/api/genai",
+			"/api/repositories": "http://localhost:8080/api/repositories",
+			"/api/search": "http://localhost:8082/api/search",
+		},
+		strictPort: true,
 	},
 });

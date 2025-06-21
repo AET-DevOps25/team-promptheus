@@ -1,5 +1,5 @@
-import type { GitHubContributor } from "@/services/api";
 import { createContext, useEffect, useState } from "react";
+import type { GitHubContributor } from "@/services/api";
 
 export const GithubUserProviderContext = createContext<{
 	selectedUser: GitHubContributor | null;
