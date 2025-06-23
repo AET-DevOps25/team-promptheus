@@ -58,15 +58,7 @@
 		"tailwindcss": "^3.4.17",
 		"typescript": "^5"
 	},
-	"name": "my-v0-project",
-	"private": true,
-	"scripts": {
-		"build": "next build",
-		"dev": "next dev",
-		"lint": "next lint",
-		"start": "next start"
-	},
-	"version": "0.1.0",
+	"name": "pulse-front",
 	"pnpm": {
 		"ignoredBuiltDependencies": [
 			"sharp"
@@ -74,5 +66,18 @@
 		"onlyBuiltDependencies": [
 			"sharp"
 		]
-	}
+	},
+	"private": true,
+	"scripts": {
+		"build": "next build",
+		"dev": "next ",
+		"format": "biome format --write && biome check --formatter-enabled=false --linter-enabled=false --write",
+		"lint": "biome check --error-on-warnings",
+		"lint-fix": "biome check --write",
+		"preview": "vite preview",
+		"type-check": "tsc --noEmit",
+		"type-refresh-genai": "openapi-typescript ../genai/openapi.json --output src/services/genai.ts --export-type --immutable-types --support-array-length",
+		"type-refresh-server": "openapi-typescript ../server/openapi.json --output src/services/server.ts --export-type --immutable-types --support-array-length"
+	},
+	"version": "0.1.0"
 }

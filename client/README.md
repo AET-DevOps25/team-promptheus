@@ -86,9 +86,9 @@ Before you begin, ensure you have the following installed:
 ### Navigation
 
 - **Home (`/`)**: Landing page and authentication
-- **Dashboard (`/dashboard/[userId]`)**: Main application interface
+- **Dashboard (`/dashboard`)**: Main application interface
 - **Q&A (`/qa`)**: Repository question and answer interface
-- **Settings (`/settings/[userId]`)**: Repository configuration and preferences
+- **Settings (`/settings`)**: Repository configuration and preferences
 - **Weekly Summary (`/weekly-summary`)**: Detailed progress reports
 
 ### Keyboard Shortcuts

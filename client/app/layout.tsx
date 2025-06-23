@@ -8,9 +8,8 @@ import { Header } from "@/components/header";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-	description: "Created with v0",
-	generator: "v0.dev",
-	title: "v0 App",
+	description: "We help diverse teams keep up with others changes",
+	title: "Prompteus",
 };
 
 export default function RootLayout({

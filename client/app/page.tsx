@@ -63,7 +63,7 @@ export default function HomePage() {
 				dashboard: `/dashboard/${userId}`,
 				settings: `/settings/${userId}`,
 			});
-		} catch (err) {
+		} catch (_) {
 			setError(
 				"Invalid token or API error. Please check your Personal Access Token.",
 			);

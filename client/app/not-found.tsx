@@ -1,7 +1,5 @@
 import { ArrowLeft, Home, Search } from "lucide-react";
 import Link from "next/link";
-import { Footer } from "@/components/footer";
-import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import {
 	Card,

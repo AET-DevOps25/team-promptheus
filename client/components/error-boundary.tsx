@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangle, RefreshCw } from "lucide-react";
-import React from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -17,11 +17,11 @@ interface ErrorBoundaryState {
 }
 
 interface ErrorBoundaryProps {
-	children: React.ReactNode;
-	fallback?: React.ComponentType<{ error?: Error; reset: () => void }>;
+	children: ReactNode;
+	fallback?: ComponentType<{ error?: Error; reset: () => void }>;
 }
 
-export class ErrorBoundary extends React.Component<
+export class ErrorBoundary extends Component<
 	ErrorBoundaryProps,
 	ErrorBoundaryState
 > {
@@ -34,7 +34,7 @@ export class ErrorBoundary extends React.Component<
 		return { error, hasError: true };
 	}
 
-	componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+	componentDidCatch(error: Error, errorInfo: ErrorInfo) {
 		console.error("ErrorBoundary caught an error:", error, errorInfo);
 	}
 
@@ -86,17 +86,17 @@ export class ErrorBoundary extends React.Component<
 
 // Hook version for functional components
 export function useErrorBoundary() {
-	const [error, setError] = React.useState<Error | null>(null);
+	const [error, setError] = useState<Error | null>(null);
 
-	const resetError = React.useCallback(() => {
+	const resetError = useCallback(() => {
 		setError(null);
 	}, []);
 
-	const captureError = React.useCallback((error: Error) => {
+	const captureError = useCallback((error: Error) => {
 		setError(error);
 	}, []);
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (error) {
 			throw error;
 		}
