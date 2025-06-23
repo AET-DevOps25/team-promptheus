@@ -15,14 +15,14 @@ public interface ContributionRepository extends JpaRepository<Contribution, Stri
 
     List<Contribution> findByGitRepositoryId(Long gitRepositoryId);
 
-    List<Contribution> findByGitRepositoryIdAndUser(Long gitRepositoryId, String user);
+    List<Contribution> findByGitRepositoryIdAndUsername(Long gitRepositoryId, String username);
 
     List<Contribution> findByGitRepositoryIdAndType(Long gitRepositoryId, String type);
 
     List<Contribution> findByGitRepositoryIdAndCreatedAtBetween(
             Long gitRepositoryId, Instant startDate, Instant endDate);
 
-    @Query("SELECT c FROM Contribution c WHERE c.gitRepositoryId = :repositoryId AND c.user = :user AND c.type = :type AND c.summary = :summary")
+    @Query("SELECT c FROM Contribution c WHERE c.gitRepositoryId = :repositoryId AND c.username = :user AND c.type = :type AND c.summary = :summary")
     Optional<Contribution> findExistingContribution(
             @Param("repositoryId") Long repositoryId,
             @Param("user") String user,
