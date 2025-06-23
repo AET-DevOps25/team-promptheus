@@ -10,7 +10,8 @@ import java.time.Instant;
 @Getter
 public class QuestionAnswer {
     @Id
-    @Column(nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false, columnDefinition = "BIGINT GENERATED ALWAYS AS IDENTITY")
     private Long id;
     @Column(name = "question_id",nullable = false)
     private Long questionId;
