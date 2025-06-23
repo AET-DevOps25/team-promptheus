@@ -98,7 +98,7 @@ public class GitRepoService {
         // below would be the SQL below, but JPA is being stubborn
         // UPDATE Content SET is_selected = CASE WHEN id IN (:ids) THEN true ELSE false END WHERE createdAt >= date_trunc('week', now())
         for (Content c : validContent) {
-            c.set_selected(selection.selection().contains(c.getId()));
+            c.setIsSelected(selection.selection().contains(c.getId()));
             gitContentRepository.save(c);
         }
     }
