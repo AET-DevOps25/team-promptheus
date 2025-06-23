@@ -10,7 +10,8 @@ import java.time.Instant;
 @Getter
 public class Summary {
     @Id
-    @Column(nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false, columnDefinition = "BIGINT GENERATED ALWAYS AS IDENTITY")
     private Long id;
     @Column(name = "git_repository_id", nullable = false)
     private Long gitRepositoryId;
