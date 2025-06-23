@@ -1,10 +1,7 @@
-
-export function SearchPage() {
-
-  return (
-    <div>
-      <h1>Searching content</h1>
-    </div>
-  );
+export default function SearchPage() {
+	return (
+		<div>
+			<h1>Searching content</h1>
+		</div>
+	);
 }
-

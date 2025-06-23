@@ -18,29 +18,25 @@ def get_test_commit_contribution():
         "message": "Fix authentication bug",
         "tree": {
             "sha": "tree123",
-            "url": "https://api.github.com/repos/test/repo/git/trees/tree123"
+            "url": "https://api.github.com/repos/test/repo/git/trees/tree123",
         },
         "parents": [
             {
                 "sha": "parent123",
-                "url": "https://api.github.com/repos/test/repo/commits/parent123"
+                "url": "https://api.github.com/repos/test/repo/commits/parent123",
             }
         ],
         "author_info": {
             "name": "Test User",
             "email": "testuser@example.com",
-            "date": "2024-05-20T10:00:00Z"
+            "date": "2024-05-20T10:00:00Z",
         },
         "committer": {
             "name": "Test User",
             "email": "testuser@example.com",
-            "date": "2024-05-20T10:00:00Z"
+            "date": "2024-05-20T10:00:00Z",
         },
-        "stats": {
-            "total": 15,
-            "additions": 10,
-            "deletions": 5
-        },
+        "stats": {"total": 15, "additions": 10, "deletions": 5},
         "files": [
             {
                 "filename": "auth.py",
@@ -51,9 +47,9 @@ def get_test_commit_contribution():
                 "blob_url": "https://github.com/test/repo/blob/abc123/auth.py",
                 "raw_url": "https://github.com/test/repo/raw/abc123/auth.py",
                 "contents_url": "https://api.github.com/repos/test/repo/contents/auth.py?ref=abc123",
-                "patch": "@@ -1,5 +1,10 @@\n def authenticate():\n+    # Fixed validation\n     return True"
+                "patch": "@@ -1,5 +1,10 @@\n def authenticate():\n+    # Fixed validation\n     return True",
             }
-        ]
+        ],
     }
 
 
@@ -71,28 +67,18 @@ def get_test_pull_request_contribution():
         "body": "This PR adds comprehensive user management functionality",
         "state": "open",
         "locked": False,
-        "user": {
-            "login": "testuser",
-            "id": 12345,
-            "type": "User"
-        },
+        "user": {"login": "testuser", "id": 12345, "type": "User"},
         "head": {
             "label": "testuser:feature-branch",
             "ref": "feature-branch",
             "sha": "def456ghi789",
-            "repo": {
-                "name": "repo",
-                "full_name": "test/repo"
-            }
+            "repo": {"name": "repo", "full_name": "test/repo"},
         },
         "base": {
             "label": "test:main",
             "ref": "main",
             "sha": "ghi789jkl012",
-            "repo": {
-                "name": "repo",
-                "full_name": "test/repo"
-            }
+            "repo": {"name": "repo", "full_name": "test/repo"},
         },
         "merged": False,
         "comments": 0,
@@ -104,7 +90,7 @@ def get_test_pull_request_contribution():
         "comments_data": [],
         "reviews_data": [],
         "commits_data": [],
-        "files_data": []
+        "files_data": [],
     }
 
 
@@ -122,14 +108,10 @@ def get_test_issue_contribution():
         "body": "The application is running slowly with large datasets",
         "state": "open",
         "locked": False,
-        "user": {
-            "login": "testuser",
-            "id": 12345,
-            "type": "User"
-        },
+        "user": {"login": "testuser", "id": 12345, "type": "User"},
         "comments": 0,
         "comments_data": [],
-        "events_data": []
+        "events_data": [],
     }
 
 
@@ -149,101 +131,86 @@ def get_test_release_contribution():
         "draft": False,
         "prerelease": False,
         "published_at": "2024-05-23T16:00:00Z",
-        "author_info": {
-            "login": "testuser",
-            "id": 12345,
-            "type": "User"
-        },
-        "assets": []
+        "author_info": {"login": "testuser", "id": 12345, "type": "User"},
+        "assets": [],
     }
+
 
 def get_test_commit_metadata(selected=True):
     """Get commit contribution metadata for the new API"""
-    return {
-        "type": "commit",
-        "id": "abc123def456",
-        "selected": selected
-    }
+    return {"type": "commit", "id": "abc123def456", "selected": selected}
 
 
 def get_test_pull_request_metadata(selected=True):
     """Get pull request contribution metadata for the new API"""
-    return {
-        "type": "pull_request", 
-        "id": "42",
-        "selected": selected
-    }
+    return {"type": "pull_request", "id": "42", "selected": selected}
 
 
 def get_test_issue_metadata(selected=True):
     """Get issue contribution metadata for the new API"""
-    return {
-        "type": "issue",
-        "id": "15", 
-        "selected": selected
-    }
+    return {"type": "issue", "id": "15", "selected": selected}
 
 
 def get_test_release_metadata(selected=True):
     """Get release contribution metadata for the new API"""
-    return {
-        "type": "release",
-        "id": "101",
-        "selected": selected
-    }
+    return {"type": "release", "id": "101", "selected": selected}
 
 
-def get_test_contributions_metadata_request(user="testuser", week="2024-W21", repository="test/repo", contribution_types=None, selected=True):
+def get_test_contributions_metadata_request(
+    user="testuser",
+    week="2024-W21",
+    repository="test/repo",
+    contribution_types=None,
+    selected=True,
+):
     """Get a complete contributions request with metadata-only format (NEW API)"""
     if contribution_types is None:
         contribution_types = ["commit", "pull_request"]
-    
+
     contributions = []
-    
+
     if "commit" in contribution_types:
         contributions.append(get_test_commit_metadata(selected=selected))
-    
+
     if "pull_request" in contribution_types:
         contributions.append(get_test_pull_request_metadata(selected=selected))
-    
+
     if "issue" in contribution_types:
         contributions.append(get_test_issue_metadata(selected=selected))
-    
+
     if "release" in contribution_types:
         contributions.append(get_test_release_metadata(selected=selected))
-    
+
     return {
         "user": user,
         "week": week,
         "repository": repository,
-        "contributions": contributions
+        "contributions": contributions,
     }
 
 
-def get_test_contributions_request(user="testuser", week="2024-W21", contribution_types=None):
+def get_test_contributions_request(
+    user="testuser", week="2024-W21", contribution_types=None
+):
     """Get a complete contributions request with full contribution data (LEGACY - for backward compatibility)"""
     if contribution_types is None:
         contribution_types = ["commit", "pull_request"]
-    
+
     contributions = []
-    
+
     if "commit" in contribution_types:
         contributions.append(get_test_commit_contribution())
-    
+
     if "pull_request" in contribution_types:
         contributions.append(get_test_pull_request_contribution())
-    
+
     if "issue" in contribution_types:
         contributions.append(get_test_issue_contribution())
-    
+
     if "release" in contribution_types:
         contributions.append(get_test_release_contribution())
-    
-    return {
-        "user": user,
-        "week": week,
-        "contributions": contributions
-    }
+
+    return {"user": user, "week": week, "contributions": contributions}
 
 
 def get_minimal_commit_contribution():
@@ -259,31 +226,24 @@ def get_minimal_commit_contribution():
         "message": "Simple test commit",
         "tree": {
             "sha": "tree123",
-            "url": "https://api.github.com/repos/test/repo/git/trees/tree123"
+            "url": "https://api.github.com/repos/test/repo/git/trees/tree123",
         },
         "parents": [],
         "author_info": {
             "name": "Test User",
             "email": "testuser@example.com",
-            "date": "2024-05-20T10:00:00Z"
+            "date": "2024-05-20T10:00:00Z",
         },
         "committer": {
-            "name": "Test User", 
+            "name": "Test User",
             "email": "testuser@example.com",
-            "date": "2024-05-20T10:00:00Z"
+            "date": "2024-05-20T10:00:00Z",
         },
-        "stats": {
-            "total": 5,
-            "additions": 3,
-            "deletions": 2
-        },
-        "files": []
+        "stats": {"total": 5, "additions": 3, "deletions": 2},
+        "files": [],
     }
+
 
 def get_minimal_commit_metadata(selected=True):
     """Get minimal commit metadata for simple tests (NEW API)"""
-    return {
-        "type": "commit",
-        "id": "simple123",
-        "selected": selected
-    } 
+    return {"type": "commit", "id": "simple123", "selected": selected}

@@ -1,38 +1,33 @@
-import { updateCookie } from "@/services/cookieutils";
 import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
+import { updateCookie } from "@/services/cookieutils";
 
 export function UUIDForwarder() {
+	//const { uuid } = useParams();
 
-  //const { uuid } = useParams();
-  
-    
-  const urlParams = new URLSearchParams(window.location.search);
-  const uuid = urlParams.get('uuid');
+	const urlParams = new URLSearchParams(window.location.search);
+	const uuid = urlParams.get("uuid");
 
+	useEffect(() => {
+		async function handleUUID() {
+			try {
+				// obtain uuid
+				console.log("obtain uuid");
 
-  useEffect(() => {
-    async function handleUUID() {
-      try {
+				// ask spring for uuid mapping
+				const userData = ["thisisareponame", "thisisarole"]; //await fetchUser(uuid!);
 
-        // obtain uuid
-        console.log("obtain uuid")
+				// store in cookie
+				updateCookie("user", userData);
 
-        // ask spring for uuid mapping
-        const userData = ["thisisareponame", "thisisarole"]  //await fetchUser(uuid!);
-        
-        // store in cookie
-        updateCookie('user', userData)
-        
-        //document.cookie = `user=${JSON.stringify(userData)}; path=/; max-age=${30 * 24 * 60 * 60}`;
+				//document.cookie = `user=${JSON.stringify(userData)}; path=/; max-age=${30 * 24 * 60 * 60}`;
+			} catch (error) {
+				console.error("Failed to fetch user", error);
+			}
+		}
 
-      } catch (error) {
-        console.error('Failed to fetch user', error);
-      }
-    }
+		handleUUID();
+	}, []);
 
-    handleUUID();
-  }, [uuid]);
-
-  return <Navigate to="/" replace />;
+	return <Navigate replace to="/" />;
 }

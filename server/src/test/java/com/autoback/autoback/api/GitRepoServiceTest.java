@@ -52,7 +52,7 @@ class GitRepoServiceTest {
         GitRepo savedRepo = GitRepo.builder().repositoryLink(repoLink).build();
         UUID devLinkUuid = UUID.randomUUID();
         UUID managerLinkUuid = UUID.randomUUID();
-        
+
         Link devLink = new Link(UUID.randomUUID(),savedRepo.getId(), true);
         Link managerLink = new Link(UUID.randomUUID(),savedRepo.getId(), false);
         // Set UUIDs for the links
@@ -93,7 +93,7 @@ class GitRepoServiceTest {
         GitRepo existingRepo = GitRepo.builder().repositoryLink(repoLink).build();
         UUID devLinkUuid = UUID.randomUUID();
         UUID managerLinkUuid = UUID.randomUUID();
-        
+
         Link devLink = new Link(UUID.randomUUID(), existingRepo.getId(), true);
         Link managerLink = new Link(UUID.randomUUID(), existingRepo.getId(), false);
         setId(devLink, devLinkUuid);

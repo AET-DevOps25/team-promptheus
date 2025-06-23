@@ -1,100 +1,90 @@
-
-import './App.css'
+import "./App.css";
 import { useContext } from "react";
-import { BrowserRouter, Routes, Route } from "react-router";
-import { Navigate } from 'react-router-dom';
-import LandingPage from './pages/landing'
-import { AuthContext, AuthProvider } from './contextproviders/authprovider';
-import { UUIDForwarder } from './components/ui/UUIDForwarder';
-import { Header } from './elements/header';
-import { About } from './pages/About';
-import SignupMain from './pages/signup';
-import { WelcomePage } from './pages/WelcomePage';
-import { SummaryViewing } from './pages/SummaryViewing';
-import { QnAPage } from './pages/QnAPage';
-import GitHubContributions from './pages/github-contributions';
-import { NoPage } from './pages/nopage';
-import { SearchPage } from './pages/SearchPage';
-import { GithubUserProvider } from './contextproviders/siteprovider';
-import { SelectUserPage } from './pages/selectuser';
-
+import { BrowserRouter, Route, Routes } from "react-router";
+import { Navigate } from "react-router-dom";
+import { UUIDForwarder } from "./components/ui/UUIDForwarder";
+import { AuthContext, AuthProvider } from "./contextproviders/authprovider";
+import { GithubUserProvider } from "./contextproviders/siteprovider";
+import { Header } from "./elements/header";
+import { About } from "./pages/About";
+import GitHubContributions from "./pages/github-contributions";
+import LandingPage from "./pages/landing";
+import { NoPage } from "./pages/nopage";
+import { QnAPage } from "./pages/QnAPage";
+import { SearchPage } from "./pages/SearchPage";
+import { SummaryViewing } from "./pages/SummaryViewing";
+import { SelectUserPage } from "./pages/selectuser";
+import SignupMain from "./pages/signup";
+import { WelcomePage } from "./pages/WelcomePage";
 
 //{<div>Welcome! You are a viewing as a {user.role === 'dev' ? 'developer' : 'manager'} the repository {user.reponame}.</div>} />
 
 function ProtectedLayout() {
-  //const { user, loading } = useAuth();
-  const { user, loading} = useContext(AuthContext);
-  console.log("We load useAuth and got:")
-  console.log(user)
-  if (loading == false) {
-      if (user == null) {
-        return (<Navigate to="/landing" replace />);
-      }
-      else {
-        console.log("Context detected. Loading a different layout!")
-        return  ( <> <Header />  </>);
-      }
-    } 
-    if (loading == true) {
-      console.log("Loading...")
-      return (<> <div> loading...</div></>)
-    } else {
-      console.log("impossible?")
-    } 
+	//const { user, loading } = useAuth();
+	const { user, loading } = useContext(AuthContext);
+	console.log("We load useAuth and got:");
+	console.log(user);
+	if (!loading) {
+		if (user == null) {
+			return <Navigate replace to="/landing" />;
+		} else {
+			console.log("Context detected. Loading a different layout!");
+			return (
+				<>
+					{" "}
+					<Header />{" "}
+				</>
+			);
+		}
+	}
+	if (loading) {
+		console.log("Loading...");
+		return (
+			<>
+				{" "}
+				<div> loading...</div>
+			</>
+		);
+	} else {
+		console.log("impossible?");
+	}
 }
 
-
-
-
-
-
-{/*  -------- App Logic Providing Tree ----------- */}
+/*  -------- App Logic Providing Tree ----------- */
 function App() {
+	return (
+		//<AuthProvider>
+		//  <RouterProvider router={router} />
+		//</AuthProvider>
 
-  return (
+		<AuthProvider>
+			<BrowserRouter>
+				<Routes>
+					<Route element={<LandingPage />} path="/landing" />
+					<Route element={<SignupMain />} path="/signup" />
 
-    //<AuthProvider>
-    //  <RouterProvider router={router} />
-    //</AuthProvider>
- 
-    <AuthProvider>
-    <BrowserRouter> 
-      <Routes>
-          <Route path="/landing" element={<LandingPage />} /> 
-          <Route path="/signup" element={<SignupMain />} />
+					<GithubUserProvider>
+						{" "}
+						{/* keeps track which gh user is selected */}
+						<Route element={<ProtectedLayout />}>
+							<Route element={<WelcomePage />} path="/" />
+							<Route element={<GitHubContributions />} path="/selectcontent" />
+							<Route element={<QnAPage />} path="/qna" />
+							<Route element={<SummaryViewing />} path="/summaryviewing" />
+							<Route element={<SearchPage />} path="/search" />
+							<Route element={<SelectUserPage />} path="/selectuser" />
+						</Route>
+					</GithubUserProvider>
 
+					<Route element={<UUIDForwarder />} path="/:uuid" />
 
+					<Route element={<About />} path="about" />
 
-          <GithubUserProvider> { /* keeps track which gh user is selected */}
-
-            <Route element={<ProtectedLayout />}>
-              <Route path="/" element={<WelcomePage />} />
-              <Route path="/selectcontent" element={<GitHubContributions /> } />
-              <Route path="/qna" element={<QnAPage /> } />
-              <Route path="/summaryviewing" element={ <SummaryViewing/> } />
-              <Route path="/search" element={ <SearchPage /> } />
-              <Route path="/selectuser" element={<SelectUserPage />} />
-            </Route>
-
-          </GithubUserProvider>
-
-          <Route 
-            path="/:uuid" 
-            element={<UUIDForwarder />} 
-          />
-
-
-          <Route path="about" element={ <About /> } />
-          
-          <Route path="*" element = { <NoPage /> } />
-      </Routes>
-    </BrowserRouter>   
-    
-    </AuthProvider>
-
-   
-  );
+					<Route element={<NoPage />} path="*" />
+				</Routes>
+			</BrowserRouter>
+		</AuthProvider>
+	);
 }
 
-
-export default App
+export default App;
