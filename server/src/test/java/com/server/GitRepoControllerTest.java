@@ -2,7 +2,6 @@ package com.server.api;
 
 import com.server.CommunicationObjects.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.meilisearch.sdk.model.SearchResult;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.Test;
@@ -31,8 +30,6 @@ class GitRepoControllerTest {
 
     @MockitoBean
     private GitRepoService gitRepoService;
-    @MockitoBean
-    private SearchService searchService;
 
     @MockitoBean
     private MeterRegistry meterRegistry;
