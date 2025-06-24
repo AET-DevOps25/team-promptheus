@@ -23,7 +23,25 @@ jobs:
         run: docker compose up --build -d
 
       - name: Wait for services to initialize
-        run: sleep 30
+        run: |
+          timeout=300  # Maximum wait time in seconds
+          interval=10  # Interval between health checks in seconds
+          elapsed=0
+          while [ $elapsed -lt $timeout ]; do
+            unhealthy=$(docker ps --format '{{.Names}} {{.Status}}' | grep -v 'healthy' | grep 'health')
+            if [ -z "$unhealthy" ]; then
+              echo "All containers are healthy."
+              break
+            fi
+            echo "Waiting for containers to become healthy..."
+            sleep $interval
+            elapsed=$((elapsed + interval))
+          done
+          if [ $elapsed -ge $timeout ]; then
+            echo "Timeout reached. Some containers are not healthy:"
+            echo "$unhealthy"
+            exit 1
+          fi
 
       - name: Check container health
         run: |
