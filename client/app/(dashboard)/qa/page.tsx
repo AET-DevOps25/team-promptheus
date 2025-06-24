@@ -13,7 +13,7 @@ import {
 	User,
 	XCircle,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,91 +27,48 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-
-interface QAItem {
-	id: string;
-	question: string;
-	answer: string;
-	author: string;
-	timestamp: string;
-	status: "pending" | "approved" | "rejected";
-	upvotes: number;
-	downvotes: number;
-	repositories: string[];
-	tags: string[];
-}
+import {
+	useCreateQA,
+	useQAItems,
+	useUpdateQAStatus,
+	useVoteQA,
+} from "@/lib/api";
+import type { QAItem } from "@/lib/api/types";
 
 export default function QAPage() {
 	const [question, setQuestion] = useState("");
-	const [isLoading, setIsLoading] = useState(false);
-	const [qaItems, setQaItems] = useState<QAItem[]>([]);
 	const [selectedForReport, setSelectedForReport] = useState<string[]>([]);
 	const [filter, setFilter] = useState<
 		"all" | "pending" | "approved" | "rejected"
 	>("all");
 
-	// Load Q&A items on component mount
-	useEffect(() => {
-		loadQAItems();
-	}, []);
+	// TanStack Query hooks
+	const { data: qaResponse, isLoading: isLoadingItems, error } = useQAItems();
+	const createQAMutation = useCreateQA();
+	const updateStatusMutation = useUpdateQAStatus();
+	const voteMutation = useVoteQA();
 
-	const loadQAItems = async () => {
-		try {
-			const response = await fetch("/api/qa");
-			if (response.ok) {
-				const data = await response.json();
-				setQaItems(data.items || []);
-			}
-		} catch (error) {
-			console.error("Failed to load Q&A items:", error);
-		}
-	};
+	const qaItems = qaResponse?.items || [];
 
 	const handleSubmitQuestion = async () => {
 		if (!question.trim()) return;
 
-		setIsLoading(true);
 		try {
-			const response = await fetch("/api/qa", {
-				body: JSON.stringify({
-					question: question.trim(),
-				}),
-				headers: {
-					"Content-Type": "application/json",
-				},
-				method: "POST",
+			await createQAMutation.mutateAsync({
+				question: question.trim(),
 			});
-
-			if (response.ok) {
-				const newQA = await response.json();
-				setQaItems((prev) => [newQA, ...prev]);
-				setQuestion("");
-			}
+			setQuestion("");
 		} catch (error) {
 			console.error("Failed to submit question:", error);
-		} finally {
-			setIsLoading(false);
 		}
 	};
 
-	const handleStatusChange = async (
+	const handleStatusUpdate = async (
 		id: string,
 		status: "approved" | "rejected",
 	) => {
 		try {
-			const response = await fetch(`/api/qa/${id}`, {
-				body: JSON.stringify({ status }),
-				headers: {
-					"Content-Type": "application/json",
-				},
-				method: "PATCH",
-			});
-
-			if (response.ok) {
-				setQaItems((prev) =>
-					prev.map((item) => (item.id === id ? { ...item, status } : item)),
-				);
-			}
+			await updateStatusMutation.mutateAsync({ id, status });
 		} catch (error) {
 			console.error("Failed to update status:", error);
 		}
@@ -119,20 +76,7 @@ export default function QAPage() {
 
 	const handleVote = async (id: string, type: "up" | "down") => {
 		try {
-			const response = await fetch(`/api/qa/${id}/vote`, {
-				body: JSON.stringify({ type }),
-				headers: {
-					"Content-Type": "application/json",
-				},
-				method: "POST",
-			});
-
-			if (response.ok) {
-				const updatedItem = await response.json();
-				setQaItems((prev) =>
-					prev.map((item) => (item.id === id ? updatedItem : item)),
-				);
-			}
+			await voteMutation.mutateAsync({ id, type });
 		} catch (error) {
 			console.error("Failed to vote:", error);
 		}
@@ -146,7 +90,7 @@ export default function QAPage() {
 		);
 	};
 
-	const filteredItems = qaItems.filter((item) => {
+	const filteredItems = qaItems.filter((item: QAItem) => {
 		if (filter === "all") return true;
 		return item.status === filter;
 	});
@@ -217,10 +161,10 @@ export default function QAPage() {
 											answers
 										</p>
 										<Button
-											disabled={isLoading || !question.trim()}
+											disabled={createQAMutation.isPending || !question.trim()}
 											onClick={handleSubmitQuestion}
 										>
-											{isLoading ? (
+											{createQAMutation.isPending ? (
 												<>
 													<Loader2 className="h-4 w-4 animate-spin mr-2" />
 													Analyzing...
@@ -247,7 +191,11 @@ export default function QAPage() {
 							].map((tab) => (
 								<Button
 									key={tab.key}
-									onClick={() => setFilter(tab.key as any)}
+									onClick={() =>
+										setFilter(
+											tab.key as "all" | "pending" | "approved" | "rejected",
+										)
+									}
 									size="sm"
 									variant={filter === tab.key ? "default" : "outline"}
 								>
@@ -265,7 +213,28 @@ export default function QAPage() {
 
 						{/* Q&A List */}
 						<div className="space-y-6">
-							{filteredItems.length > 0 ? (
+							{isLoadingItems ? (
+								<Card>
+									<CardContent className="p-8 text-center">
+										<Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+										<p className="text-muted-foreground">
+											Loading questions...
+										</p>
+									</CardContent>
+								</Card>
+							) : error ? (
+								<Card>
+									<CardContent className="p-8 text-center">
+										<XCircle className="h-8 w-8 text-red-500 mx-auto mb-4" />
+										<p className="text-red-600 font-medium">
+											Failed to load questions
+										</p>
+										<p className="text-sm text-muted-foreground mt-2">
+											Please try refreshing the page
+										</p>
+									</CardContent>
+								</Card>
+							) : filteredItems.length > 0 ? (
 								filteredItems.map((item) => (
 									<Card className="relative" key={item.id}>
 										<CardContent className="p-6">
@@ -333,23 +302,31 @@ export default function QAPage() {
 											{/* Actions */}
 											<div className="flex items-center justify-between mt-4 pt-4 border-t">
 												<div className="flex items-center gap-4">
-													<div className="flex items-center gap-2">
+													<div className="flex items-center space-x-2">
 														<Button
-															className="h-8 px-2"
+															disabled={voteMutation.isPending}
 															onClick={() => handleVote(item.id, "up")}
 															size="sm"
 															variant="ghost"
 														>
-															<ThumbsUp className="h-3 w-3 mr-1" />
+															{voteMutation.isPending ? (
+																<Loader2 className="mr-1 h-3 w-3 animate-spin" />
+															) : (
+																<ThumbsUp className="mr-1 h-3 w-3" />
+															)}
 															{item.upvotes}
 														</Button>
 														<Button
-															className="h-8 px-2"
+															disabled={voteMutation.isPending}
 															onClick={() => handleVote(item.id, "down")}
 															size="sm"
 															variant="ghost"
 														>
-															<ThumbsDown className="h-3 w-3 mr-1" />
+															{voteMutation.isPending ? (
+																<Loader2 className="mr-1 h-3 w-3 animate-spin" />
+															) : (
+																<ThumbsDown className="mr-1 h-3 w-3" />
+															)}
 															{item.downvotes}
 														</Button>
 													</div>
@@ -358,24 +335,34 @@ export default function QAPage() {
 														<div className="flex gap-2">
 															<Button
 																className="h-8"
+																disabled={updateStatusMutation.isPending}
 																onClick={() =>
-																	handleStatusChange(item.id, "approved")
+																	handleStatusUpdate(item.id, "approved")
 																}
 																size="sm"
 																variant="outline"
 															>
-																<CheckCircle className="h-3 w-3 mr-1" />
+																{updateStatusMutation.isPending ? (
+																	<Loader2 className="h-3 w-3 mr-1 animate-spin" />
+																) : (
+																	<CheckCircle className="h-3 w-3 mr-1" />
+																)}
 																Approve
 															</Button>
 															<Button
 																className="h-8"
+																disabled={updateStatusMutation.isPending}
 																onClick={() =>
-																	handleStatusChange(item.id, "rejected")
+																	handleStatusUpdate(item.id, "rejected")
 																}
 																size="sm"
 																variant="outline"
 															>
-																<XCircle className="h-3 w-3 mr-1" />
+																{updateStatusMutation.isPending ? (
+																	<Loader2 className="h-3 w-3 mr-1 animate-spin" />
+																) : (
+																	<XCircle className="h-3 w-3 mr-1" />
+																)}
 																Reject
 															</Button>
 														</div>
@@ -479,10 +466,10 @@ export default function QAPage() {
 										"What security improvements were made last month?",
 										"Which team members are most active in code reviews?",
 										"What are the most common bug patterns?",
-									].map((exampleQuestion, index) => (
+									].map((exampleQuestion) => (
 										<Button
 											className="w-full text-left justify-start h-auto p-3 text-xs"
-											key={index}
+											key={exampleQuestion}
 											onClick={() => setQuestion(exampleQuestion)}
 											size="sm"
 											variant="ghost"

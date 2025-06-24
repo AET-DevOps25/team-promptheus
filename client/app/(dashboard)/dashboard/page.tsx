@@ -24,13 +24,7 @@ import {
 } from "@/components/ui/card";
 import { WeeklySummaryServer } from "@/components/weekly-summary-server";
 
-interface DashboardPageProps {
-	params: {
-		userId: string;
-	};
-}
-
-export default async function DashboardPage({ params }: DashboardPageProps) {
+export default function DashboardPage() {
 	const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 	// todo: get from local storage
 	const userId = "abc";

@@ -35,27 +35,13 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { useSearch } from "@/lib/api";
+import type {
+	SearchFilters,
+	SearchParams,
+	SearchResult,
+} from "@/lib/api/types";
 import { SearchResultsLoading } from "./search-results-loading";
-
-interface SearchResult {
-	id: string;
-	type: "commit" | "pr" | "issue" | "comment";
-	title: string;
-	description: string;
-	repository: string;
-	author: string;
-	date: string;
-	url: string;
-	relevanceScore: number;
-}
-
-interface SearchFilters {
-	contributionTypes: string[];
-	repositories: string[];
-	authors: string[];
-	dateFrom?: Date;
-	dateTo?: Date;
-}
 
 interface SearchModalProps {
 	isOpen: boolean;
@@ -85,15 +71,30 @@ const contributionTypeColors = {
 
 export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 	const [query, setQuery] = useState("");
-	const [results, setResults] = useState<SearchResult[]>([]);
-	const [isLoading, setIsLoading] = useState(false);
+	const [searchParams, setSearchParams] = useState<SearchParams>({
+		authors: [],
+		filterContributionType: ["commit", "pr", "issue", "comment"],
+		query: "",
+		repositories: [],
+	});
 	const [showFilters, setShowFilters] = useState(false);
 	const [filters, setFilters] = useState<SearchFilters>({
 		authors: [],
 		contributionTypes: ["commit", "pr", "issue", "comment"],
+		dateFrom: undefined,
+		dateTo: undefined,
 		repositories: [],
 	});
-	const [error, setError] = useState("");
+
+	// Use TanStack Query for search
+	const {
+		data: searchResponse,
+		isLoading,
+		error,
+		refetch,
+	} = useSearch(searchParams, !!searchParams.query);
+
+	const results = searchResponse?.results || [];
 
 	// Mock data for repositories and authors
 	const availableRepositories = [
@@ -114,47 +115,20 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 		"lisa.davis",
 	];
 
-	const handleSearch = async () => {
+	const handleSearch = () => {
 		if (!query.trim()) {
-			setResults([]);
+			setSearchParams((prev) => ({ ...prev, query: "" }));
 			return;
 		}
 
-		setIsLoading(true);
-		setError(""); // Clear previous errors
-
-		try {
-			const searchParams = new URLSearchParams({
-				filterContributionType: filters.contributionTypes.join(","),
-				query: query.trim(),
-			});
-
-			if (filters.repositories.length > 0) {
-				searchParams.append("repositories", filters.repositories.join(","));
-			}
-			if (filters.authors.length > 0) {
-				searchParams.append("authors", filters.authors.join(","));
-			}
-			if (filters.dateFrom) {
-				searchParams.append("dateFrom", filters.dateFrom.toISOString());
-			}
-			if (filters.dateTo) {
-				searchParams.append("dateTo", filters.dateTo.toISOString());
-			}
-
-			const response = await fetch(`/api/search?${searchParams}`);
-			if (!response.ok) {
-				throw new Error(`Search failed: ${response.status}`);
-			}
-			const data = await response.json();
-			setResults(data.results || []);
-		} catch (error) {
-			console.error("Search failed:", error);
-			setError("Search failed. Please try again.");
-			setResults([]);
-		} finally {
-			setIsLoading(false);
-		}
+		setSearchParams({
+			authors: filters.authors,
+			dateFrom: filters.dateFrom?.toISOString(),
+			dateTo: filters.dateTo?.toISOString(),
+			filterContributionType: filters.contributionTypes,
+			query: query.trim(),
+			repositories: filters.repositories,
+		});
 	};
 
 	const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -198,6 +172,15 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 			dateTo: undefined,
 			repositories: [],
 		});
+		// Also clear search results
+		setSearchParams((prev) => ({
+			...prev,
+			authors: [],
+			dateFrom: undefined,
+			dateTo: undefined,
+			filterContributionType: ["commit", "pr", "issue", "comment"],
+			repositories: [],
+		}));
 	};
 
 	const getTypeIcon = (type: SearchResult["type"]) => {
@@ -209,7 +192,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 	useEffect(() => {
 		if (!isOpen) {
 			setQuery("");
-			setResults([]);
 			setShowFilters(false);
 		}
 	}, [isOpen]);
@@ -428,100 +410,108 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
 				{/* Results */}
 				<ScrollArea className="flex-1 px-6 pb-6">
-					{isLoading ? (
-						<SearchResultsLoading />
-					) : error ? (
-						<div className="text-center py-8">
-							<AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-							<p className="text-red-600 font-medium">{error}</p>
-							<Button
-								className="mt-2"
-								onClick={handleSearch}
-								size="sm"
-								variant="outline"
-							>
-								Try Again
-							</Button>
-						</div>
-					) : results.length > 0 ? (
-						<div className="space-y-3">
-							<div className="flex items-center justify-between">
-								<p className="text-sm text-muted-foreground">
-									Found {results.length} result{results.length > 1 ? "s" : ""}{" "}
-									for "{query}"
+					<div className="space-y-4">
+						{isLoading ? (
+							<SearchResultsLoading />
+						) : error ? (
+							<div className="text-center py-8">
+								<p className="text-red-600 mb-2">
+									{error instanceof Error
+										? error.message
+										: "Search failed. Please try again."}
+								</p>
+								<Button onClick={() => refetch()} size="sm" variant="outline">
+									Try Again
+								</Button>
+							</div>
+						) : results.length > 0 ? (
+							<div className="space-y-3">
+								<div className="flex items-center justify-between">
+									<p className="text-sm text-muted-foreground">
+										{results.length} result{results.length !== 1 ? "s" : ""}{" "}
+										found
+									</p>
+									<Button
+										className="text-xs"
+										onClick={clearFilters}
+										size="sm"
+										variant="ghost"
+									>
+										Clear filters
+									</Button>
+								</div>
+								{results.map((result) => (
+									<Card
+										className="hover:bg-muted/50 transition-colors"
+										key={result.id}
+									>
+										<CardContent className="p-4">
+											<div className="flex items-start justify-between gap-4">
+												<div className="flex-1 min-w-0">
+													<div className="flex items-center gap-2 mb-2">
+														<Badge
+															className={`text-xs ${contributionTypeColors[result.type]}`}
+														>
+															{getTypeIcon(result.type)}
+															<span className="ml-1">
+																{contributionTypeLabels[result.type]}
+															</span>
+														</Badge>
+														<Badge variant="outline">{result.repository}</Badge>
+														<span className="text-xs text-muted-foreground">
+															{Math.round(result.relevanceScore * 100)}% match
+														</span>
+													</div>
+													<h3 className="font-medium text-sm mb-1 line-clamp-2">
+														{result.title}
+													</h3>
+													<p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+														{result.description}
+													</p>
+													<div className="flex items-center gap-4 text-xs text-muted-foreground">
+														<span>by {result.author}</span>
+														<span>
+															{new Date(result.date).toLocaleDateString()}
+														</span>
+													</div>
+												</div>
+												<Button asChild size="sm" variant="ghost">
+													<a
+														href={result.url}
+														rel="noopener noreferrer"
+														target="_blank"
+													>
+														<ExternalLink className="h-4 w-4" />
+													</a>
+												</Button>
+											</div>
+										</CardContent>
+									</Card>
+								))}
+							</div>
+						) : query && !isLoading ? (
+							<div className="text-center py-8">
+								<Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+								<p className="text-muted-foreground">
+									No results found for "{query}"
+								</p>
+								<p className="text-sm text-muted-foreground mt-2">
+									Try adjusting your search terms or filters
 								</p>
 							</div>
-							{results.map((result) => (
-								<Card
-									className="hover:shadow-md transition-shadow"
-									key={result.id}
-								>
-									<CardContent className="p-4">
-										<div className="flex items-start justify-between gap-4">
-											<div className="flex-1 min-w-0">
-												<div className="flex items-center gap-2 mb-2">
-													<Badge
-														className={contributionTypeColors[result.type]}
-													>
-														{getTypeIcon(result.type)}
-														<span className="ml-1">
-															{contributionTypeLabels[result.type]}
-														</span>
-													</Badge>
-													<Badge variant="outline">{result.repository}</Badge>
-													<span className="text-xs text-muted-foreground">
-														{Math.round(result.relevanceScore * 100)}% match
-													</span>
-												</div>
-												<h3 className="font-medium text-sm mb-1 line-clamp-2">
-													{result.title}
-												</h3>
-												<p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-													{result.description}
-												</p>
-												<div className="flex items-center gap-4 text-xs text-muted-foreground">
-													<span>by {result.author}</span>
-													<span>
-														{new Date(result.date).toLocaleDateString()}
-													</span>
-												</div>
-											</div>
-											<Button asChild size="sm" variant="ghost">
-												<a
-													href={result.url}
-													rel="noopener noreferrer"
-													target="_blank"
-												>
-													<ExternalLink className="h-4 w-4" />
-												</a>
-											</Button>
-										</div>
-									</CardContent>
-								</Card>
-							))}
-						</div>
-					) : query && !isLoading ? (
-						<div className="text-center py-8">
-							<Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-							<p className="text-muted-foreground">
-								No results found for "{query}"
-							</p>
-							<p className="text-sm text-muted-foreground mt-2">
-								Try adjusting your search terms or filters
-							</p>
-						</div>
-					) : (
-						<div className="text-center py-8">
-							<Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-							<p className="text-muted-foreground">
-								Start typing to search across your repositories
-							</p>
-							<p className="text-sm text-muted-foreground mt-2">
-								Search commits, pull requests, issues, and comments with
-								AI-powered semantic understanding
-							</p>
-						</div>
-					)}
+						) : (
+							<div className="text-center py-8">
+								<Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+								<p className="text-muted-foreground">
+									Start typing to search across your repositories
+								</p>
+								<p className="text-sm text-muted-foreground mt-2">
+									Search commits, pull requests, issues, and comments with
+									AI-powered semantic understanding
+								</p>
+							</div>
+						)}
+					</div>
 				</ScrollArea>
 			</DialogContent>
 		</Dialog>
