@@ -19,7 +19,7 @@ import java.util.Set;
 public class GitRepo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "BIGINT GENERATED ALWAYS AS IDENTITY")
     private Long id;
 
     @Column(unique = true, name = "repository_link", nullable = false)

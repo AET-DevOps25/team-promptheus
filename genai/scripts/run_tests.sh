@@ -34,7 +34,7 @@ if docker compose ps meilisearch | grep -q "Up"; then
 else
     echo -e "${YELLOW}🚀 Starting Meilisearch service...${NC}"
     docker compose up -d meilisearch
-    
+
     # Wait for Meilisearch to be ready
     echo -e "${YELLOW}⏳ Waiting for Meilisearch to be ready...${NC}"
     for i in {1..30}; do
@@ -58,4 +58,4 @@ docker compose run --rm genai python scripts/setup_meilisearch.py --reset
 echo -e "${YELLOW}🧪 Running tests...${NC}"
 docker compose run --rm genai python -m pytest tests/ "$@"
 
-echo -e "${GREEN}✅ All tests completed!${NC}" 
+echo -e "${GREEN}✅ All tests completed!${NC}"

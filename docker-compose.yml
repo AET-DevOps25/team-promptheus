@@ -15,7 +15,7 @@ services:
       interval: 10s
       start_period: 1s
       start_interval: 100ms
-  db: 
+  db:
     image: postgres:17
     restart: unless-stopped
     environment:
@@ -27,6 +27,8 @@ services:
     command:
       - -c
       - synchronous_commit=off
+      - -c
+      - log_statement=all
     ports:
       - 5432:5432
     volumes:
@@ -124,6 +126,34 @@ services:
         condition: service_healthy
       meilisearch:
         condition: service_healthy
+  contribution:
+    image: ghcr.io/aet-devops25/promptheus-contribution:latest
+    build:
+      context: ./contribution
+    ports:
+      - 8082:8082
+    restart: unless-stopped
+    environment:
+      spring.datasource.url: jdbc:postgresql://db:5432/${POSTGRES_DB:-postgres}
+      spring.datasource.username: ${POSTGRES_USER:-postgres}
+      spring.datasource.password: ${POSTGRES_PASSWORD:-CHANGE_ME}
+      app.meiliMasterKey: ${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
+      app.meiliHost: http://meilisearch:7700
+      management.otlp.tracing.endpoint: http://monitoring:4318/v1/traces
+      management.otlp.metrics.export.url: http://monitoring:4318/v1/metrics
+      management.otlp.logging.endpoint: http://monitoring:4318/v1/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 1s
+      start_interval: 100ms
+    depends_on:
+      db:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
 
   client:
     image: ghcr.io/aet-devops25/promptheus-client:latest
@@ -131,10 +161,10 @@ services:
       context: ./client
       dockerfile: ./Dockerfile
     ports:
-      - 8080:${CLIENT_PORT:-8080}
+      - 8081:${CLIENT_PORT:-8081}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "-e 'fetch(`http://localhost:${CLIENT_PORT:-8080}/`).then(x=>x.status==200?process.exit(0):process.exit(1)).catch(()=>process.exit(1))'"]
+      test: ["CMD", "node", "-e", "-e 'fetch(`http://localhost:${CLIENT_PORT:-8081}/`).then(x=>x.status==200?process.exit(0):process.exit(1)).catch(()=>process.exit(1))'"]
       interval: 10s
       timeout: 3s
       retries: 5
