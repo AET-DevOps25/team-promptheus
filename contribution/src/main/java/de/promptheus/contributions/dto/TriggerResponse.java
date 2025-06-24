@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class TriggerResponse {
-    
+
     private String status;
     private String message;
     private Instant triggeredAt;
@@ -23,4 +23,4 @@ public class TriggerResponse {
     private List<String> processedRepositories;
     private List<String> errors;
     private Long processingTimeMs;
-} 
+}

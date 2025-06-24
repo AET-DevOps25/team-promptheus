@@ -14,7 +14,7 @@ const navItems = [
 ];
 
 export function Header() {
-	const { user, loading } = useAuth();
+	const { user } = useAuth();
 	const location = useLocation();
 	const [selectedUser, setSelectedUser] = useState<{
 		login: string;

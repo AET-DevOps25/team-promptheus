@@ -27,6 +27,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import type { GitHubContribution, GitHubUser } from "@/types/github";
 
 // Helper function to get start and end of a week
 const getWeekBounds = (date: Date) => {
@@ -51,15 +52,15 @@ export default function GitHubContributions() {
 	);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [userData, setUserData] = useState<GitHubUser | null>(null);
-	const [contributions, setContributions] = useState<GitHubContribution[]>([]);
+	const [userData, _setUserData] = useState<GitHubUser | null>(null);
+	const [contributions, _setContributions] = useState<GitHubContribution[]>([]);
 	const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
 
 	// Check if a date is in the current week
-	const isCurrentWeek = (dateString: string) => {
-		const date = new Date(dateString);
-		return date >= currentWeek.start && date <= currentWeek.end;
-	};
+	// const _isCurrentWeek = (dateString: string) => {
+	// 	const date = new Date(dateString);
+	// 	return date >= currentWeek.start && date <= currentWeek.end;
+	// };
 
 	// Check if the selected week is the current week
 	const isSelectedWeekCurrentWeek = () => {

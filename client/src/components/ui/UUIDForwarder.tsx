@@ -5,8 +5,8 @@ import { updateCookie } from "@/services/cookieutils";
 export function UUIDForwarder() {
 	//const { uuid } = useParams();
 
-	const urlParams = new URLSearchParams(window.location.search);
-	const uuid = urlParams.get("uuid");
+	// const urlParams = new URLSearchParams(window.location.search);
+	// const _uuid = urlParams.get("uuid");
 
 	useEffect(() => {
 		async function handleUUID() {

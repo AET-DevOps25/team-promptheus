@@ -4,11 +4,11 @@ import { Navigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 // src/components/Layout.tsx
 import { Header } from "@/elements/header";
-import about from "@/pages/About";
-import questionandanswers from "@/pages/QnAPage";
-import search from "@/pages/SearchPage";
-import summaryviewing from "@/pages/SummaryViewing";
-import selectcontent from "@/pages/selectcontent";
+import About from "@/pages/About";
+import GitHubContributions from "@/pages/github-contributions";
+import QnAPage from "@/pages/QnAPage";
+import SearchPage from "@/pages/SearchPage";
+import SummaryViewing from "@/pages/SummaryViewing";
 import { useAuth } from "../contextproviders/authprovider";
 
 type LayoutProps = {
@@ -47,11 +47,11 @@ export function Layout({ children }: LayoutProps) {
 						}
 						path="/"
 					/>
-					<Route element={{ selectcontent }} path="/selectcontent" />
-					<Route element={{ summaryviewing }} path="/summaryviewing" />
-					<Route element={{ questionandanswers }} path="/questionandanswers" />
-					<Route element={{ search }} path="/search" />
-					<Route element={{ about }} path="/about" />
+					<Route element={<GitHubContributions />} path="/selectcontent" />
+					<Route element={<SummaryViewing />} path="/summaryviewing" />
+					<Route element={<QnAPage />} path="/questionandanswers" />
+					<Route element={<SearchPage />} path="/search" />
+					<Route element={<About />} path="/about" />
 				</Routes>
 
 				<main className="pt-16">

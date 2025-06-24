@@ -1,5 +1,11 @@
 import type { operations as serverOps } from "./server";
 
+export type {
+	GitHubContribution,
+	GitHubContributor,
+	GitHubUser,
+} from "../types/github";
+
 //import type {operations as genaiOps} from "./genai"
 
 type NewRepoResponse =

@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { Navigate } from "react-router-dom";
+
 import { Button } from "@/components/ui/button";
 import { AuthContext } from "@/contextproviders/authprovider";
 import { GithubUserProviderContext } from "@/contextproviders/siteprovider";
@@ -8,10 +8,8 @@ import { getFromCookie } from "@/services/cookieutils";
 export function WelcomePage() {
 	console.log("loading consumers");
 	// loading context consumers
-	const { user, loading } = useContext(AuthContext);
-	const { selectedUser, setSelectedUser } = useContext(
-		GithubUserProviderContext,
-	);
+	const { user } = useContext(AuthContext);
+	const { selectedUser } = useContext(GithubUserProviderContext);
 
 	console.log("Loaded the context in welcome page");
 	console.log(user);
@@ -26,7 +24,8 @@ export function WelcomePage() {
 	}
 
 	const handleSelectUserButtonClick = () => {
-		<Navigate replace to="/landing" />;
+		// Navigation should be handled differently, perhaps with useNavigate hook
+		console.log("Navigate to user selection");
 	};
 
 	return (

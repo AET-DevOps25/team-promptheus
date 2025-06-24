@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { AuthContext } from "@/contextproviders/authprovider";
 import { GithubUserProviderContext } from "@/contextproviders/siteprovider";
+import type { GitHubContributor } from "@/types/github";
 
 export function SelectUserPage() {
 	// initialise fast loading react states
@@ -22,7 +23,7 @@ export function SelectUserPage() {
 	const [error, setError] = useState<string | null>(null);
 
 	// load slower context
-	const { user, loading } = useContext(AuthContext);
+	const { user } = useContext(AuthContext);
 	const { selectedUser, setSelectedUser } = useContext(
 		GithubUserProviderContext,
 	);

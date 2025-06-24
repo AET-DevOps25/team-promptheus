@@ -6,7 +6,11 @@ FROM base AS builder
 # Install dependencies
 COPY package*.json ./
 RUN  npm ci
-COPY . .
+COPY *.json ./
+COPY *.ts ./
+COPY *.html ./
+COPY src src
+COPY public/* public/
 
 RUN npm run build
 

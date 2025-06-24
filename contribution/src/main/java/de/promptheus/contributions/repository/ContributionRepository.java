@@ -34,4 +34,4 @@ public interface ContributionRepository extends JpaRepository<Contribution, Stri
 
     @Query("SELECT c FROM Contribution c WHERE c.isSelected = true")
     List<Contribution> findSelectedContributions();
-} 
+}
