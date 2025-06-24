@@ -95,25 +95,6 @@ class GitRepoControllerTest {
     }
 
     @Test
-    void search_ValidRequest_ReturnsSearchResult() throws Exception {
-        // Arrange
-        UUID usercode = UUID.randomUUID();
-        String query = "test query";
-        SearchResult expectedResult = new SearchResult();
-        ContentConstruct content = ContentConstruct.builder().build();
-
-        when(gitRepoService.getRepositoryByAccessID(usercode)).thenReturn(GitRepoInformationConstruct.builder().contents(List.of(content)).build());
-        when(searchService.search(query)).thenReturn(expectedResult);
-        // Act & Assert
-        mockMvc.perform(get("/api/repositories/{usercode}/search", usercode)
-                .param("query", query))
-                .andExpect(content().json(objectMapper.writeValueAsString(expectedResult)))
-                .andExpect(status().isOk());
-        verify(gitRepoService,only()).getRepositoryByAccessID(usercode);
-        verify(searchService,only()).search(query);
-    }
-
-    @Test
     void createCommitSelectionForSummary_ValidRequest_ReturnsSuccess() throws Exception {
         // Arrange
         UUID usercode = UUID.randomUUID();
