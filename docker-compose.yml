@@ -158,7 +158,7 @@ services:
   client:
     image: ghcr.io/aet-devops25/promptheus-client:latest
     build:
-      context: frontend
+      context: client
     ports:
       - 8081:${CLIENT_PORT:-8081}
     restart: unless-stopped
