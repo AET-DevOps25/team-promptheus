@@ -1,0 +1,37 @@
+name: Docker Compose Healthcheck
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  docker-compose-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build services
+        run: docker compose build
+
+      - name: Start services in detached mode
+        run: docker compose up --build -d
+
+      - name: Wait for services to initialize
+        run: sleep 30
+
+      - name: Check container health
+        run: |
+          unhealthy=$(docker ps --format '{{.Names}} {{.Status}}' | grep -v 'healthy' | grep 'health')
+          if [ -n "$unhealthy" ]; then
+            echo "Some containers are not healthy:"
+            echo "$unhealthy"
+            exit 1
+          else
+            echo "All containers are healthy."
+          fi
