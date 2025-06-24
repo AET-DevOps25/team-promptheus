@@ -3,7 +3,6 @@
 import { format } from "date-fns";
 import {
 	AlertCircle,
-	AlertTriangle,
 	CalendarIcon,
 	ExternalLink,
 	Filter,
@@ -41,11 +40,12 @@ import type {
 	SearchParams,
 	SearchResult,
 } from "@/lib/api/types";
+import { useDebounce } from "@/lib/hooks/use-debounce";
 import { SearchResultsLoading } from "./search-results-loading";
 
 interface SearchModalProps {
 	isOpen: boolean;
-	onClose: () => void;
+	onCloseAction: () => void;
 }
 
 const contributionTypeIcons = {
@@ -69,14 +69,8 @@ const contributionTypeColors = {
 	pr: "bg-green-100 text-green-800",
 };
 
-export function SearchModal({ isOpen, onClose }: SearchModalProps) {
+export function SearchModal({ isOpen, onCloseAction }: SearchModalProps) {
 	const [query, setQuery] = useState("");
-	const [searchParams, setSearchParams] = useState<SearchParams>({
-		authors: [],
-		filterContributionType: ["commit", "pr", "issue", "comment"],
-		query: "",
-		repositories: [],
-	});
 	const [showFilters, setShowFilters] = useState(false);
 	const [filters, setFilters] = useState<SearchFilters>({
 		authors: [],
@@ -86,13 +80,26 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 		repositories: [],
 	});
 
+	// Debounce the query to avoid excessive API calls
+	const debouncedQuery = useDebounce(query, 50);
+
+	// Create search params from debounced query and filters
+	const searchParams: SearchParams = {
+		authors: filters.authors,
+		dateFrom: filters.dateFrom?.toISOString(),
+		dateTo: filters.dateTo?.toISOString(),
+		filterContributionType: filters.contributionTypes,
+		query: debouncedQuery,
+		repositories: filters.repositories,
+	};
+
 	// Use TanStack Query for search
 	const {
 		data: searchResponse,
 		isLoading,
 		error,
 		refetch,
-	} = useSearch(searchParams, !!searchParams.query);
+	} = useSearch(searchParams, !!debouncedQuery.trim());
 
 	const results = searchResponse?.results || [];
 
@@ -116,19 +123,8 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 	];
 
 	const handleSearch = () => {
-		if (!query.trim()) {
-			setSearchParams((prev) => ({ ...prev, query: "" }));
-			return;
-		}
-
-		setSearchParams({
-			authors: filters.authors,
-			dateFrom: filters.dateFrom?.toISOString(),
-			dateTo: filters.dateTo?.toISOString(),
-			filterContributionType: filters.contributionTypes,
-			query: query.trim(),
-			repositories: filters.repositories,
-		});
+		// Search is now handled automatically via debounced query
+		// This function is kept for the Enter key handler
 	};
 
 	const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -172,15 +168,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 			dateTo: undefined,
 			repositories: [],
 		});
-		// Also clear search results
-		setSearchParams((prev) => ({
-			...prev,
-			authors: [],
-			dateFrom: undefined,
-			dateTo: undefined,
-			filterContributionType: ["commit", "pr", "issue", "comment"],
-			repositories: [],
-		}));
+		// Search results will clear automatically when query is cleared
 	};
 
 	const getTypeIcon = (type: SearchResult["type"]) => {
@@ -197,7 +185,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 	}, [isOpen]);
 
 	return (
-		<Dialog onOpenChange={onClose} open={isOpen}>
+		<Dialog onOpenChange={onCloseAction} open={isOpen}>
 			<DialogContent className="max-w-4xl max-h-[80vh] p-0">
 				<DialogHeader className="p-6 pb-0">
 					<DialogTitle className="flex items-center gap-2">

@@ -14,7 +14,7 @@ export { ApiClient, ApiError, apiClient } from "./client";
 
 // Export service hooks
 export * from "./qa";
-export * from "./search";
+export { SEARCH_KEYS, useSearch } from "./search";
 
 // Export types (with explicit exports to avoid conflicts)
 export type {

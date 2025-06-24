@@ -120,7 +120,7 @@ function VoteButtons({ id }: { id: string }) {
 ### Search Hooks (`lib/api/search.ts`)
 
 #### `useSearch(params, enabled)`
-Performs search with automatic caching and debouncing.
+Performs search with automatic caching.
 
 ```tsx
 import { useSearch } from '@/lib/api';
@@ -155,21 +155,30 @@ function SearchComponent() {
 }
 ```
 
-#### `useDebouncedSearch(params, debounceMs, enabled)`
-Same as `useSearch` but with built-in debouncing for better UX.
+#### Debounced Search Pattern
+For search-as-you-type functionality, use the `useDebounce` hook to debounce the query:
 
 ```tsx
-import { useDebouncedSearch } from '@/lib/api';
+import { useSearch } from '@/lib/api';
+import { useDebounce } from '@/lib/hooks';
 
 function SearchAsYouType() {
-  const [params, setParams] = useState({ query: '' });
+  const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounce(query, 500);
 
-  // Will automatically debounce searches by 500ms
-  const { data, isLoading } = useDebouncedSearch(params, 500);
+  const searchParams = {
+    query: debouncedQuery,
+    filterContributionType: ['pr', 'commit'],
+    repositories: [],
+    authors: []
+  };
+
+  const { data, isLoading } = useSearch(searchParams, !!debouncedQuery.trim());
 
   return (
     <input
-      onChange={(e) => setParams({ query: e.target.value })}
+      value={query}
+      onChange={(e) => setQuery(e.target.value)}
       placeholder="Search as you type..."
     />
   );
@@ -287,6 +296,34 @@ The React Query client is configured with:
 ## DevTools
 
 In development, the React Query DevTools are available. Press the TanStack Query button in the bottom corner to inspect cache, queries, and mutations.
+
+## Custom Hooks (`lib/hooks/`)
+
+### `useDebounce(value, delay)`
+General-purpose debouncing hook for any value:
+
+```tsx
+import { useDebounce } from '@/lib/hooks';
+
+function MyComponent() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  // This effect will only run when debouncedSearchTerm changes
+  useEffect(() => {
+    if (debouncedSearchTerm) {
+      // Perform search
+    }
+  }, [debouncedSearchTerm]);
+
+  return (
+    <input
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+    />
+  );
+}
+```
 
 ## Migration from Fetch
 
