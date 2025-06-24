@@ -15,9 +15,17 @@ spec:
         spec:
             containers:
                 - name: genai
+                  imagePullPolicy: Always
                   image: ghcr.io/aet-devops25/promptheus-genai:latest
                   ports:
                       - containerPort: 3003
+                  securityContext:
+                      runAsNonRoot: true
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      runAsUser: 1000
+                      runAsGroup: 1000
+                      privileged: false
                   envFrom:
                       - configMapRef:
                             name: genai-config

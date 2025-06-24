@@ -15,6 +15,7 @@ spec:
         spec:
             containers:
                 - name: collector
+                  imagePullPolicy: Always
                   image: ghcr.io/aet-devops25/promptheus-collector:latest
                   ports:
                       - containerPort: 8082

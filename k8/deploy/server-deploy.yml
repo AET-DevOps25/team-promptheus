@@ -15,9 +15,17 @@ spec:
         spec:
             containers:
                 - name: server
+                  imagePullPolicy: Always
                   image: ghcr.io/aet-devops25/promptheus-server:latest
                   ports:
                       - containerPort: 8080
+                  securityContext:
+                      runAsNonRoot: true
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      runAsUser: 1000
+                      runAsGroup: 1000
+                      privileged: false
                   env:
                       # secrets
                       - name: spring.datasource.url

@@ -15,6 +15,7 @@ spec:
         spec:
             containers:
                 - name: postgres-exporter
+                  imagePullPolicy: Always
                   image: quay.io/prometheuscommunity/postgres-exporter
                   ports:
                       - containerPort: 9187
@@ -33,6 +34,7 @@ spec:
                                 name: app-secrets
                                 key: POSTGRES_PASSWORD
                 - name: postgres
+                  imagePullPolicy: Always
                   image: postgres:17
                   ports:
                       - containerPort: 5432
@@ -55,13 +57,19 @@ spec:
                             secretKeyRef:
                                 name: app-secrets
                                 key: POSTGRES_DB
+                  securityContext:
+                      runAsNonRoot: true
+                      allowPrivilegeEscalation: false
+                      runAsUser: 1000
+                      runAsGroup: 1000
+                      privileged: false
                   volumeMounts:
                       - name: postgres-data
                         mountPath: /var/lib/postgresql/data
-                  command:
-                      - postgres
-                      - -c
-                      - synchronous_commit=off
+                  #command:
+                  #    - postgres
+                  #    - -c
+                  #    - synchronous_commit=off
                   livenessProbe:
                       exec:
                           command:

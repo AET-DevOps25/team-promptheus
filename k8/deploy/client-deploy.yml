@@ -15,6 +15,7 @@ spec:
         spec:
             containers:
                 - name: client
+                  imagePullPolicy: Always
                   image: ghcr.io/aet-devops25/promptheus-client:latest
                   ports:
                       - containerPort: 3000
