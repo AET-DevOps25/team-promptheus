@@ -1,8 +1,11 @@
-package com.autoback.autoback.persistence.entity;
+package de.promptheus.contributions.entity;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -11,12 +14,12 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "contributions")
-@Builder
-@Getter
-@Setter
-@AllArgsConstructor
+@Data
 @NoArgsConstructor
-public class Content {
+@AllArgsConstructor
+@Builder
+public class Contribution {
+
     @Id
     @Column(nullable = false)
     private String id;
@@ -24,14 +27,18 @@ public class Content {
     @Column(name = "git_repository_id", nullable = false)
     private Long gitRepositoryId;
 
-    @Column(nullable = false)
+    @Column(name = "type", nullable = false, length = 50)
     private String type;
-    @Column(nullable = false, name = "username")
-    private String user;
-    @Column(nullable = false)
+
+    @Column(name = "username", nullable = false, length = 255)
+    private String username;
+
+    @Column(name = "summary", nullable = false)
     private String summary;
-    @Column(nullable = false)
+
+    @Column(name = "is_selected", nullable = false)
     private Boolean isSelected;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -45,7 +52,7 @@ public class Content {
             createdAt = Instant.now();
         }
         if (isSelected == null) {
-            isSelected = false;
+            isSelected = true;  // Database default is true
         }
     }
 } 
