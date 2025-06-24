@@ -143,7 +143,7 @@ services:
       management.otlp.metrics.export.url: http://monitoring:4318/v1/metrics
       management.otlp.logging.endpoint: http://monitoring:4318/v1/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
       interval: 10s
       timeout: 3s
       retries: 5
