@@ -1,22 +1,22 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: monitoring-service
-  namespace: promptheus
+    name: monitoring-service
+    namespace: promptheus
 spec:
-  type: LoadBalancer
-  selector:
-    app: monitoring
-  ports:
-    - name: grafana
-      protocol: TCP
-      port: 3000
-      targetPort: 3000
-    - name: otlp-grpc
-      protocol: TCP
-      port: 4317
-      targetPort: 4317
-    - name: otlp-http
-      protocol: TCP
-      port: 4318
-      targetPort: 4318
+    type: LoadBalancer
+    selector:
+        app: monitoring
+    ports:
+        - name: grafana
+          protocol: TCP
+          port: 3000
+          targetPort: 3000
+        - name: otlp-grpc
+          protocol: TCP
+          port: 4317
+          targetPort: 4317
+        - name: otlp-http
+          protocol: TCP
+          port: 4318
+          targetPort: 4318

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: collector
+    namespace: team-promptheus
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: collector
+    template:
+        metadata:
+            labels:
+                app: collector
+        spec:
+            containers:
+                - name: collector
+                  image: ghcr.io/aet-devops25/team-promptheus-collector:latest
+                  ports:
+                      - containerPort: 8082
+                  env:
+                      # secrets
+                      - name: app.meiliMasterKey
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: MEILI_MASTER_KEY
+                      - name: spring.datasource.username
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: POSTGRES_USER
+                      - name: spring.datasource.url
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: spring.datasource.url
+                      - name: spring.datasource.password
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: POSTGRES_PASSWORD
+                      # routing
+                      - name: app.meiliHost
+                        value: http://meilisearch-service:7700
+                      - name: management.otlp.tracing.endpoint
+                        value: http://monitoring-service:4318/v1/traces
+                      - name: management.otlp.metrics.export.url
+                        value: http://monitoring-service:4318/v1/metrics
+                      - name: management.otlp.logging.endpoint
+                        value: http://monitoring-service:4318/v1/logs
+                  livenessProbe:
+                      httpGet:
+                          path: /actuator/health
+                          port: 8082
+                      initialDelaySeconds: 1
+                      periodSeconds: 10
+                      timeoutSeconds: 3
+                      failureThreshold: 5
+                  readinessProbe:
+                      httpGet:
+                          path: /actuator/health
+                          port: 8082
+                      initialDelaySeconds: 1
+                      periodSeconds: 10
+                      timeoutSeconds: 3
+                      failureThreshold: 5

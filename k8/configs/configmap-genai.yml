@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: genai-config
-  namespace: team-promptheus
-data:
-  MEILISEARCH_URL: "http://meilisearch-service:7700"

@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: postgres
+    namespace: team-promptheus
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: postgres
+    template:
+        metadata:
+            labels:
+                app: postgres
+        spec:
+            containers:
+                - name: postgres
+                  image: postgres:17
+                  ports:
+                      - containerPort: 5432
+                  envFrom:
+                      - configMapRef:
+                            name: postgres-config
+                  env:
+                      - name: POSTGRES_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: POSTGRES_PASSWORD
+                      - name: POSTGRES_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: POSTGRES_USER
+                      - name: POSTGRES_DB
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: POSTGRES_DB
+                  volumeMounts:
+                      - name: postgres-data
+                        mountPath: /var/lib/postgresql/data
+                  command:
+                      - postgres
+                      - -c
+                      - synchronous_commit=off
+                  livenessProbe:
+                      exec:
+                          command:
+                              - pg_isready
+                              - -U
+                              - postgres
+                      initialDelaySeconds: 1
+                      periodSeconds: 10
+                      failureThreshold: 5
+                  readinessProbe:
+                      exec:
+                          command:
+                              - pg_isready
+                              - -U
+                              - postgres
+                      initialDelaySeconds: 1
+                      periodSeconds: 10
+                      failureThreshold: 5
+            volumes:
+                - name: postgres-data
+                  persistentVolumeClaim:
+                      claimName: postgres-pvc

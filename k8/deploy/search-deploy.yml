@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: search
+    namespace: team-promptheus
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: search
+    template:
+        metadata:
+            labels:
+                app: search
+        spec:
+            containers:
+                - name: search
+                  image: ghcr.io/aet-devops25/team-promptheus-search:latest
+                  ports:
+                      - containerPort: 8070
+                  env:
+                      # secrets
+                      - name: app.meiliMasterKey
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: MEILI_MASTER_KEY
+                      # routing
+                      - name: app.meiliHost
+                        value: http://meilisearch-service:7700
+                      - name: management.otlp.tracing.endpoint
+                        value: http://monitoring-service:4318/v1/traces
+                      - name: management.otlp.metrics.export.url
+                        value: http://monitoring-service:4318/v1/metrics
+                      - name: management.otlp.logging.endpoint
+                        value: http://monitoring-service:4318/v1/logs
+                  livenessProbe:
+                      httpGet:
+                          path: /actuator/health
+                          port: 8070
+                      initialDelaySeconds: 1
+                      periodSeconds: 10
+                      timeoutSeconds: 3
+                      failureThreshold: 5
+                  readinessProbe:
+                      httpGet:
+                          path: /actuator/health
+                          port: 8070
+                      initialDelaySeconds: 1
+                      periodSeconds: 10
+                      timeoutSeconds: 3
+                      failureThreshold: 5
