@@ -42,14 +42,3 @@ jobs:
             echo "$unhealthy"
             exit 1
           fi
-
-      - name: Check container health
-        run: |
-          unhealthy=$(docker ps --format '{{.Names}} {{.Status}}' | grep -v 'healthy' | grep 'health')
-          if [ -n "$unhealthy" ]; then
-            echo "Some containers are not healthy:"
-            echo "$unhealthy"
-            exit 1
-          else
-            echo "All containers are healthy."
-          fi
