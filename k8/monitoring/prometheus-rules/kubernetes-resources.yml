@@ -1,0 +1,47 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+    name: kubernetes-resources-alerts
+    namespace: team-promptheus
+    labels:
+        app: prometheus
+        role: alert-rules
+spec:
+    groups:
+    - name: kubernetes-resources
+      rules:
+      - alert: HighPodCPUUsage
+        expr: (sum(rate(container_cpu_usage_seconds_total{namespace="team-promptheus",container!="POD",container!=""}[5m])) by (pod) / sum(container_spec_cpu_quota{namespace="team-promptheus",container!="POD",container!=""}/container_spec_cpu_period{namespace="team-promptheus",container!="POD",container!=""}) by (pod)) * 100 > 80
+        for: 5m
+        labels:
+            severity: warning
+        annotations:
+            summary: "High CPU usage detected for pod {{ $labels.pod }}"
+            description: "Pod {{ $labels.pod }} CPU usage is above 80% for more than 5 minutes. Current usage: {{ $value }}%"
+
+      - alert: HighPodMemoryUsage
+        expr: (sum(container_memory_working_set_bytes{namespace="team-promptheus",container!="POD",container!=""}) by (pod) / sum(container_spec_memory_limit_bytes{namespace="team-promptheus",container!="POD",container!=""}) by (pod)) * 100 > 85
+        for: 5m
+        labels:
+            severity: warning
+        annotations:
+            summary: "High memory usage detected for pod {{ $labels.pod }}"
+            description: "Pod {{ $labels.pod }} memory usage is above 85% for more than 5 minutes. Current usage: {{ $value }}%"
+
+      - alert: PodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total{namespace="team-promptheus"}[15m]) > 0
+        for: 5m
+        labels:
+            severity: critical
+        annotations:
+            summary: "Pod {{ $labels.pod }} is crash looping"
+            description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last 15 minutes"
+
+      - alert: PodNotReady
+        expr: kube_pod_status_ready{namespace="team-promptheus",condition="false"} == 1
+        for: 10m
+        labels:
+            severity: warning
+        annotations:
+            summary: "Pod {{ $labels.pod }} is not ready"
+            description: "Pod {{ $labels.pod }} has been in a non-ready state for more than 10 minutes"

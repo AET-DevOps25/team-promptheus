@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+    name: search-engine-alerts
+    namespace: team-promptheus
+    labels:
+        app: prometheus
+        role: alert-rules
+spec:
+    groups:
+    - name: search-engine
+      rules:
+      - alert: MeilisearchDown
+        expr: up{job="meilisearch",namespace="team-promptheus"} == 0
+        for: 1m
+        labels:
+            severity: critical
+        annotations:
+            summary: "MeiliSearch is down"
+            description: "MeiliSearch has been down for more than 1 minute"
+
+      - alert: HighSearchLatency
+        expr: histogram_quantile(0.95, sum(rate(meilisearch_http_request_duration_seconds_bucket{namespace="team-promptheus"}[5m])) by (le)) > 1
+        for: 5m
+        labels:
+            severity: warning
+        annotations:
+            summary: "High MeiliSearch latency"
+            description: "MeiliSearch 95th percentile latency is {{ $value }}s for more than 5 minutes"

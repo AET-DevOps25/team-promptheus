@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+    name: genai-metrics
+    namespace: team-promptheus
+    labels:
+        app: genai
+spec:
+    selector:
+        matchLabels:
+            app: genai
+    endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s

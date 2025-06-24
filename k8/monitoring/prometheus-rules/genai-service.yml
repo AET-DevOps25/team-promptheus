@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+    name: genai-service-alerts
+    namespace: team-promptheus
+    labels:
+        app: prometheus
+        role: alert-rules
+spec:
+    groups:
+    - name: genai-service
+      rules:
+      - alert: GenAIHighLatency
+        expr: histogram_quantile(0.95, sum(rate(genai_request_duration_seconds_bucket{namespace="team-promptheus"}[5m])) by (le)) > 30
+        for: 5m
+        labels:
+            severity: warning
+        annotations:
+            summary: "High GenAI processing latency"
+            description: "GenAI service 95th percentile processing time is {{ $value }}s for more than 5 minutes"
+
+      - alert: GenAIErrorRate
+        expr: (sum(rate(genai_requests_total{namespace="team-promptheus",status="error"}[5m])) / sum(rate(genai_requests_total{namespace="team-promptheus"}[5m]))) * 100 > 15
+        for: 5m
+        labels:
+            severity: critical
+        annotations:
+            summary: "High GenAI error rate"
+            description: "GenAI service has an error rate of {{ $value }}% for more than 5 minutes"
