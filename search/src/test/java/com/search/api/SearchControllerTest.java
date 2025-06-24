@@ -1,29 +1,21 @@
 package com.search.api;
 
-import com.search.api.SearchController;
-import com.search.api.SearchService;
-import com.meilisearch.sdk.model.SearchResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.Set;
+import java.util.ArrayList;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(SearchController.class)
 class SearchControllerTest {
@@ -44,14 +36,15 @@ class SearchControllerTest {
         // Arrange
         UUID usercode = UUID.randomUUID();
         String query = "test query";
-        SearchResult expectedResult = new SearchResult();
+        SearchResult expectedResult = SearchResult.builder().facetHits(new ArrayList<>()).facetQuery("abc=bde")
+                .processingTimeMs(42).build();
 
-        when(searchService.search(query)).thenReturn(expectedResult);
+        when(searchService.search(usercode, query)).thenReturn(new FacetSearchTestResult());
+        Counter searches_performed_total = mock(Counter.class);
+        when(meterRegistry.counter("searches_performed_total")).thenReturn(searches_performed_total);
         // Act & Assert
-        mockMvc.perform(get("/api/repositories/{usercode}/search", usercode)
-                .param("query", query))
-                .andExpect(content().json(objectMapper.writeValueAsString(expectedResult)))
-                .andExpect(status().isOk());
-        verify(searchService,only()).search(query);
+
+        mockMvc.perform(get("/api/search/{usercode}", usercode).param("query", query)).andExpect(content().json(objectMapper.writeValueAsString(expectedResult))).andExpect(status().isOk());
+        verify(searchService, only()).search(usercode,query);
     }
 }

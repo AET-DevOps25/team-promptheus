@@ -1,10 +1,9 @@
 package com.search.api;
 
-import com.meilisearch.sdk.model.SearchResult;
+import com.meilisearch.sdk.model.FacetSearchable;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -15,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.search.api.SearchResult;
 import java.util.UUID;
 
 @RestController
@@ -37,12 +37,17 @@ public class SearchController {
                     content = {@Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))}),
 
     })
-    @GetMapping("/{usercode}/")
+    @GetMapping("/{usercode}")
     public ResponseEntity<SearchResult> search(
             @PathVariable @NotNull UUID usercode,
             @RequestParam(name = "query") @NotNull @NotBlank String query) {
-        SearchResult results = searchService.search(query);
+        meterRegistry.counter("searches_performed_total").increment();
+        FacetSearchable results = searchService.search(usercode,query);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(results);
+                .body(SearchResult.builder()
+                        .facetHits(results.getFacetHits())
+                        .processingTimeMs(results.getProcessingTimeMs())
+                        .facetQuery(results.getFacetQuery())
+                        .build());
     }
 }

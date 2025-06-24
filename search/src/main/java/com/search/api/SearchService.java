@@ -1,5 +1,8 @@
 package com.search.api;
 
+import com.meilisearch.sdk.FacetSearchRequest;
+import com.meilisearch.sdk.model.FacetSearchResult;
+import com.meilisearch.sdk.model.FacetSearchable;
 import com.search.ConfigProperties;
 import com.meilisearch.sdk.Client;
 import com.meilisearch.sdk.Config;
@@ -8,6 +11,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 public class SearchService {
@@ -18,8 +23,8 @@ public class SearchService {
         meilisearchClient = new Client(new Config(properties.getMeiliHost(), properties.getMeiliMasterKey()));
     }
 
-    public SearchResult search(@NotNull @NotBlank String query) {
-        return meilisearchClient.getIndex("content")
-                .search(query);
+    public FacetSearchable search(@NotNull UUID usercode, @NotNull @NotBlank String query) {
+        FacetSearchRequest request = FacetSearchRequest.builder().facetName("repo_id").facetQuery(usercode.toString()).q(query).build();
+        return meilisearchClient.getIndex("content").facetSearch(request);
     }
 }
