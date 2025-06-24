@@ -122,7 +122,7 @@ export default function DashboardPage() {
 								</div>
 								<SearchModal
 									isOpen={isSearchModalOpen}
-									onClose={() => setIsSearchModalOpen(false)}
+									onCloseAction={() => setIsSearchModalOpen(false)}
 								/>
 							</CardContent>
 						</Card>
