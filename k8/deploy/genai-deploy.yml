@@ -15,7 +15,7 @@ spec:
         spec:
             containers:
                 - name: genai
-                  image: ghcr.io/aet-devops25/team-promptheus-genai:latest
+                  image: ghcr.io/aet-devops25/promptheus-genai:latest
                   ports:
                       - containerPort: 3003
                   envFrom:

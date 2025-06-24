@@ -15,7 +15,7 @@ spec:
         spec:
             containers:
                 - name: client
-                  image: ghcr.io/aet-devops25/team-promptheus-client:latest
+                  image: ghcr.io/aet-devops25/promptheus-client:latest
                   ports:
                       - containerPort: 3000
                   livenessProbe:

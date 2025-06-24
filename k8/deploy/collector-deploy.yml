@@ -15,7 +15,7 @@ spec:
         spec:
             containers:
                 - name: collector
-                  image: ghcr.io/aet-devops25/team-promptheus-collector:latest
+                  image: ghcr.io/aet-devops25/promptheus-collector:latest
                   ports:
                       - containerPort: 8082
                   env:

@@ -15,7 +15,7 @@ spec:
         spec:
             containers:
                 - name: server
-                  image: ghcr.io/aet-devops25/team-promptheus-server:latest
+                  image: ghcr.io/aet-devops25/promptheus-server:latest
                   ports:
                       - containerPort: 8080
                   env:
