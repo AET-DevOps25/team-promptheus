@@ -126,10 +126,10 @@ services:
         condition: service_healthy
       meilisearch:
         condition: service_healthy
-  contribution-service:
-    image: ghcr.io/aet-devops25/promptheus-contribution-service:latest
+  contribution:
+    image: ghcr.io/aet-devops25/promptheus-contribution:latest
     build:
-      context: ./contribution-service
+      context: ./contribution
     ports:
       - 8082:8082
     restart: unless-stopped

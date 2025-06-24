@@ -202,7 +202,7 @@ SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
 
 # Application Configuration
 SERVER_PORT=8083
-SPRING_APPLICATION_NAME=contribution-service
+SPRING_APPLICATION_NAME=contribution
 ```
 
 ## Architecture
@@ -420,7 +420,7 @@ All fetched contributions are logged in structured JSON format:
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd contribution-service
+cd contribution
 
 # Set up environment variables
 cp .env.example .env
@@ -549,8 +549,8 @@ ENTRYPOINT ["java", "-jar", "/app.jar"]
 ### Docker Compose Integration
 ```yaml
 services:
-  contribution-service:
-    build: ./contribution-service
+  contribution:
+    build: ./contribution
     ports:
       - "8083:8083"
     environment:

@@ -36,7 +36,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
       - name: ${{ matrix.gradleCommand }} with Gradle
         run: gradle ${{ matrix.gradleCommand }}
-        working-directory: contribution-service
+        working-directory: contribution
         env:
           spring.datasource.url: jdbc:postgresql://db:5432/postgres
           spring.datasource.username: postgres
@@ -49,7 +49,7 @@ jobs:
       - contribution-checks
     with:
       image_suffix: contribution
-      context: ./contribution-service
+      context: ./contribution
       dockerfile: Dockerfile
     permissions:
       id-token: write
