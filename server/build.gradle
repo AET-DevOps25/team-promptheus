@@ -4,7 +4,7 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
-group = 'com.server'
+group = 'com.autoback'
 version = '0.0.1-SNAPSHOT'
 
 java {
@@ -23,6 +23,9 @@ dependencies {
 
 	// docs
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
+
+	// search
+	implementation 'com.meilisearch.sdk:meilisearch-java:0.14.4'
 
 	// db access
 	implementation 'org.postgresql:postgresql:42.7.2'
