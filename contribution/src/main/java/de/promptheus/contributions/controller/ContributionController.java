@@ -26,7 +26,7 @@ public class ContributionController {
     @Operation(summary = "Trigger contribution fetch for all repositories")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Contribution fetch triggered successfully",
-                    content = {@Content(mediaType = "application/json", 
+                    content = {@Content(mediaType = "application/json",
                             schema = @Schema(implementation = TriggerResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Bad request"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -34,19 +34,19 @@ public class ContributionController {
     @PostMapping("/trigger")
     public ResponseEntity<TriggerResponse> triggerContributionFetch() {
         log.info("Manual trigger for contribution fetch initiated");
-        
+
         TriggerResponse response = contributionFetchService.triggerFetchForAllRepositories();
-        
-        log.info("Manual trigger completed. Processed {} repositories", 
+
+        log.info("Manual trigger completed. Processed {} repositories",
                 response.getRepositoriesProcessed());
-        
+
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Trigger contribution fetch for specific repository")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Contribution fetch triggered successfully",
-                    content = {@Content(mediaType = "application/json", 
+                    content = {@Content(mediaType = "application/json",
                             schema = @Schema(implementation = TriggerResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Bad request - Invalid repository"),
             @ApiResponse(responseCode = "404", description = "Repository not found"),
@@ -55,15 +55,15 @@ public class ContributionController {
     @PostMapping("/trigger/repository")
     public ResponseEntity<TriggerResponse> triggerContributionFetchForRepository(
             @Valid @RequestBody TriggerRequest request) {
-        log.info("Manual trigger for contribution fetch initiated for repository: {}", 
+        log.info("Manual trigger for contribution fetch initiated for repository: {}",
                 request.getRepositoryUrl());
-        
+
         TriggerResponse response = contributionFetchService.triggerFetchForRepository(
                 request.getRepositoryUrl());
-        
-        log.info("Manual trigger completed for repository: {}. Fetched {} contributions", 
+
+        log.info("Manual trigger completed for repository: {}. Fetched {} contributions",
                 request.getRepositoryUrl(), response.getContributionsFetched());
-        
+
         return ResponseEntity.ok(response);
     }
-} 
+}

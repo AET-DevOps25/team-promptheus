@@ -35,46 +35,46 @@ public class GitHubApiService {
 
     public List<Contribution> fetchContributionsSince(GitRepository repository, Instant since) {
         List<Contribution> contributions = new ArrayList<>();
-        
+
         try {
             // Extract owner and repo from URL
             String[] ownerRepo = extractOwnerAndRepo(repository.getRepositoryLink());
             String owner = ownerRepo[0];
             String repo = ownerRepo[1];
-            
+
             // Get PAT for this repository
             String token = getPersonalAccessToken(repository.getId());
             if (token == null) {
                 log.warn("No PAT found for repository: {}", repository.getRepositoryLink());
                 return contributions;
             }
-            
+
             // Fetch different types of contributions
             contributions.addAll(fetchCommits(owner, repo, token, since));
             contributions.addAll(fetchPullRequests(owner, repo, token, since));
             contributions.addAll(fetchIssues(owner, repo, token, since));
             contributions.addAll(fetchReleases(owner, repo, token, since));
-            
-            log.info("Fetched {} contributions for repository {}/{}", 
+
+            log.info("Fetched {} contributions for repository {}/{}",
                     contributions.size(), owner, repo);
-            
+
         } catch (Exception e) {
-            log.error("Failed to fetch contributions for repository: {}", 
+            log.error("Failed to fetch contributions for repository: {}",
                     repository.getRepositoryLink(), e);
         }
-        
+
         return contributions;
     }
 
     private List<Contribution> fetchCommits(String owner, String repo, String token, Instant since) {
         List<Contribution> commits = new ArrayList<>();
-        
+
         try {
             String url = String.format("%s/repos/%s/%s/commits", GITHUB_API_BASE, owner, repo);
             if (since != null) {
                 url += "?since=" + since.toString();
             }
-            
+
             JsonNode response = makeGitHubApiCall(url, token);
             if (response != null && response.isArray()) {
                 for (JsonNode commitNode : response) {
@@ -84,21 +84,21 @@ public class GitHubApiService {
                     }
                 }
             }
-            
+
         } catch (Exception e) {
             log.error("Failed to fetch commits for {}/{}", owner, repo, e);
         }
-        
+
         return commits;
     }
 
     private List<Contribution> fetchPullRequests(String owner, String repo, String token, Instant since) {
         List<Contribution> pullRequests = new ArrayList<>();
-        
+
         try {
-            String url = String.format("%s/repos/%s/%s/pulls?state=all&sort=updated&direction=desc", 
+            String url = String.format("%s/repos/%s/%s/pulls?state=all&sort=updated&direction=desc",
                     GITHUB_API_BASE, owner, repo);
-            
+
             JsonNode response = makeGitHubApiCall(url, token);
             if (response != null && response.isArray()) {
                 for (JsonNode prNode : response) {
@@ -110,21 +110,21 @@ public class GitHubApiService {
                     }
                 }
             }
-            
+
         } catch (Exception e) {
             log.error("Failed to fetch pull requests for {}/{}", owner, repo, e);
         }
-        
+
         return pullRequests;
     }
 
     private List<Contribution> fetchIssues(String owner, String repo, String token, Instant since) {
         List<Contribution> issues = new ArrayList<>();
-        
+
         try {
-            String url = String.format("%s/repos/%s/%s/issues?state=all&sort=updated&direction=desc", 
+            String url = String.format("%s/repos/%s/%s/issues?state=all&sort=updated&direction=desc",
                     GITHUB_API_BASE, owner, repo);
-            
+
             JsonNode response = makeGitHubApiCall(url, token);
             if (response != null && response.isArray()) {
                 for (JsonNode issueNode : response) {
@@ -139,20 +139,20 @@ public class GitHubApiService {
                     }
                 }
             }
-            
+
         } catch (Exception e) {
             log.error("Failed to fetch issues for {}/{}", owner, repo, e);
         }
-        
+
         return issues;
     }
 
     private List<Contribution> fetchReleases(String owner, String repo, String token, Instant since) {
         List<Contribution> releases = new ArrayList<>();
-        
+
         try {
             String url = String.format("%s/repos/%s/%s/releases", GITHUB_API_BASE, owner, repo);
-            
+
             JsonNode response = makeGitHubApiCall(url, token);
             if (response != null && response.isArray()) {
                 for (JsonNode releaseNode : response) {
@@ -164,11 +164,11 @@ public class GitHubApiService {
                     }
                 }
             }
-            
+
         } catch (Exception e) {
             log.error("Failed to fetch releases for {}/{}", owner, repo, e);
         }
-        
+
         return releases;
     }
 
@@ -178,20 +178,20 @@ public class GitHubApiService {
             headers.set("Authorization", "Bearer " + token);
             headers.set("Accept", "application/vnd.github.v3+json");
             headers.set("User-Agent", "Contribution-Service/1.0");
-            
+
             HttpEntity<String> entity = new HttpEntity<>(headers);
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-            
+
             if (response.getStatusCode().is2xxSuccessful()) {
                 return objectMapper.readTree(response.getBody());
             } else {
                 log.warn("GitHub API call failed with status: {}", response.getStatusCode());
             }
-            
+
         } catch (Exception e) {
             log.error("Failed to make GitHub API call to: {}", url, e);
         }
-        
+
         return null;
     }
 
@@ -293,4 +293,4 @@ public class GitHubApiService {
             return true;
         }
     }
-} 
+}
