@@ -22,6 +22,18 @@ jobs:
           POSTGRES_DB: postgres
         ports:
           - 5432:5432
+      meilisearch:
+        image: getmeili/meilisearch:latest
+        ports:
+          - 7700:7700
+        env:
+          MEILI_MASTER_KEY: CHANGE_ME_CHANGE_ME
+          MEILI_ENV: development
+        options: >-
+          --health-cmd "curl --silent http://localhost:7700/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     strategy:
       matrix:
         gradleCommand: [test, bootJar]
