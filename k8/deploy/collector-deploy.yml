@@ -50,6 +50,13 @@ spec:
                         value: http://monitoring-service:4318/v1/metrics
                       - name: management.otlp.logging.endpoint
                         value: http://monitoring-service:4318/v1/logs
+                  securityContext:
+                      runAsNonRoot: true
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      runAsUser: 1000
+                      runAsGroup: 1000
+                      privileged: false
                   livenessProbe:
                       httpGet:
                           path: /actuator/health

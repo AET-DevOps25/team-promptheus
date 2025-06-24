@@ -19,6 +19,13 @@ spec:
                   image: ghcr.io/aet-devops25/promptheus-client:latest
                   ports:
                       - containerPort: 3000
+                  securityContext:
+                      runAsNonRoot: true
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      runAsUser: 1000
+                      runAsGroup: 1000
+                      privileged: false
                   livenessProbe:
                       httpGet:
                           path: /

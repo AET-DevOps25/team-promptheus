@@ -19,6 +19,13 @@ spec:
                   image: ghcr.io/aet-devops25/promptheus-search:latest
                   ports:
                       - containerPort: 8070
+                  securityContext:
+                      runAsNonRoot: true
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      runAsUser: 1000
+                      runAsGroup: 1000
+                      privileged: false
                   env:
                       # secrets
                       - name: app.meiliMasterKey
