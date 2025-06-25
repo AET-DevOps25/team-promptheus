@@ -51,6 +51,7 @@
 		"vaul": "^1.1.2"
 	},
 	"devDependencies": {
+		"@biomejs/biome": "2.0.5",
 		"@tanstack/react-query-devtools": "^5.81.2",
 		"@types/node": "^22",
 		"@types/react": "^19",
