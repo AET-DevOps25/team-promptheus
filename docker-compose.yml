@@ -139,6 +139,9 @@ services:
       spring.datasource.password: ${POSTGRES_PASSWORD:-CHANGE_ME}
       app.meiliMasterKey: ${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
       app.meiliHost: http://meilisearch:7700
+      app.ollamaBaseUrl: https://gpu.aet.cit.tum.de/ollama
+      app.ollamaModel: mxbai-embed-large
+      app.ollamaApiKey: ${OLLAMA_API_KEY:-}
       management.otlp.tracing.endpoint: http://monitoring:4318/v1/traces
       management.otlp.metrics.export.url: http://monitoring:4318/v1/metrics
       management.otlp.logging.endpoint: http://monitoring:4318/v1/logs
@@ -154,7 +157,6 @@ services:
         condition: service_healthy
       meilisearch:
         condition: service_healthy
-
   client:
     image: ghcr.io/aet-devops25/promptheus-client:latest
     build:
@@ -199,6 +201,13 @@ services:
       - loki-data:/data/loki
     environment:
       GF_PATHS_DATA: /data/grafana
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - 8083:80
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: password
 volumes:
   prometheus-data:
   grafana-data:

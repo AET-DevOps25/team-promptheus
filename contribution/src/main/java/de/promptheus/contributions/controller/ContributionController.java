@@ -14,6 +14,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import de.promptheus.contributions.dto.ContributionDto;
+import de.promptheus.contributions.service.ContributionService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import java.util.List;
+import java.time.Instant;
 
 @RestController
 @RequestMapping("/api/contributions")
@@ -22,6 +28,7 @@ import jakarta.validation.Valid;
 public class ContributionController {
 
     private final ContributionFetchService contributionFetchService;
+    private final ContributionService contributionService;
 
     @Operation(summary = "Trigger contribution fetch for all repositories")
     @ApiResponses(value = {
@@ -65,5 +72,75 @@ public class ContributionController {
                 request.getRepositoryUrl(), response.getContributionsFetched());
         
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Get health status of contribution service")
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("Contribution Service is running");
+    }
+
+    @Operation(summary = "Get all contributions")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Contributions retrieved successfully",
+                    content = {@Content(mediaType = "application/json", 
+                            schema = @Schema(implementation = Page.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @GetMapping
+    public ResponseEntity<Page<ContributionDto>> getContributions(
+            @RequestParam(required = false) String contributor,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            Pageable pageable) {
+        
+        log.info("Retrieving contributions with filters - contributor: {}, startDate: {}, endDate: {}, pagination: {}", 
+                contributor, startDate, endDate, pageable);
+        
+        Page<ContributionDto> contributions;
+        
+        // Parse date parameters if provided
+        Instant startInstant = null;
+        Instant endInstant = null;
+        
+        try {
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                startInstant = Instant.parse(startDate);
+            }
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                endInstant = Instant.parse(endDate);
+            }
+        } catch (Exception e) {
+            log.error("Invalid date format provided: startDate={}, endDate={}", startDate, endDate, e);
+            return ResponseEntity.badRequest().build();
+        }
+        
+        // Use filtering method if any filters are provided, otherwise use the basic method
+        if (contributor != null || startInstant != null || endInstant != null) {
+            contributions = contributionService.getContributionsWithFilters(contributor, startInstant, endInstant, pageable);
+        } else {
+            contributions = contributionService.getAllContributions(pageable);
+        }
+        
+        log.info("Retrieved {} contributions", contributions.getTotalElements());
+        
+        return ResponseEntity.ok(contributions);
+    }
+
+    @Operation(summary = "Update contribution selection status")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Contribution selections updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Bad request - Invalid input"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @PutMapping
+    public ResponseEntity<String> updateContributions(@Valid @RequestBody List<ContributionDto> contributions) {
+        log.info("Updating selection status for {} contributions", contributions.size());
+        
+        int updated = contributionService.updateContributionSelections(contributions);
+        
+        log.info("Updated selection status for {} contributions", updated);
+        
+        return ResponseEntity.ok(String.format("Updated %d contributions", updated));
     }
 } 
