@@ -40,7 +40,7 @@
 		"next": "15.2.4",
 		"next-themes": "^0.4.4",
 		"react": "^19",
-		"react-day-picker": "8.10.1",
+		"react-day-picker": "9.7.0",
 		"react-dom": "^19",
 		"react-hook-form": "^7.54.1",
 		"react-resizable-panels": "^2.1.7",
@@ -48,8 +48,7 @@
 		"sonner": "^1.7.1",
 		"tailwind-merge": "^2.5.5",
 		"tailwindcss-animate": "^1.0.7",
-		"vaul": "^0.9.6",
-		"zod": "^3.24.1"
+		"vaul": "^1.1.2"
 	},
 	"devDependencies": {
 		"@tanstack/react-query-devtools": "^5.81.2",
@@ -76,7 +75,7 @@
 		"format": "biome format --write && biome check --formatter-enabled=false --linter-enabled=false --write",
 		"lint": "biome check --error-on-warnings",
 		"lint-fix": "biome check --write",
-		"preview": "vite preview",
+		"start": "next start",
 		"type-check": "tsc --noEmit",
 		"type-refresh-genai": "openapi-typescript ../genai/openapi.json --output src/services/genai.ts --export-type --immutable-types --support-array-length",
 		"type-refresh-server": "openapi-typescript ../server/openapi.json --output src/services/server.ts --export-type --immutable-types --support-array-length"

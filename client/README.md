@@ -30,7 +30,7 @@ A modern, AI-powered interface for GitHub that transforms how you interact with 
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/) for utility-first styling
 - **UI Components**: [Radix UI](https://www.radix-ui.com/) primitives with custom design system
 - **Icons**: [Lucide React](https://lucide.dev/) for consistent iconography
-- **Forms**: [React Hook Form](https://react-hook-form.com/) with [Zod](https://zod.dev/) validation
+- **Forms**: [React Hook Form](https://react-hook-form.com/) validation
 - **Charts**: [Recharts](https://recharts.org/) for data visualization
 - **Package Manager**: [pnpm](https://pnpm.io/) for efficient dependency management
 
