@@ -19,7 +19,7 @@ spec:
                   image: ghcr.io/aet-devops25/promptheus-ms-init:main
                   env:
                       - name: MEILISEARCH_URL
-                        value: http://meilisearch:7700
+                        value: http://meilisearch-service:7700
                       - name: OLLAMA_BASE_URL
                         value: https://gpu.aet.cit.tum.de/ollama
                       - name: OLLAMA_EMBEDDING_MODEL
