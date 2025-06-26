@@ -41,8 +41,6 @@ jobs:
           spring.datasource.url: jdbc:postgresql://db:5432/postgres
           spring.datasource.username: postgres
           spring.datasource.password: CHANGE_ME
-          app.meiliMasterKey: CHANGE_ME_CHANGE_ME
-          app.meiliHost: http://meilisearch:7700
   docker-build:
     uses: ./.github/workflows/_docker-build.yml
     needs:
