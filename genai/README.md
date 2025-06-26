@@ -181,10 +181,9 @@ stateDiagram-v2
 
 ### Quick Start
 
-```bash
-# Set environment variables
-cp env.example .env
-# Edit .env with your OpenAI API key and GitHub token
+# Environment variables
+
+Use the .env in the root of the project.
 
 # Start services
 docker compose up -d
@@ -192,15 +191,6 @@ docker compose up -d
 # Access API docs
 open http://localhost:3003/reference
 ```
-
-### Configuration
-
-Key environment variables:
-- `OPENAI_API_KEY` - Required for AI summaries and Q&A
-- `GITHUB_TOKEN` or `GH_PAT` - Required for GitHub API access
-- `MEILISEARCH_MASTER_KEY` - For semantic search functionality
-
-See [`.env.example`](./env.example) for complete configuration options.
 
 ## 🧪 Development
 

@@ -22,6 +22,7 @@ public class ContributionFetchService {
     private final GitRepositoryRepository gitRepositoryRepository;
     private final ContributionRepository contributionRepository;
     private final GitHubApiService gitHubApiService;
+    private final MeilisearchService meilisearchService;
 
     @Transactional
     public TriggerResponse triggerFetchForAllRepositories() {
@@ -46,6 +47,9 @@ public class ContributionFetchService {
 
                     // Upsert contributions
                     int upserted = upsertContributions(contributions, repository.getId());
+
+                    // Index contributions to Meilisearch
+                    meilisearchService.indexContributions(contributions, repository.getRepositoryLink());
 
                     // Update last fetched time
                     repository.setLastFetchedAt(Instant.now());
@@ -127,6 +131,9 @@ public class ContributionFetchService {
 
             // Upsert contributions
             int upserted = upsertContributions(contributions, repository.getId());
+
+            // Index contributions to Meilisearch
+            meilisearchService.indexContributions(contributions, repositoryUrl);
 
             // Update last fetched time
             repository.setLastFetchedAt(Instant.now());

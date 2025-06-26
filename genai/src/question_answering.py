@@ -6,7 +6,7 @@ import structlog
 
 # LangChain and LangGraph imports
 from langchain.schema import HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 from langchain_core.messages import BaseMessage
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import MemorySaver
@@ -69,11 +69,19 @@ class QuestionAnsweringService:
         self.ingestion_service = ingestion_service
         self.questions_store: Dict[str, QuestionResponse] = {}
 
-        # Initialize LangChain components
-        self.llm = ChatOpenAI(
-            model=os.getenv("LANGCHAIN_MODEL_NAME", "gpt-4-turbo"),
-            temperature=0.0,
-            max_tokens=20000,
+        # Initialize LangChain components with Ollama
+        ollama_base_url = os.getenv("OLLAMA_BASE_URL")
+        ollama_api_key = os.getenv("OLLAMA_API_KEY")
+        model_name = os.getenv("LANGCHAIN_MODEL_NAME", "llama3.3:latest")
+
+        self.llm = ChatOllama(
+            model=model_name,
+            base_url=ollama_base_url,
+            async_client_kwargs={
+                "headers": {"Authorization": f"Bearer {ollama_api_key}"}
+            },
+            temperature=0.2,
+            num_predict=-1,
         )
 
         # Create LangGraph agent with automatic tool usage

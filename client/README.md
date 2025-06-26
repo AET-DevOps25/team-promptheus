@@ -1,54 +1,206 @@
-# React + TypeScript + Vite
+# AI-Driven GitHub Alternative Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, AI-powered interface for GitHub that transforms how you interact with your repositories. Built with Next.js 15 and React 19, this application provides intelligent insights, semantic search, and automated summaries to enhance your development workflow.
 
-Currently, two official plugins are available:
+## ✨ Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 🤖 AI-Powered Insights
+- **Semantic Search**: Find code, commits, PRs, and issues by meaning, not just keywords
+- **Automated Summaries**: AI-generated weekly progress reports without manual writeups
+- **Intelligent Q&A**: Ask questions about your codebase and get immediate, context-aware answers
+- **Smart Analytics**: Advanced repository metrics and team collaboration insights
 
-## Expanding the ESLint configuration
+### 🎯 Enhanced GitHub Experience
+- **Unified Dashboard**: Centralized view of all your repositories and team activity
+- **Real-time Updates**: Live synchronization with GitHub data
+- **Team Collaboration**: Enhanced visibility into team progress and blockers
+- **Repository Management**: Streamlined settings and configuration management
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 🎨 Modern Interface
+- **Responsive Design**: Works seamlessly across desktop, tablet, and mobile devices
+- **Dark/Light Mode**: Automatic theme switching based on user preference
+- **Accessibility**: Full keyboard navigation and screen reader support
+- **Fast Performance**: Optimized loading with Suspense and lazy loading
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## 🚀 Tech Stack
+
+- **Framework**: [Next.js 15](https://nextjs.org/) with App Router
+- **Runtime**: [React 19](https://react.dev/) with latest features
+- **Language**: [TypeScript](https://www.typescriptlang.org/) for type safety
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) for utility-first styling
+- **UI Components**: [Radix UI](https://www.radix-ui.com/) primitives with custom design system
+- **Icons**: [Lucide React](https://lucide.dev/) for consistent iconography
+- **Forms**: [React Hook Form](https://react-hook-form.com/) validation
+- **Charts**: [Recharts](https://recharts.org/) for data visualization
+- **Package Manager**: [pnpm](https://pnpm.io/) for efficient dependency management
+
+## 📋 Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js**: Version 24.0.0 or higher
+- **pnpm**: Version 10.0.0 or higher
+- **GitHub Personal Access Token**: Required for GitHub API access
+
+### GitHub Personal Access Token Setup
+
+1. Go to [GitHub Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens)
+2. Click "Generate new token (classic)"
+3. Select the following scopes:
+   - `repo` (Full control of private repositories)
+   - `read:user` (Read access to user profile data)
+   - `read:org` (Read access to organization data)
+4. Copy the generated token (you'll need this for the application)
+
+## 🛠️ Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone git@github.com:AET-DevOps25/team-promptheus.git
+   cd client
+   ```
+
+2. **Install dependencies**
+   ```bash
+   pnpm install
+   ```
+
+3. **Start the development server**
+   ```bash
+   pnpm dev
+   ```
+
+4. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## 🎯 Usage
+
+### Getting Started
+
+1. **Authentication**: Enter your GitHub Personal Access Token on the home page
+2. **Dashboard**: View your repositories, team metrics, and recent activity
+3. **Search**: Use the semantic search to find anything across your repositories
+4. **Q&A**: Ask questions about your codebase and get AI-powered answers
+5. **Weekly Summaries**: Review automated progress reports and team insights
+
+### Navigation
+
+- **Home (`/`)**: Landing page and authentication
+- **Dashboard (`/dashboard`)**: Main application interface
+- **Q&A (`/qa`)**: Repository question and answer interface
+- **Settings (`/settings`)**: Repository configuration and preferences
+- **Weekly Summary (`/weekly-summary`)**: Detailed progress reports
+
+### Keyboard Shortcuts
+
+- `⌘/Ctrl + K`: Open semantic search modal
+- `⌘/Ctrl + /`: Show help and shortcuts
+- `Esc`: Close modals and overlays
+
+## 🔧 Development
+
+### Available Scripts
+
+```bash
+# Start development server
+pnpm dev
+
+# Build for production
+pnpm build
+
+# Start production server
+pnpm start
+
+# Run linting
+pnpm lint
+
+# Type checking
+pnpm type-check
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Project Structure
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
 ```
+client/
+├── app/                    # Next.js App Router pages
+│   ├── (dashboard)/       # Dashboard layout group
+│   │   ├── dashboard/     # Main dashboard pages
+│   │   ├── qa/           # Q&A functionality
+│   │   ├── settings/     # Repository settings
+│   │   └── weekly-summary/ # Progress reports
+│   ├── api/              # API routes
+│   └── globals.css       # Global styles
+├── components/           # Reusable React components
+│   ├── ui/              # Base UI components (Radix + custom)
+│   └── *.tsx            # Feature-specific components
+├── hooks/               # Custom React hooks
+├── lib/                 # Utility functions and configurations
+├── public/              # Static assets
+└── styles/              # Additional stylesheets
+```
+
+### Component Development
+
+We use a design system based on Radix UI primitives. All components are:
+
+- **Accessible**: Following ARIA guidelines and keyboard navigation
+- **Composable**: Built with compound component patterns
+- **Consistent**: Using shared design tokens and variants
+- **Typed**: Full TypeScript support with proper prop types
+
+## 🚀 Deployment
+
+### Docker
+
+```bash
+# Build the image
+docker build -t client .
+
+# Run the container
+docker run -p 3000:3000 client
+```
+
+### Manual Deployment
+
+```bash
+# Build the application
+pnpm build
+
+# Start the production server
+pnpm start
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Workflow
+
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** and ensure tests pass
+4. **Commit your changes**: `git commit -m 'Add amazing feature'`
+5. **Push to the branch**: `git push origin feature/amazing-feature`
+6. **Open a Pull Request**
+
+### Code Style
+
+- **ESLint**: Configured with Next.js recommended rules
+- **Prettier**: Code formatting (run with `pnpm format`)
+- **TypeScript**: Strict mode enabled
+- **Commit Messages**: Follow [Conventional Commits](https://www.conventionalcommits.org/)
+
+## 🔒 Security
+
+- **Authentication**: GitHub Personal Access Tokens are validated client-side
+- **API Security**: All GitHub API calls are made directly from the client
+- **No Server Storage**: Tokens are not stored on any backend servers
+- **HTTPS Only**: All production deployments enforce HTTPS
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
+
+---
+
+<sub> Built with ❤️ by the Team Promptheus <sub>

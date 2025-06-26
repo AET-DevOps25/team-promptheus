@@ -8,12 +8,12 @@
 		"utils": "@/lib/utils"
 	},
 	"iconLibrary": "lucide",
-	"rsc": false,
-	"style": "new-york",
+	"rsc": true,
+	"style": "default",
 	"tailwind": {
 		"baseColor": "neutral",
-		"config": "",
-		"css": "src/index.css",
+		"config": "tailwind.config.ts",
+		"css": "app/globals.css",
 		"cssVariables": true,
 		"prefix": ""
 	},

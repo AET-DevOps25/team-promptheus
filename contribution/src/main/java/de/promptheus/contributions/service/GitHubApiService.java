@@ -15,7 +15,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
@@ -198,10 +197,15 @@ public class GitHubApiService {
     private Contribution createContributionFromCommit(JsonNode commitNode) {
         try {
             String commitSha = commitNode.path("sha").asText();
+            // Get author login, fallback to commit author name if not available
+            String author = commitNode.path("author").path("login").asText();
+            if (author.isEmpty()) {
+                author = commitNode.path("commit").path("author").path("name").asText();
+            }
             return Contribution.builder()
                     .id(commitSha)
                     .type("commit")
-                    .username(commitNode.path("author").path("login").asText())
+                    .username(author)
                     .summary(commitNode.path("commit").path("message").asText())
                     .createdAt(Instant.parse(commitNode.path("commit").path("author").path("date").asText()))
                     .details(commitNode)
@@ -215,7 +219,7 @@ public class GitHubApiService {
 
     private Contribution createContributionFromPullRequest(JsonNode prNode) {
         try {
-            String prId = "pr_" + prNode.path("number").asText();
+            String prId = prNode.path("number").asText();
             return Contribution.builder()
                     .id(prId)
                     .type("pull_request")
@@ -233,7 +237,7 @@ public class GitHubApiService {
 
     private Contribution createContributionFromIssue(JsonNode issueNode) {
         try {
-            String issueId = "issue_" + issueNode.path("number").asText();
+            String issueId = issueNode.path("number").asText();
             return Contribution.builder()
                     .id(issueId)
                     .type("issue")
@@ -251,7 +255,7 @@ public class GitHubApiService {
 
     private Contribution createContributionFromRelease(JsonNode releaseNode) {
         try {
-            String releaseId = "release_" + releaseNode.path("id").asText();
+            String releaseId = releaseNode.path("id").asText();
             return Contribution.builder()
                     .id(releaseId)
                     .type("release")
