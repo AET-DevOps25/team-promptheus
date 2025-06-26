@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: collector
+    name: contribution
     namespace: team-promptheus
 spec:
     replicas: 1
     selector:
         matchLabels:
-            app: collector
+            app: contribution
     template:
         metadata:
             labels:
-                app: collector
+                app: contribution
         spec:
             containers:
-                - name: collector
+                - name: contribution
                   imagePullPolicy: Always
-                  image: ghcr.io/aet-devops25/promptheus-collector:latest
+                  image: ghcr.io/aet-devops25/promptheus-contribution:main
                   ports:
                       - containerPort: 8082
                   env:
