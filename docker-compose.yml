@@ -30,7 +30,7 @@ services:
     depends_on:
       meilisearch:
         condition: service_healthy
-    restart: "no"  # Run once and exit
+    restart: on-failure:10  # Run once and exit, retry 10 times on failour
   db:
     image: postgres:17
     restart: unless-stopped
