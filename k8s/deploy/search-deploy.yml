@@ -13,6 +13,23 @@ spec:
             labels:
                 app: search
         spec:
+            initContainers:
+                - name: init
+                  imagePullPolicy: Always
+                  restartPolicy: OnFailure
+                  image: ghcr.io/aet-devops25/promptheus-ms-init:main
+                  env:
+                      - name: MEILISEARCH_URL
+                        value: http://meilisearch:7700
+                      - name: OLLAMA_BASE_URL
+                        value: https://gpu.aet.cit.tum.de/ollama
+                      - name: OLLAMA_EMBEDDING_MODEL
+                        value: tinyllama:latest
+                      - name: MEILI_MASTER_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: MEILI_MASTER_KEY
             containers:
                 - name: search
                   imagePullPolicy: Always
