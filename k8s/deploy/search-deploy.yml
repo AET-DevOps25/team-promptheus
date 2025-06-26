@@ -22,7 +22,7 @@ spec:
                   securityContext:
                       runAsNonRoot: true
                       allowPrivilegeEscalation: false
-                      readOnlyRootFilesystem: true
+                      readOnlyRootFilesystem: false # JIT requires writing
                       runAsUser: 1000
                       runAsGroup: 1000
                       privileged: false
