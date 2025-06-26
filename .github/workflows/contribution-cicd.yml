@@ -68,3 +68,16 @@ jobs:
       contents: read
       packages: write
       attestations: write
+  docker-init-build:
+    uses: ./.github/workflows/_docker-build.yml
+    needs:
+      - contribution-checks
+    with:
+      image_suffix: ms-init
+      context: ./
+      dockerfile: Dockerfile.meiliinit
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+      attestations: write

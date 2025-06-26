@@ -16,7 +16,7 @@ services:
       start_period: 1s
       start_interval: 100ms
   meilisearch-setup:
-    image: curlimages/curl:latest
+    image: ghcr.io/aet-devops25/promptheus-server:main
     environment:
       - MEILISEARCH_URL=http://meilisearch:7700
       - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
@@ -24,9 +24,6 @@ services:
       - OLLAMA_EMBEDDING_MODEL=tinyllama:latest
     env_file:
       - ".env"
-    volumes:
-      - ./setup_meilisearch.sh:/setup_meilisearch.sh:ro
-    command: sh /setup_meilisearch.sh
     depends_on:
       meilisearch:
         condition: service_healthy
