@@ -16,7 +16,7 @@ services:
       start_period: 1s
       start_interval: 100ms
   meilisearch-setup:
-    image: ghcr.io/aet-devops25/promptheus-server:main
+    image: ghcr.io/aet-devops25/promptheus-ms-init:main
     environment:
       - MEILISEARCH_URL=http://meilisearch:7700
       - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}

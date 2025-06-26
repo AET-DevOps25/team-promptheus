@@ -16,6 +16,7 @@ spec:
             containers:
                 - name: contribution
                   imagePullPolicy: Always
+                  restartPolicy: Always
                   image: ghcr.io/aet-devops25/promptheus-contribution:main
                   ports:
                       - containerPort: 8082

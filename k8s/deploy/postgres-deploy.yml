@@ -16,6 +16,7 @@ spec:
             containers:
                 - name: postgres-exporter
                   imagePullPolicy: Always
+                  restartPolicy: Always
                   image: quay.io/prometheuscommunity/postgres-exporter
                   ports:
                       - containerPort: 9187
