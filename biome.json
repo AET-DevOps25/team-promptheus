@@ -8,6 +8,13 @@
 			}
 		}
 	},
+	"files": {
+		"includes": [
+			"client/{app,components,hooks,public,lib}/**/*.{tsx,json,yaml,ts,mjs,md}",
+			"client/{app,components,hooks,public,lib}/*.{tsx,json,yaml,ts,mjs,md}",
+			"client/*.{json,yaml,ts,mjs,md}"
+		]
+	},
 	"linter": {
 		"domains": {
 			"react": "recommended"
