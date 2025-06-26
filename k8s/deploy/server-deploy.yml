@@ -16,7 +16,7 @@ spec:
             containers:
                 - name: server
                   imagePullPolicy: Always
-                  image: ghcr.io/aet-devops25/promptheus-server:latest
+                  image: ghcr.io/aet-devops25/promptheus-server:main
                   ports:
                       - containerPort: 8080
                   securityContext:

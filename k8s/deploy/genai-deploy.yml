@@ -16,7 +16,7 @@ spec:
             containers:
                 - name: genai
                   imagePullPolicy: Always
-                  image: ghcr.io/aet-devops25/promptheus-genai:latest
+                  image: ghcr.io/aet-devops25/promptheus-genai:main
                   ports:
                       - containerPort: 3003
                   securityContext:

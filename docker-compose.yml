@@ -16,7 +16,7 @@ services:
       start_period: 1s
       start_interval: 100ms
   search:
-    image: ghcr.io/aet-devops25/promptheus-search:latest
+    image: ghcr.io/aet-devops25/promptheus-search:main
     environment:
       spring.datasource.url: jdbc:postgresql://db:5432/${POSTGRES_DB:-postgres}
       spring.datasource.username: ${POSTGRES_USER:-postgres}
@@ -74,7 +74,7 @@ services:
       start_period: 1s
       start_interval: 100ms
   server:
-    image: ghcr.io/aet-devops25/promptheus-server:latest
+    image: ghcr.io/aet-devops25/promptheus-server:main
     environment:
       spring.datasource.url: jdbc:postgresql://db:5432/${POSTGRES_DB:-postgres}
       spring.datasource.username: ${POSTGRES_USER:-postgres}
@@ -110,7 +110,7 @@ services:
       start_period: 1s
       start_interval: 100ms
   genai:
-    image: ghcr.io/aet-devops25/promptheus-genai:latest
+    image: ghcr.io/aet-devops25/promptheus-genai:main
     build:
       context: ./genai
     ports:
@@ -159,7 +159,7 @@ services:
       meilisearch:
         condition: service_healthy
   contribution:
-    image: ghcr.io/aet-devops25/promptheus-contribution:latest
+    image: ghcr.io/aet-devops25/promptheus-contribution:main
     build:
       context: ./contribution
     ports:
@@ -188,7 +188,7 @@ services:
         condition: service_healthy
 
   client:
-    image: ghcr.io/aet-devops25/promptheus-client:latest
+    image: ghcr.io/aet-devops25/promptheus-client:main
     build:
       context: ./client
       dockerfile: ./Dockerfile

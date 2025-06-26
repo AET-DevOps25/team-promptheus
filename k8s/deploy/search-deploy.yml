@@ -16,7 +16,7 @@ spec:
             containers:
                 - name: search
                   imagePullPolicy: Always
-                  image: ghcr.io/aet-devops25/promptheus-search:latest
+                  image: ghcr.io/aet-devops25/promptheus-search:main
                   ports:
                       - containerPort: 8070
                   securityContext:
