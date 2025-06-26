@@ -18,7 +18,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*");
     }
-    
+
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
@@ -30,4 +30,4 @@ public class WebConfig implements WebMvcConfigurer {
         mapper.registerModule(new JavaTimeModule());
         return mapper;
     }
-} 
+}

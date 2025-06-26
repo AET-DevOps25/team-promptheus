@@ -40,30 +40,30 @@ public class ContributionFetchService {
             for (GitRepository repository : repositories) {
                 try {
                     log.info("Processing repository: {}", repository.getRepositoryLink());
-                    
+
                     // Fetch contributions since last fetch time
                     List<Contribution> contributions = gitHubApiService.fetchContributionsSince(
                             repository, repository.getLastFetchedAt());
-                    
+
                     // Upsert contributions
                     int upserted = upsertContributions(contributions, repository.getId());
-                    
+
                     // Index contributions to Meilisearch
                     meilisearchService.indexContributions(contributions, repository.getRepositoryLink());
-                    
+
                     // Update last fetched time
                     repository.setLastFetchedAt(Instant.now());
                     gitRepositoryRepository.save(repository);
-                    
+
                     processedRepositories.add(repository.getRepositoryLink());
                     totalContributionsFetched += contributions.size();
                     totalContributionsUpserted += upserted;
-                    
-                    log.info("Processed repository {}: {} contributions fetched, {} upserted", 
+
+                    log.info("Processed repository {}: {} contributions fetched, {} upserted",
                             repository.getRepositoryLink(), contributions.size(), upserted);
-                    
+
                 } catch (Exception e) {
-                    String error = String.format("Failed to process repository %s: %s", 
+                    String error = String.format("Failed to process repository %s: %s",
                             repository.getRepositoryLink(), e.getMessage());
                     log.error(error, e);
                     errors.add(error);
@@ -71,7 +71,7 @@ public class ContributionFetchService {
             }
 
             long processingTime = Instant.now().toEpochMilli() - startTime.toEpochMilli();
-            
+
             return TriggerResponse.builder()
                     .status("SUCCESS")
                     .message("Contribution fetch completed")
@@ -87,7 +87,7 @@ public class ContributionFetchService {
         } catch (Exception e) {
             log.error("Failed to trigger contribution fetch for all repositories", e);
             long processingTime = Instant.now().toEpochMilli() - startTime.toEpochMilli();
-            
+
             return TriggerResponse.builder()
                     .status("ERROR")
                     .message("Failed to complete contribution fetch: " + e.getMessage())
@@ -124,26 +124,26 @@ public class ContributionFetchService {
             }
 
             log.info("Processing specific repository: {}", repositoryUrl);
-            
+
             // Fetch contributions since last fetch time
             List<Contribution> contributions = gitHubApiService.fetchContributionsSince(
                     repository, repository.getLastFetchedAt());
-            
+
             // Upsert contributions
             int upserted = upsertContributions(contributions, repository.getId());
-            
+
             // Index contributions to Meilisearch
             meilisearchService.indexContributions(contributions, repositoryUrl);
-            
+
             // Update last fetched time
             repository.setLastFetchedAt(Instant.now());
             gitRepositoryRepository.save(repository);
-            
+
             long processingTime = Instant.now().toEpochMilli() - startTime.toEpochMilli();
-            
-            log.info("Processed repository {}: {} contributions fetched, {} upserted", 
+
+            log.info("Processed repository {}: {} contributions fetched, {} upserted",
                     repositoryUrl, contributions.size(), upserted);
-            
+
             return TriggerResponse.builder()
                     .status("SUCCESS")
                     .message("Contribution fetch completed for repository")
@@ -159,7 +159,7 @@ public class ContributionFetchService {
         } catch (Exception e) {
             log.error("Failed to trigger contribution fetch for repository: {}", repositoryUrl, e);
             long processingTime = Instant.now().toEpochMilli() - startTime.toEpochMilli();
-            
+
             return TriggerResponse.builder()
                     .status("ERROR")
                     .message("Failed to fetch contributions for repository: " + e.getMessage())
@@ -187,4 +187,4 @@ public class ContributionFetchService {
         }
         return upserted;
     }
-} 
+}

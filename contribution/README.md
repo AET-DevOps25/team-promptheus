@@ -21,7 +21,7 @@ Fetch GitHub contributions for a user in a project within a given time frame (ca
 - **User-Specific Contributions**: Fetch contributions for a specific GitHub user
 - **Repository-Specific**: Filter contributions by specific repository
 - **Week-Based Filtering**: Query contributions within specific calendar weeks (ISO format: 2024-W21)
-- **Contribution Types Supported**: 
+- **Contribution Types Supported**:
   - `commit`: Individual commits
   - `pull_request`: Pull requests (opened, merged, reviewed)
   - `issue`: Issues (created, commented, closed)
@@ -48,14 +48,14 @@ GET /api/contributions/metrics
 #### Input Parameters
 - **username**: GitHub username (string)
 - **owner**: Repository owner (string)
-- **repo**: Repository name (string) 
+- **repo**: Repository name (string)
 - **weekId**: ISO week format "2024-W21" (string)
 
 #### Output Format (Aligned with GenAI Service)
 ```json
 {
   "user": "johndoe",
-  "week": "2024-W21", 
+  "week": "2024-W21",
   "repository": "owner/my-project",
   "contributions": [
     {
@@ -64,13 +64,13 @@ GET /api/contributions/metrics
       "selected": true
     },
     {
-      "type": "pull_request", 
+      "type": "pull_request",
       "id": "42",
       "selected": true
     },
     {
       "type": "issue",
-      "id": "15", 
+      "id": "15",
       "selected": true
     },
     {
@@ -84,7 +84,7 @@ GET /api/contributions/metrics
 
 #### Contribution Types (Enum)
 - `commit`: Individual code commits
-- `pull_request`: Pull request activities  
+- `pull_request`: Pull request activities
 - `issue`: Issue-related activities
 - `release`: Repository releases
 
@@ -145,9 +145,9 @@ GitRepo gitRepo = gitRepoRepository.findByRepositoryLink(repositoryUrl);
 
 // Get associated PATs via junction table
 String sql = """
-    SELECT pat.pat 
+    SELECT pat.pat
     FROM personal_access_tokens pat
-    JOIN personal_access_tokens_git_repositories patgr 
+    JOIN personal_access_tokens_git_repositories patgr
         ON pat.pat = patgr.personal_access_tokens_pat
     WHERE patgr.git_repositories_id = ?
     LIMIT 1
@@ -162,26 +162,26 @@ String pat = jdbcTemplate.queryForObject(sql, String.class, gitRepo.getId());
 public class Contribution {
     @Id
     private String id;              // GitHub contribution ID (text)
-    
+
     @Column(name = "git_repository_id", nullable = false)
     private Long gitRepositoryId;   // FK to git_repositories (bigint)
-    
+
     @Column(nullable = false)
     private String type;            // commit|pull_request|issue|release (text)
-    
+
     @Column(nullable = false)
     private String user;            // GitHub username (text)
-    
+
     @Column(nullable = false)
     private String summary;         // Contribution summary/description (text)
-    
+
     @Type(JsonType.class)
     @Column(name = "details", nullable = false, columnDefinition = "jsonb")
     private Map<String, Object> details;  // Full GitHub API response data (jsonb)
-    
+
     @Column(name = "is_selected", nullable = false)
     private Boolean isSelected = true;    // Selection flag (boolean, default: true)
-    
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();  // Timestamp (timestamp, default: now())
 }
@@ -197,7 +197,7 @@ GITHUB_RATE_LIMIT_ENABLED=true
 
 # Database Configuration (shared with main application)
 SPRING_DATASOURCE_URL=${DATABASE_URL}
-SPRING_DATASOURCE_USERNAME=${DATABASE_USERNAME} 
+SPRING_DATASOURCE_USERNAME=${DATABASE_USERNAME}
 SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
 
 # Application Configuration
@@ -238,7 +238,7 @@ Response:
 {
   "user": "johndoe",
   "week": "2024-W21",
-  "repository": "owner/my-project", 
+  "repository": "owner/my-project",
   "total_contributions": 8,
   "contributions": [
     {
@@ -248,7 +248,7 @@ Response:
     },
     {
       "type": "pull_request",
-      "id": "42", 
+      "id": "42",
       "selected": true
     },
     {
@@ -339,7 +339,7 @@ Response:
 ### GitHub API Integration
 - **Endpoints Used**:
   - `/repos/{owner}/{repo}/commits` - Fetch commits
-  - `/repos/{owner}/{repo}/pulls` - Fetch pull requests  
+  - `/repos/{owner}/{repo}/pulls` - Fetch pull requests
   - `/repos/{owner}/{repo}/issues` - Fetch issues
   - `/repos/{owner}/{repo}/releases` - Fetch releases
 - **Filtering**: Date-based filtering using `since` parameter based on `last_fetched_at`
@@ -400,7 +400,7 @@ All fetched contributions are logged in structured JSON format:
   "message": "Contributions fetched successfully",
   "data": {
     "user": "johndoe",
-    "week": "2024-W21", 
+    "week": "2024-W21",
     "repository": "owner/my-project",
     "contributions": [...],
     "pat_used": "ghp_****...****"
@@ -451,7 +451,7 @@ docker-compose up -d
 
 #### Core Tables
 - **`git_repositories`**: Repository metadata with unique `repository_link` constraint
-- **`personal_access_tokens`**: PAT storage with `pat` as primary key  
+- **`personal_access_tokens`**: PAT storage with `pat` as primary key
 - **`personal_access_tokens_git_repositories`**: Many-to-many relationship table
 - **`contributions`**: Contribution storage (populated by this service)
 
@@ -466,15 +466,15 @@ docker-compose up -d
 For testing and development, the database should contain:
 ```sql
 -- Sample repository (note: id is bigint, not auto-generated)
-INSERT INTO git_repositories (id, repository_link, created_at) 
+INSERT INTO git_repositories (id, repository_link, created_at)
 VALUES (1, 'https://github.com/owner/my-project', NOW());
 
 -- Sample PAT (pat is the primary key)
-INSERT INTO personal_access_tokens (pat, created_at) 
+INSERT INTO personal_access_tokens (pat, created_at)
 VALUES ('ghp_validPatToken123', NOW());
 
 -- Link PAT to repository (composite primary key)
-INSERT INTO personal_access_tokens_git_repositories (personal_access_tokens_pat, git_repositories_id) 
+INSERT INTO personal_access_tokens_git_repositories (personal_access_tokens_pat, git_repositories_id)
 VALUES ('ghp_validPatToken123', 1);
 ```
 
@@ -582,7 +582,7 @@ The output format matches exactly what the GenAI service expects in its `Contrib
 ### Planned Features
 - PAT rotation and load balancing across multiple PATs
 - Batch processing for multiple users/repositories
-- Async processing with job queues  
+- Async processing with job queues
 - Webhook integration for real-time updates
 - Enhanced filtering options (file types, commit sizes)
 - Integration with other Git providers
@@ -614,4 +614,4 @@ For issues, feature requests, or questions, please create an issue in the projec
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.

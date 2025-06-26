@@ -31,4 +31,4 @@ public class PersonalAccessToken {
             createdAt = Instant.now();
         }
     }
-} 
+}

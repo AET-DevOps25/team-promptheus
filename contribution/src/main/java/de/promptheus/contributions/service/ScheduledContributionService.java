@@ -18,15 +18,15 @@ public class ScheduledContributionService {
     @Scheduled(fixedRate = 120000) // 2 minutes in milliseconds
     public void scheduledContributionFetch() {
         log.info("Starting scheduled contribution fetch");
-        
+
         try {
             var response = contributionFetchService.triggerFetchForAllRepositories();
-            log.info("Scheduled fetch completed - Status: {}, Repositories: {}, Contributions: {}", 
-                    response.getStatus(), 
-                    response.getRepositoriesProcessed(), 
+            log.info("Scheduled fetch completed - Status: {}, Repositories: {}, Contributions: {}",
+                    response.getStatus(),
+                    response.getRepositoriesProcessed(),
                     response.getContributionsFetched());
         } catch (Exception e) {
             log.error("Scheduled contribution fetch failed", e);
         }
     }
-} 
+}

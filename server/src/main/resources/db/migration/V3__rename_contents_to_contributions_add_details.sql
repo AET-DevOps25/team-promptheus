@@ -28,4 +28,4 @@ COMMENT ON COLUMN "contributions"."type" IS 'Type of contribution: commit, pull_
 COMMENT ON COLUMN "contributions"."user" IS 'GitHub username of the contributor';
 COMMENT ON COLUMN "contributions"."summary" IS 'Brief summary/description of the contribution';
 COMMENT ON COLUMN "contributions"."is_selected" IS 'Whether this contribution is selected for processing';
-COMMENT ON COLUMN "git_repositories"."last_fetched_at" IS 'Timestamp of the last successful contribution fetch for this repository'; 
+COMMENT ON COLUMN "git_repositories"."last_fetched_at" IS 'Timestamp of the last successful contribution fetch for this repository';

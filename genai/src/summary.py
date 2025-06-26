@@ -64,10 +64,12 @@ class SummaryService:
         self.summaries_store: Dict[str, SummaryResponse] = {}
 
         # Initialize LangChain components with Ollama
-        ollama_base_url = os.getenv("OLLAMA_BASE_URL", "https://gpu.aet.cit.tum.de/ollama")
+        ollama_base_url = os.getenv(
+            "OLLAMA_BASE_URL", "https://gpu.aet.cit.tum.de/ollama"
+        )
         ollama_api_key = os.getenv("OLLAMA_API_KEY")
         model_name = os.getenv("LANGCHAIN_MODEL_NAME", "llama3.3:latest")
-        
+
         logger.error("Ollama base URL", ollama_base_url=ollama_base_url)
         logger.error("Ollama API key", ollama_api_key=ollama_api_key)
         logger.error("Model name", model_name=model_name)
@@ -75,7 +77,9 @@ class SummaryService:
         self.llm = ChatOllama(
             model=model_name,
             base_url=ollama_base_url,
-            async_client_kwargs={"headers": {"Authorization": f"Bearer {ollama_api_key}"}},
+            async_client_kwargs={
+                "headers": {"Authorization": f"Bearer {ollama_api_key}"}
+            },
             temperature=0.2,
             num_predict=2500,  # Use num_predict instead of max_tokens for Ollama
         )
