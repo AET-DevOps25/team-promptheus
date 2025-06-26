@@ -62,72 +62,9 @@ public class MeilisearchService {
                 contributionsIndex = meilisearchClient.getIndex(CONTRIBUTIONS_INDEX_NAME);
                 log.info("Created new Meilisearch contributions index");
             }
-            
-            // Configure index settings
-            configureIndexSettings();
-            
         } catch (Exception e) {
             log.error("Failed to initialize Meilisearch service", e);
         }
-    }
-    
-    private void configureIndexSettings() throws MeilisearchException {
-        Settings settings = new Settings();
-        
-        // Configure searchable attributes
-        settings.setSearchableAttributes(new String[]{
-            "content",
-            "title",
-            "message",
-            "body",
-            "repository",
-            "author",
-            "filename",
-            "patch"
-        });
-        
-        // Configure filterable attributes
-        settings.setFilterableAttributes(new String[]{
-            "user",
-            "week",
-            "contribution_type",
-            "repository",
-            "author",
-            "created_at_timestamp",
-            "is_selected"
-        });
-        
-        // Configure sortable attributes
-        settings.setSortableAttributes(new String[]{
-            "created_at_timestamp",
-            "relevance_score"
-        });
-        
-        // Configure ranking rules
-        settings.setRankingRules(new String[]{
-            "words",
-            "typo",
-            "proximity",
-            "attribute",
-            "sort",
-            "exactness"
-        });
-        
-        // Configure embedders for vector search
-        HashMap<String, Embedder> embedders = new HashMap<>();
-        Embedder defaultEmbedder = new Embedder();
-        defaultEmbedder.setSource(EmbedderSource.USER_PROVIDED);
-        // tinyllama has 2048 dimensions
-        defaultEmbedder.setDimensions(2048);
-        embedders.put("default", defaultEmbedder);
-
-        settings.setEmbedders(embedders);
-        
-        // Apply settings
-        TaskInfo taskInfo = contributionsIndex.updateSettings(settings);
-        meilisearchClient.waitForTask(taskInfo.getTaskUid());
-        
-        log.info("Meilisearch index settings configured successfully");
     }
     
     public void indexContributions(List<Contribution> contributions, String repositoryUrl) {

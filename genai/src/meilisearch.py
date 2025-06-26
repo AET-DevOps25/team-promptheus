@@ -51,113 +51,12 @@ class MeilisearchService:
                 else:
                     raise
 
-            # Configure index settings
-            await self._configure_index_settings()
-
             logger.info("Meilisearch service initialized successfully")
             return True
 
         except Exception as e:
             logger.error("Failed to initialize Meilisearch service", error=str(e))
             return False
-
-    async def _configure_index_settings(self):
-        """Configure search settings for the contributions index"""
-        try:
-            # Configure searchable attributes
-            searchable_attributes = [
-                "content",
-                "title",
-                "message",
-                "body",
-                "repository",
-                "author",
-                "filename",
-                "patch",
-            ]
-
-            # Configure filterable attributes
-            filterable_attributes = [
-                "user",
-                "week",
-                "contribution_type",
-                "repository",
-                "author",
-                "created_at_timestamp",
-                "is_selected",
-            ]
-
-            # Configure sortable attributes
-            sortable_attributes = ["created_at_timestamp", "relevance_score"]
-
-            # Configure ranking rules
-            ranking_rules = [
-                "words",
-                "typo",
-                "proximity",
-                "attribute",
-                "sort",
-                "exactness",
-            ]
-
-            # Configure embedders for AI-powered search
-            embedders = {}
-            openai_key = os.getenv("OPENAI_API_KEY")
-            if openai_key:
-                embedders["default"] = {
-                    "source": "openAi",
-                    "apiKey": openai_key,
-                    "model": "text-embedding-3-small",
-                    "documentTemplate": "Repository: {{doc.repository}} Author: {{doc.author}} Type: {{doc.contribution_type}} Title: {{doc.title}} Content: {{doc.content|truncatewords: 50}}",
-                }
-                logger.info("Configured OpenAI embedder for semantic search")
-            else:
-                logger.warning(
-                    "OPENAI_API_KEY not found, semantic search will not be available"
-                )
-
-            # Apply settings
-            settings_task = await asyncio.to_thread(
-                self.contributions_index.update_settings,
-                {
-                    "searchableAttributes": searchable_attributes,
-                    "filterableAttributes": filterable_attributes,
-                    "sortableAttributes": sortable_attributes,
-                    "rankingRules": ranking_rules,
-                    "stopWords": [
-                        "the",
-                        "a",
-                        "an",
-                        "and",
-                        "or",
-                        "but",
-                        "in",
-                        "on",
-                        "at",
-                        "to",
-                        "for",
-                        "of",
-                        "with",
-                        "by",
-                    ],
-                    "synonyms": {
-                        "bug": ["issue", "problem", "error", "defect"],
-                        "feature": ["enhancement", "improvement", "addition"],
-                        "fix": ["repair", "resolve", "correct"],
-                        "test": ["testing", "spec", "unit test", "integration test"],
-                    },
-                    "embedders": embedders,
-                },
-            )
-
-            # Wait for settings update
-            await asyncio.to_thread(self.client.wait_for_task, settings_task.task_uid)
-
-            logger.info("Meilisearch index settings configured successfully")
-
-        except Exception as e:
-            logger.error("Failed to configure Meilisearch index settings", error=str(e))
-            raise
 
     async def index_contributions(
         self, user: str, week: str, contributions: List[GitHubContribution]
@@ -319,8 +218,8 @@ class MeilisearchService:
             # Build search filters
             filters = f'user = "{user}" AND week = "{week}"'
 
-            # Check if embedders are configured by checking for OpenAI key
-            openai_key = os.getenv("OPENAI_API_KEY")
+            # Check if embedders are configured by checking for Ollama key
+            ollama_api_key = os.getenv("OLLAMA_API_KEY")
             search_params = {
                 "filter": filters,
                 "limit": limit,
@@ -330,15 +229,15 @@ class MeilisearchService:
                 "sort": ["created_at_timestamp:desc"],
             }
 
-            # Use hybrid search if OpenAI embedder is available
-            if openai_key:
+            # Use hybrid search if Ollama embedder is available
+            if ollama_api_key:
                 search_params["hybrid"] = {
                     "embedder": "default",
                     "semanticRatio": 0.5,  # 50% semantic, 50% full-text
                 }
-                logger.debug("Using hybrid search with OpenAI embeddings")
+                logger.debug("Using hybrid search with TinyLlama embeddings")
             else:
-                logger.debug("Using full-text search only (no OpenAI embedder)")
+                logger.debug("Using full-text search only (no Ollama embedder)")
 
             # Perform search
             search_results = await asyncio.to_thread(
@@ -351,7 +250,7 @@ class MeilisearchService:
                 week=week,
                 query=query,
                 results_count=len(search_results["hits"]),
-                search_type="hybrid" if openai_key else "full-text",
+                search_type="hybrid" if ollama_api_key else "full-text",
             )
 
             return search_results["hits"]
