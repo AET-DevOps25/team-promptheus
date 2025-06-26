@@ -1,13 +1,21 @@
 FROM --platform=$BUILDPLATFORM node:24-slim AS base
-WORKDIR /app
+
 FROM base AS builder
 
-# Install dependencies
-COPY package*.json ./
-RUN  npm ci
-COPY . .
+# Install pnpm
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+WORKDIR /app
+RUN corepack enable
 
-RUN npm run build
+# Install dependencies
+COPY package.json ./
+COPY pnpm-lock.yaml ./
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
+
+# build standalone bundle
+COPY . .
+RUN pnpm run build
 
 FROM base AS runner
 WORKDIR /app
