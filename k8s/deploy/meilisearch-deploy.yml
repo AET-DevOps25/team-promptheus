@@ -16,7 +16,6 @@ spec:
             containers:
                 - name: meilisearch
                   imagePullPolicy: Always
-                  restartPolicy: Always
                   image: getmeili/meilisearch
                   ports:
                       - containerPort: 7700
