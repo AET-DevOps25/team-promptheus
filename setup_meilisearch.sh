@@ -154,7 +154,9 @@ configure_index_settings() {
             \"bug\": [\"issue\", \"problem\", \"error\", \"defect\"],
             \"feature\": [\"enhancement\", \"improvement\", \"addition\"],
             \"fix\": [\"repair\", \"resolve\", \"correct\"],
-            \"test\": [\"testing\", \"spec\", \"unit test\", \"integration test\"]
+            \"test\": [\"testing\", \"spec\", \"unit test\", \"integration test\"],
+            \"docs\": [\"documentation\", \"manual\", \"guide\", \"reference\", \"instructions\", \"specification\", \"write-up\", \"explanation\", \"readme\", \"code comments\", \"annotations\", \"api reference\", \"developer notes\", \"inline documentation\", \"technical notes\", \"design document\", \"user guide\", \"how-to\", \"tutorial\", \"knowledge base\", \"help files\", \"usage instructions\", \"change log\"]
+``
         },
         ${embedders_config}
         \"displayedAttributes\": [
