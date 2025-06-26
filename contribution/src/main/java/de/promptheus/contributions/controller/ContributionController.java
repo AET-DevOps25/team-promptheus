@@ -74,12 +74,6 @@ public class ContributionController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Get health status of contribution service")
-    @GetMapping("/health")
-    public ResponseEntity<String> health() {
-        return ResponseEntity.ok("Contribution Service is running");
-    }
-
     @Operation(summary = "Get all contributions")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Contributions retrieved successfully",
