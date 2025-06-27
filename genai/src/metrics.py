@@ -1,5 +1,4 @@
-"""
-Prometheus Metrics Configuration for Prompteus GenAI Service
+"""Prometheus Metrics Configuration for Prompteus GenAI Service.
 
 This module defines all Prometheus metrics used for monitoring the GenAI service.
 Metrics are organized by functional area and follow Prometheus naming conventions.
@@ -7,8 +6,9 @@ Metrics are organized by functional area and follow Prometheus naming convention
 
 import asyncio
 import time
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Dict, Optional
+from typing import Any
 
 import structlog
 from prometheus_client import Counter, Gauge, Histogram, Info
@@ -26,7 +26,7 @@ CONFIDENCE_BUCKETS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 
 
 class SummaryGenerationMetrics:
-    """Metrics for summary generation operations"""
+    """Metrics for summary generation operations."""
 
     requests = Counter(
         "genai_summary_generation_requests_total",
@@ -50,7 +50,7 @@ class SummaryGenerationMetrics:
 
 
 class QuestionAnsweringMetrics:
-    """Metrics for question answering operations"""
+    """Metrics for question answering operations."""
 
     requests = Counter(
         "genai_question_answering_requests_total",
@@ -80,7 +80,7 @@ class QuestionAnsweringMetrics:
 
 
 class SearchMetrics:
-    """Metrics for search operations"""
+    """Metrics for search operations."""
 
     requests = Counter(
         "genai_search_requests_total",
@@ -104,7 +104,7 @@ class SearchMetrics:
 
 
 class LangChainMetrics:
-    """Metrics for LangChain model operations"""
+    """Metrics for LangChain model operations."""
 
     requests = Counter(
         "genai_langchain_model_requests_total",
@@ -127,7 +127,7 @@ class LangChainMetrics:
 
 
 class MeilisearchMetrics:
-    """Metrics for Meilisearch integration"""
+    """Metrics for Meilisearch integration."""
 
     requests = Counter(
         "genai_meilisearch_requests_total",
@@ -144,7 +144,7 @@ class MeilisearchMetrics:
 
 
 class ContributionAnalysisMetrics:
-    """Metrics for contribution analysis operations"""
+    """Metrics for contribution analysis operations."""
 
     requests = Counter(
         "genai_contribution_analysis_requests_total",
@@ -168,19 +168,15 @@ class ContributionAnalysisMetrics:
 
 
 class SystemHealthMetrics:
-    """System health and performance metrics"""
+    """System health and performance metrics."""
 
-    active_summaries = Gauge(
-        "genai_active_summaries_count", "Number of active summaries in the system"
-    )
+    active_summaries = Gauge("genai_active_summaries_count", "Number of active summaries in the system")
 
-    cache_hit_rate = Gauge(
-        "genai_cache_hit_rate", "Cache hit rate for various operations", ["operation"]
-    )
+    cache_hit_rate = Gauge("genai_cache_hit_rate", "Cache hit rate for various operations", ["operation"])
 
 
 class ServiceInfoMetrics:
-    """Service information and metadata"""
+    """Service information and metadata."""
 
     info = Info("genai_service_info", "Information about the GenAI service")
 
@@ -217,28 +213,25 @@ service_info = ServiceInfoMetrics.info
 
 
 class OperationTimer:
-    """Decorator factory for timing operations and recording metrics"""
+    """Decorator factory for timing operations and recording metrics."""
 
     @staticmethod
-    def time_operation(metric: Histogram, labels: Optional[Dict[str, str]] = None):
-        """Decorator to time operations and record metrics"""
+    def time_operation(metric: Histogram, labels: dict[str, str] | None = None) -> Callable:
+        """Decorator to time operations and record metrics."""
 
         def decorator(func: Callable) -> Callable:
             if asyncio.iscoroutinefunction(func):
                 return OperationTimer._create_async_wrapper(func, metric, labels)
-            else:
-                return OperationTimer._create_sync_wrapper(func, metric, labels)
+            return OperationTimer._create_sync_wrapper(func, metric, labels)
 
         return decorator
 
     @staticmethod
-    def _create_async_wrapper(
-        func: Callable, metric: Histogram, labels: Optional[Dict[str, str]]
-    ):
-        """Create async wrapper for timing operations"""
+    def _create_async_wrapper(func: Callable, metric: Histogram, labels: dict[str, str] | None) -> Callable:
+        """Create async wrapper for timing operations."""
 
         @wraps(func)
-        async def async_wrapper(*args, **kwargs) -> Any:
+        async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
             start_time = time.time()
             try:
                 result = await func(*args, **kwargs)
@@ -252,13 +245,11 @@ class OperationTimer:
         return async_wrapper
 
     @staticmethod
-    def _create_sync_wrapper(
-        func: Callable, metric: Histogram, labels: Optional[Dict[str, str]]
-    ):
-        """Create sync wrapper for timing operations"""
+    def _create_sync_wrapper(func: Callable, metric: Histogram, labels: dict[str, str] | None) -> Callable:
+        """Create sync wrapper for timing operations."""
 
         @wraps(func)
-        def sync_wrapper(*args, **kwargs) -> Any:
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             start_time = time.time()
             try:
                 result = func(*args, **kwargs)
@@ -272,10 +263,8 @@ class OperationTimer:
         return sync_wrapper
 
     @staticmethod
-    def _record_duration(
-        metric: Histogram, labels: Optional[Dict[str, str]], start_time: float
-    ):
-        """Record the operation duration in the metric"""
+    def _record_duration(metric: Histogram, labels: dict[str, str] | None, start_time: float) -> None:
+        """Record the operation duration in the metric."""
         duration = time.time() - start_time
         if labels:
             metric.labels(**labels).observe(duration)
@@ -283,8 +272,8 @@ class OperationTimer:
             metric.observe(duration)
 
     @staticmethod
-    def _log_operation_error(func: Callable, start_time: float, error: Exception):
-        """Log operation failure with timing information"""
+    def _log_operation_error(func: Callable, start_time: float, error: Exception) -> None:
+        """Log operation failure with timing information."""
         duration = time.time() - start_time
         logger.error(
             "Operation failed",
@@ -295,28 +284,24 @@ class OperationTimer:
 
 
 class MetricsRecorder:
-    """Utility class for recording metrics events"""
+    """Utility class for recording metrics events."""
 
     @staticmethod
-    def record_request_metrics(
-        counter: Counter, labels: Dict[str, str], status: str = "success"
-    ):
-        """Record request metrics with status"""
+    def record_request_metrics(counter: Counter, labels: dict[str, str], status: str = "success") -> None:
+        """Record request metrics with status."""
         labels_with_status = {**labels, "status": status}
         counter.labels(**labels_with_status).inc()
 
     @staticmethod
-    def record_error_metrics(counter: Counter, labels: Dict[str, str], error_type: str):
-        """Record error metrics with error type"""
+    def record_error_metrics(counter: Counter, labels: dict[str, str], error_type: str) -> None:
+        """Record error metrics with error type."""
         labels_with_error = {**labels, "error_type": error_type}
         counter.labels(**labels_with_error).inc()
 
 
-def initialize_service_info(version: str, model_name: str):
-    """Initialize service information metrics"""
-    service_info.info(
-        {"version": version, "model_name": model_name, "service": "prompteus-genai"}
-    )
+def initialize_service_info(version: str, model_name: str) -> None:
+    """Initialize service information metrics."""
+    service_info.info({"version": version, "model_name": model_name, "service": "prompteus-genai"})
 
 
 # Legacy function aliases for backward compatibility

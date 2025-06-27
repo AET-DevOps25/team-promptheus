@@ -1,5 +1,4 @@
-"""
-Prompteus GenAI Service - FastAPI Application
+"""Prompteus GenAI Service - FastAPI Application.
 
 A comprehensive AI-powered service for analyzing GitHub contributions,
 generating intelligent summaries, and providing interactive Q&A capabilities.
@@ -7,21 +6,22 @@ generating intelligent summaries, and providing interactive Q&A capabilities.
 
 import json
 import os
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
+from typing import Any
 
 import structlog
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException, Path, Response
+from fastapi import Depends, FastAPI, HTTPException, Path, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
 
 from src.meilisearch import MeilisearchService
 from src.metrics import initialize_service_info
@@ -59,16 +59,16 @@ load_dotenv()
 
 
 class ServiceContainer:
-    """Container for managing service instances following dependency injection pattern"""
+    """Container for managing service instances following dependency injection pattern."""
 
-    def __init__(self):
-        self.meilisearch_service: Optional[MeilisearchService] = None
-        self.ingestion_service: Optional[ContributionsIngestionService] = None
-        self.qa_service: Optional[QuestionAnsweringService] = None
-        self.summary_service: Optional[SummaryService] = None
+    def __init__(self) -> None:
+        self.meilisearch_service: MeilisearchService | None = None
+        self.ingestion_service: ContributionsIngestionService | None = None
+        self.qa_service: QuestionAnsweringService | None = None
+        self.summary_service: SummaryService | None = None
 
     async def initialize_services(self) -> None:
-        """Initialize all services with proper dependency injection"""
+        """Initialize all services with proper dependency injection."""
         logger.info("Initializing GenAI services...")
 
         # Initialize Meilisearch service
@@ -76,18 +76,14 @@ class ServiceContainer:
         meilisearch_initialized = await self.meilisearch_service.initialize()
 
         if not meilisearch_initialized:
-            logger.warning(
-                "Meilisearch service failed to initialize, continuing without it"
-            )
+            logger.warning("Meilisearch service failed to initialize, continuing without it")
             self.meilisearch_service = None
 
         # Get GitHub token from environment
         github_token = os.getenv("GITHUB_TOKEN") or os.getenv("GH_PAT")
 
         # Initialize services first
-        self.ingestion_service = ContributionsIngestionService(
-            self.meilisearch_service, github_token
-        )
+        self.ingestion_service = ContributionsIngestionService(self.meilisearch_service, github_token)
         self.qa_service = QuestionAnsweringService(self.ingestion_service)
         self.summary_service = SummaryService(self.ingestion_service)
 
@@ -101,12 +97,12 @@ class ServiceContainer:
         logger.info("GenAI services initialized successfully")
 
     def cleanup_services(self) -> None:
-        """Cleanup services on shutdown"""
+        """Cleanup services on shutdown."""
         logger.info("Shutting down GenAI services...")
 
 
 def configure_structured_logging() -> None:
-    """Configure structured logging with consistent format"""
+    """Configure structured logging with consistent format."""
     structlog.configure(
         processors=[
             structlog.stdlib.filter_by_level,
@@ -133,15 +129,15 @@ services = ServiceContainer()
 
 
 @asynccontextmanager
-async def application_lifespan(app: FastAPI):
-    """Application lifespan manager with proper resource management"""
+async def application_lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
+    """Application lifespan manager with proper resource management."""
     await services.initialize_services()
     yield
     services.cleanup_services()
 
 
 def create_application() -> FastAPI:
-    """Factory function to create FastAPI application with proper configuration"""
+    """Factory function to create FastAPI application with proper configuration."""
     app = FastAPI(
         title=APP_TITLE,
         description=APP_DESCRIPTION,
@@ -164,12 +160,10 @@ def create_application() -> FastAPI:
 
     # Set up OTLP exporter
     otlp_exporter = OTLPSpanExporter(
-        endpoint=os.environ.get(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://localhost:4317/v1/traces"
-        )
+        endpoint=os.environ.get("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://localhost:4317/v1/traces")
     )
     span_processor = BatchSpanProcessor(otlp_exporter)
-    trace.get_tracer_provider().add_span_processor(span_processor)
+    trace.get_tracer_provider().add_span_processor(span_processor)  # type: ignore[attr-defined]
 
     # Instrument FastAPI with OpenTelemetry
     FastAPIInstrumentor.instrument_app(app)
@@ -182,7 +176,7 @@ app = create_application()
 
 # Dependency injection helpers
 def get_ingestion_service() -> ContributionsIngestionService:
-    """Get the contributions ingestion service instance"""
+    """Get the contributions ingestion service instance."""
     if services.ingestion_service is None:
         ensure_services_initialized()
 
@@ -192,7 +186,7 @@ def get_ingestion_service() -> ContributionsIngestionService:
 
 
 def get_qa_service() -> QuestionAnsweringService:
-    """Get the question answering service instance"""
+    """Get the question answering service instance."""
     if services.qa_service is None:
         ensure_services_initialized()
 
@@ -202,7 +196,7 @@ def get_qa_service() -> QuestionAnsweringService:
 
 
 def get_summary_service() -> SummaryService:
-    """Get the summary service instance"""
+    """Get the summary service instance."""
     if services.summary_service is None:
         ensure_services_initialized()
 
@@ -212,7 +206,7 @@ def get_summary_service() -> SummaryService:
 
 
 async def assess_meilisearch_health() -> str:
-    """Assess Meilisearch service health status"""
+    """Assess Meilisearch service health status."""
     if not services.meilisearch_service:
         return "not_configured"
 
@@ -220,16 +214,14 @@ async def assess_meilisearch_health() -> str:
         health_check = await services.meilisearch_service.health_check()
         return health_check["status"]
     except Exception as e:
-        logger.error("Meilisearch health check failed", error=str(e))
+        logger.exception("Meilisearch health check failed", error=str(e))
         return "unhealthy"
 
 
 def create_service_status_report() -> dict[str, str]:
-    """Create a comprehensive service status report"""
+    """Create a comprehensive service status report."""
     return {
-        "contributions_ingestion": "ok"
-        if services.ingestion_service
-        else "not_initialized",
+        "contributions_ingestion": "ok" if services.ingestion_service else "not_initialized",
         "question_answering": "ok" if services.qa_service else "not_initialized",
         "summary_generation": "ok" if services.summary_service else "not_initialized",
         "meilisearch": "unknown",  # Will be updated by health endpoint
@@ -239,29 +231,25 @@ def create_service_status_report() -> dict[str, str]:
 
 # Health and monitoring endpoints
 @app.get("/health", response_model=HealthResponse)
-async def health_check():
-    """Enhanced health check endpoint with comprehensive service status"""
+async def health_check() -> HealthResponse:
+    """Enhanced health check endpoint with comprehensive service status."""
     meilisearch_status = await assess_meilisearch_health()
 
     services_status = create_service_status_report()
     services_status["meilisearch"] = meilisearch_status
 
-    overall_status = (
-        "ok"
-        if all(status in ["ok", "healthy"] for status in services_status.values())
-        else "degraded"
-    )
+    overall_status = "ok" if all(status in ["ok", "healthy"] for status in services_status.values()) else "degraded"
 
     return HealthResponse(
         status=overall_status,
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         services=services_status,
     )
 
 
 @app.get("/metrics")
-async def get_prometheus_metrics():
-    """Prometheus metrics endpoint for monitoring"""
+async def get_prometheus_metrics() -> Response:
+    """Prometheus metrics endpoint for monitoring."""
     data = generate_latest(REGISTRY).decode("utf-8")
     return Response(content=data, media_type=CONTENT_TYPE_LATEST)
 
@@ -271,8 +259,8 @@ async def get_prometheus_metrics():
 async def start_contributions_ingestion_task(
     request: ContributionsIngestRequest,
     service: ContributionsIngestionService = Depends(get_ingestion_service),
-):
-    """Start an asynchronous ingestion task for GitHub contributions"""
+) -> IngestTaskResponse:
+    """Start an asynchronous ingestion task for GitHub contributions."""
     try:
         logger.info(
             "Starting contributions ingestion task",
@@ -296,43 +284,35 @@ async def start_contributions_ingestion_task(
         return result
 
     except Exception as e:
-        logger.error(
+        logger.exception(
             "Failed to start contributions ingestion task",
             user=request.user,
             week=request.week,
             repository=request.repository,
             error=str(e),
         )
-        raise HTTPException(
-            status_code=500, detail=f"{INGESTION_TASK_FAILED}: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"{INGESTION_TASK_FAILED}: {e!s}")
 
 
 @app.get("/ingest/{task_id}", response_model=IngestTaskStatus)
 async def get_ingestion_task_status(
     task_id: str = Path(..., description="Task ID returned from POST /contributions"),
     service: ContributionsIngestionService = Depends(get_ingestion_service),
-):
-    """Get the status of a contributions ingestion task"""
+) -> IngestTaskStatus:
+    """Get the status of a contributions ingestion task."""
     try:
         result = service.get_ingestion_task_status(task_id)
 
         if result is None:
-            raise HTTPException(
-                status_code=404, detail=f"Ingestion task {task_id} not found"
-            )
+            raise HTTPException(status_code=404, detail=f"Ingestion task {task_id} not found")
 
         return result
 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
-            "Failed to get ingestion task status", task_id=task_id, error=str(e)
-        )
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get task status: {str(e)}"
-        )
+        logger.exception("Failed to get ingestion task status", task_id=task_id, error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to get task status: {e!s}")
 
 
 @app.get(
@@ -343,8 +323,8 @@ async def get_user_week_contributions_status(
     username: str = Path(..., description="GitHub username"),
     week_id: str = Path(..., description="ISO week format: 2024-W21"),
     service: ContributionsIngestionService = Depends(get_ingestion_service),
-):
-    """Get the status of contributions for a specific user and week"""
+) -> ContributionsStatusResponse:
+    """Get the status of contributions for a specific user and week."""
     try:
         result = await service.get_contributions_status(username, week_id)
 
@@ -359,39 +339,30 @@ async def get_user_week_contributions_status(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
+        logger.exception(
             "Failed to get contributions status",
             username=username,
             week_id=week_id,
             error=str(e),
         )
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get contributions status: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get contributions status: {e!s}")
 
 
 # Question answering endpoints
-@app.post(
-    "/users/{username}/weeks/{week_id}/questions", response_model=QuestionResponse
-)
+@app.post("/users/{username}/weeks/{week_id}/questions", response_model=QuestionResponse)
 async def ask_question_about_user_contributions(
+    request: QuestionRequest,
     username: str = Path(..., description="GitHub username"),
     week_id: str = Path(..., description="ISO week format: 2024-W21"),
-    request: QuestionRequest = ...,
     service: QuestionAnsweringService = Depends(get_qa_service),
-):
-    """Ask a question about a user's contributions for a specific week"""
+) -> QuestionResponse:
+    """Ask a question about a user's contributions for a specific week."""
     try:
         # Validate that contributions exist for this user/week
         ingestion_service = get_ingestion_service()
-        contributions_status = await ingestion_service.get_contributions_status(
-            username, week_id
-        )
+        contributions_status = await ingestion_service.get_contributions_status(username, week_id)
 
-        if (
-            contributions_status is None
-            or contributions_status.total_contributions == 0
-        ):
+        if contributions_status is None or contributions_status.total_contributions == 0:
             raise HTTPException(
                 status_code=404,
                 detail=f"No contributions found for user {username} in week {week_id}. "
@@ -421,16 +392,14 @@ async def ask_question_about_user_contributions(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
+        logger.exception(
             "Failed to answer question about user contributions",
             username=username,
             week_id=week_id,
             question=request.question[:100],
             error=str(e),
         )
-        raise HTTPException(
-            status_code=500, detail=f"Failed to answer question: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to answer question: {e!s}")
 
 
 @app.get(
@@ -442,8 +411,8 @@ async def get_question_by_id(
     week_id: str = Path(..., description="ISO week format: 2024-W21"),
     question_id: str = Path(..., description="UUIDv7 question identifier"),
     service: QuestionAnsweringService = Depends(get_qa_service),
-):
-    """Retrieve a previously asked question and its answer by ID"""
+) -> QuestionResponse:
+    """Retrieve a previously asked question and its answer by ID."""
     try:
         result = service.get_question(question_id)  # Only pass question_id parameter
 
@@ -465,47 +434,34 @@ async def get_question_by_id(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
+        logger.exception(
             "Failed to retrieve question",
             username=username,
             week_id=week_id,
             question_id=question_id,
             error=str(e),
         )
-        raise HTTPException(
-            status_code=500, detail=f"Failed to retrieve question: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve question: {e!s}")
 
 
-# Conversation management endpoints (LangChain-based)
 @app.get("/users/{username}/weeks/{week_id}/conversations/history")
 async def get_user_week_conversation_history(
     username: str = Path(..., description="GitHub username"),
     week_id: str = Path(..., description="ISO week format: 2024-W21"),
     service: QuestionAnsweringService = Depends(get_qa_service),
-):
-    """Get conversation history for a user's week (LangChain messages)"""
+) -> Any:
+    """Get conversation history for a user and week."""
     try:
-        history = service.get_conversation_history(username, week_id)
-        return {
-            "session_id": f"{username}:{week_id}",
-            "message_count": len(history),
-            "messages": [
-                {"type": msg.__class__.__name__, "content": msg.content}
-                for msg in history
-            ],
-        }
+        return service.get_conversation_history(username, week_id)
 
     except Exception as e:
-        logger.error(
-            "Failed to retrieve conversation history",
+        logger.exception(
+            "Failed to get conversation history",
             username=username,
             week_id=week_id,
             error=str(e),
         )
-        raise HTTPException(
-            status_code=500, detail=f"Failed to retrieve conversation history: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get conversation history: {e!s}")
 
 
 @app.delete("/users/{username}/weeks/{week_id}/conversations")
@@ -513,47 +469,37 @@ async def clear_user_week_conversation(
     username: str = Path(..., description="GitHub username"),
     week_id: str = Path(..., description="ISO week format: 2024-W21"),
     service: QuestionAnsweringService = Depends(get_qa_service),
-):
-    """Clear conversation history for a user's week"""
+) -> dict[str, str]:
+    """Clear conversation history for a user and week."""
     try:
         service.clear_conversation_history(username, week_id)
-        return {
-            "message": f"Conversation history cleared for {username} in week {week_id}",
-            "session_id": f"{username}:{week_id}",
-        }
+        return {"message": f"Conversation history cleared for {username} in {week_id}"}
 
     except Exception as e:
-        logger.error(
+        logger.exception(
             "Failed to clear conversation history",
             username=username,
             week_id=week_id,
             error=str(e),
         )
-        raise HTTPException(
-            status_code=500, detail=f"Failed to clear conversation history: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to clear conversation history: {e!s}")
 
 
 # Summary generation endpoints
 @app.post("/users/{username}/weeks/{week_id}/summary", response_model=SummaryResponse)
 async def generate_user_week_summary(
+    request: SummaryRequest,
     username: str = Path(..., description="GitHub username"),
     week_id: str = Path(..., description="ISO week format: 2024-W21"),
-    request: SummaryRequest = ...,
     service: SummaryService = Depends(get_summary_service),
-):
-    """Generate a comprehensive summary of a user's contributions for a specific week"""
+) -> SummaryResponse:
+    """Generate a summary of a user's contributions for a specific week."""
     try:
         # Validate that contributions exist for this user/week
         ingestion_service = get_ingestion_service()
-        contributions_status = await ingestion_service.get_contributions_status(
-            username, week_id
-        )
+        contributions_status = await ingestion_service.get_contributions_status(username, week_id)
 
-        if (
-            contributions_status is None
-            or contributions_status.total_contributions == 0
-        ):
+        if contributions_status is None or contributions_status.total_contributions == 0:
             raise HTTPException(
                 status_code=404,
                 detail=f"No contributions found for user {username} in week {week_id}. "
@@ -561,7 +507,7 @@ async def generate_user_week_summary(
             )
 
         logger.info(
-            "Generating comprehensive summary",
+            "Generating summary for user contributions",
             username=username,
             week_id=week_id,
             max_detail_level=request.max_detail_level,
@@ -582,51 +528,45 @@ async def generate_user_week_summary(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
+        logger.exception(
             "Failed to generate summary",
             username=username,
             week_id=week_id,
             error=str(e),
         )
-        raise HTTPException(
-            status_code=500, detail=f"Failed to generate summary: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to generate summary: {e!s}")
 
 
 async def generate_streaming_summary_chunks(
     username: str, week_id: str, request: SummaryRequest, service: SummaryService
-):
-    """Generate streaming summary chunks as Server-Sent Events"""
+) -> AsyncGenerator[str, None]:
+    """Generate streaming summary chunks as Server-Sent Events."""
     try:
         async for chunk in service.generate_summary_stream(username, week_id, request):
             chunk_data = chunk.model_dump(mode="json")  # Ensure JSON serialization
             yield f"data: {json.dumps(chunk_data)}\n\n"
     except Exception as e:
-        logger.error(
+        logger.exception(
             "Streaming summary generation failed",
             username=username,
             week_id=week_id,
             error=str(e),
         )
-        error_chunk = SummaryChunk(
-            chunk_type="error", content=f"{SUMMARY_GENERATION_FAILED}: {str(e)}"
-        )
+        error_chunk = SummaryChunk(chunk_type="error", content=f"{SUMMARY_GENERATION_FAILED}: {e!s}")
         yield f"data: {json.dumps(error_chunk.model_dump(mode='json'))}\n\n"
 
 
 @app.post("/users/{username}/weeks/{week_id}/summary/stream")
 async def generate_user_week_summary_stream(
+    request: SummaryRequest,
     username: str = Path(..., description="GitHub username"),
     week_id: str = Path(..., description="ISO week format: 2024-W21"),
-    request: SummaryRequest = ...,
     service: SummaryService = Depends(get_summary_service),
-):
-    """Generate a streaming summary of a user's contributions using Server-Sent Events"""
+) -> StreamingResponse:
+    """Generate a streaming summary of a user's contributions using Server-Sent Events."""
     # Validate that contributions exist for this user/week
     ingestion_service = get_ingestion_service()
-    contributions_status = await ingestion_service.get_contributions_status(
-        username, week_id
-    )
+    contributions_status = await ingestion_service.get_contributions_status(username, week_id)
 
     if contributions_status is None or contributions_status.total_contributions == 0:
         raise HTTPException(
@@ -658,8 +598,8 @@ async def get_summary_by_id(
     week_id: str = Path(..., description="ISO week format: 2024-W21"),
     summary_id: str = Path(..., description="UUIDv7 summary identifier"),
     service: SummaryService = Depends(get_summary_service),
-):
-    """Retrieve a previously generated summary by ID"""
+) -> SummaryResponse:
+    """Retrieve a previously generated summary by ID."""
     try:
         result = service.get_summary(summary_id)  # Only pass summary_id parameter
 
@@ -681,27 +621,25 @@ async def get_summary_by_id(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
+        logger.exception(
             "Failed to retrieve summary",
             username=username,
             week_id=week_id,
             summary_id=summary_id,
             error=str(e),
         )
-        raise HTTPException(
-            status_code=500, detail=f"Failed to retrieve summary: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve summary: {e!s}")
 
 
 # API documentation endpoints
 @app.get("/openapi.json", include_in_schema=False, response_class=JSONResponse)
-async def get_openapi_documentation():
-    """OpenAPI JSON schema endpoint"""
+async def get_openapi_documentation() -> JSONResponse:
+    """OpenAPI JSON schema endpoint."""
     return JSONResponse(app.openapi())
 
 
 @app.get("/reference", include_in_schema=False, response_class=HTMLResponse)
-async def get_api_reference():
+async def get_api_reference() -> str:
     return """
     <!doctype html>
     <html>
@@ -734,36 +672,32 @@ async def get_api_reference():
 
 # Exception handlers
 @app.exception_handler(HTTPException)
-async def handle_http_exception(request, exc: HTTPException):
-    """Handle HTTP exceptions with consistent error format"""
+async def handle_http_exception(request: Request, exc: HTTPException) -> JSONResponse:
+    """Handle HTTP exceptions with consistent error format."""
     return JSONResponse(
         status_code=exc.status_code,
-        content=ErrorResponse(
-            error=exc.detail, timestamp=datetime.now(timezone.utc)
-        ).model_dump(mode="json"),
+        content=ErrorResponse(error=exc.detail, timestamp=datetime.now(UTC)).model_dump(mode="json"),
     )
 
 
 @app.exception_handler(Exception)
-async def handle_general_exception(request, exc: Exception):
-    """Handle unexpected exceptions with proper logging"""
-    logger.error(
-        "Unhandled exception in API endpoint", error=str(exc), endpoint=str(request.url)
-    )
+async def handle_general_exception(request: Request, exc: Exception) -> JSONResponse:
+    """Handle unexpected exceptions with proper logging."""
+    logger.error("Unhandled exception in API endpoint", error=str(exc), endpoint=str(request.url))
 
     return JSONResponse(
         status_code=500,
         content=ErrorResponse(
             error="Internal server error",
             detail="An unexpected error occurred. Please try again later.",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         ).model_dump(mode="json"),
     )
 
 
 # Fallback initialization for TestClient usage
-def ensure_services_initialized():
-    """Ensure services are initialized - fallback for TestClient usage"""
+def ensure_services_initialized() -> None:
+    """Ensure services are initialized - fallback for TestClient usage."""
     if services.meilisearch_service is None or services.ingestion_service is None:
         import asyncio
 
