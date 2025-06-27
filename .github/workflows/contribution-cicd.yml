@@ -63,9 +63,11 @@ jobs:
       image_suffix: contribution
       context: ./contribution
       dockerfile: Dockerfile
+      openapi_url: http://localhost:8082/openapi
+      healthcheck_url: http://localhost:8082/actuator/health
     permissions:
       id-token: write
-      contents: read
+      contents: write
       packages: write
       attestations: write
   docker-init-build:
