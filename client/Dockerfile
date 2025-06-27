@@ -1,16 +1,23 @@
 FROM --platform=$BUILDPLATFORM node:24-slim AS base
 WORKDIR /app
+
 FROM base AS builder
 
-# Install dependencies
-COPY package*.json ./
-RUN  npm ci
-COPY . .
+# Install pnpm
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable pnpm
 
-RUN npm run build
+# Install dependencies
+COPY package.json ./
+COPY pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+# build standalone bundle
+COPY . .
+RUN pnpm run build
 
 FROM base AS runner
-WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
