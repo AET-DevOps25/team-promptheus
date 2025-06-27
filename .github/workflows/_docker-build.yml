@@ -108,14 +108,14 @@ jobs:
                   echo "OpenAPI definition extracted successfully"
 
                   echo "::endgroup::"
-                  echo "::group::Contained Endpoints"
+                  echo "::group::Contained $(jq '.paths | keys | length' ${{ inputs.context }}/openapi.json) Endpoints"
 
-                  jq '.paths | keys | length' ${{ inputs.context }}/openapi.json
+                  jq '.paths | keys' ${{ inputs.context }}/openapi.json
 
                   echo "::endgroup::"
-                  echo "::group::Contained Schemas"
+                  echo "::group::Contained $(jq '.components.schemas | keys | length' ${{ inputs.context }}/openapi.json) Schemas"
 
-                  jq '.components.schemas | keys | length' ${{ inputs.context }}/openapi.json
+                  jq '.components.schemas | keys' ${{ inputs.context }}/openapi.json
 
                   echo "::endgroup::"
                   echo "::group::Commit OpenAPI changes"
