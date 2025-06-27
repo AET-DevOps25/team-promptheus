@@ -21,7 +21,6 @@ class TestQuestionAnsweringService:
         ingestion_service = ContributionsIngestionService(meilisearch_service)
         return QuestionAnsweringService(ingestion_service)
 
-
     async def test_question_context_validation(self) -> None:
         """Test QuestionContext model validation."""
         # Test valid context

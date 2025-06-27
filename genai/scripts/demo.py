@@ -405,7 +405,6 @@ class InteractiveSelector:
         if not contributions:
             return []
 
-
         # Create choices for questionary with better formatting
         choices = []
         for contrib in contributions:
@@ -439,7 +438,6 @@ class InteractiveSelector:
 
             selected_count = len(selected_contributions)
             len(contributions)
-
 
             if selected_count == 0:
                 pass
@@ -584,13 +582,11 @@ class ContributionSummaryPrinter:
         if not contributions:
             return
 
-
         # Count by type
         type_counts = ContributionSummaryPrinter._count_by_type(contributions)
 
         for contrib_type in type_counts:
             contrib_type.replace("_", " ").title()
-
 
     @staticmethod
     def _count_by_type(contributions: list[dict[str, Any]]) -> dict[str, int]:
@@ -841,7 +837,6 @@ class InteractiveQASession:
                 if not messages:
                     return
 
-
                 # Process LangChain message format
                 question_count = 0
                 for i, message in enumerate(messages):
@@ -934,7 +929,6 @@ class InteractiveQASession:
         # Show reasoning if available and high confidence
         if response.get("reasoning_steps") and confidence > 0.7:
             self._display_reasoning(response["reasoning_steps"])
-
 
     def _display_evidence(self, evidence: list[dict[str, Any]]) -> None:
         """Display supporting evidence for the answer."""
@@ -1044,7 +1038,6 @@ class DemoRunner:
     def _fetch_and_process_contributions(self, user: str, repo: str, week: str) -> dict[str, Any]:
         """Fetch contribution metadata and process them with the GenAI service."""
         try:
-
             if not self.github_client:
                 msg = "GitHub client not initialized"
                 raise RuntimeError(msg)

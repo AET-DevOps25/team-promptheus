@@ -1,4 +1,5 @@
 """Tests for the FastAPI application endpoints."""
+
 import json
 import time
 
