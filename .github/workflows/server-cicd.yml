@@ -1,56 +1,96 @@
 name: Server CI/CD
 
 on:
-  pull_request:
-    branches: [ main ]
-    types: [ opened, reopened, synchronize ]
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+    pull_request:
+        branches: [main]
+        types: [opened, reopened, synchronize]
+    push:
+        branches: [main]
+    workflow_dispatch:
 
 jobs:
-  server-checks:
-    runs-on: ubuntu-latest
-    services:
-      db:
-        image: postgres:17
-        env:
-          TZ: Europe/Berlin
-          PGDATA: /var/lib/postgresql/data/pgdata
-          POSTGRES_PASSWORD: CHANGE_ME
-          POSTGRES_USER: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-    strategy:
-      matrix:
-        gradleCommand: [test, bootJar]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Java
-        uses: actions/setup-java@v4
+    server-checks:
+        runs-on: ubuntu-latest
+        services:
+            db:
+                image: postgres:17
+                env:
+                    TZ: Europe/Berlin
+                    PGDATA: /var/lib/postgresql/data/pgdata
+                    POSTGRES_PASSWORD: CHANGE_ME
+                    POSTGRES_USER: postgres
+                    POSTGRES_DB: postgres
+                ports:
+                    - 5432:5432
+        strategy:
+            matrix:
+                gradleCommand: [test, bootJar]
+        steps:
+            - uses: actions/checkout@v4
+            - name: Setup Java
+              uses: actions/setup-java@v4
+              with:
+                  distribution: "temurin"
+                  java-version: 21
+            - name: Setup Gradle
+              uses: gradle/actions/setup-gradle@v4
+            - name: ${{ matrix.gradleCommand }} with Gradle
+              run: gradle ${{ matrix.gradleCommand }}
+              working-directory: server
+              env:
+                  spring.datasource.url: jdbc:postgresql://db:5432/postgres
+                  spring.datasource.username: postgres
+                  spring.datasource.password: CHANGE_ME
+    docker-build:
+        uses: ./.github/workflows/_docker-build.yml
+        needs:
+            - server-checks
         with:
-          distribution: 'temurin'
-          java-version: 17
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-      - name: ${{ matrix.gradleCommand }} with Gradle
-        run: gradle ${{ matrix.gradleCommand }}
-        working-directory: server
-        env:
-          spring.datasource.url: jdbc:postgresql://db:5432/postgres
-          spring.datasource.username: postgres
-          spring.datasource.password: CHANGE_ME
-  docker-build:
-    uses: ./.github/workflows/_docker-build.yml
-    needs:
-      - server-checks
-    with:
-      image_suffix: server
-      context: ./server
-      dockerfile: Dockerfile
-    permissions:
-      id-token: write
-      contents: read
-      packages: write
-      attestations: write
+            image_suffix: server
+            context: ./server
+            dockerfile: Dockerfile
+        permissions:
+            id-token: write
+            contents: read
+            packages: write
+            attestations: write
+    extract-server-openapi:
+        runs-on: ubuntu-latest
+        needs:
+            - docker-build
+        if: github.ref != 'refs/heads/main'
+        permissions:
+            contents: write
+        steps:
+            - name: Pull updates
+              run: docker compose pull server
+            - name: Start services
+              run:  |
+                  docker compose up --detach --no-build server
+                  docker compose down server
+                  docker run --rm -it -p 8080:8080 ${{ jobs.docker-build.outputs.tags }}
+            - name: Wait for server health
+              run: |
+                  echo "Waiting for services to be healthy..."
+                  timeout 120 bash -c 'while ! curl -f -s http://localhost:8080/actuator/health >/dev/null; do echo "Waiting for server..."; sleep 5; done'
+                  echo "Server is healthy!"
+            - uses: actions/checkout@v4
+            - name: Extract OpenAPI definition
+              run: |
+                  curl -f -s http://localhost:8080/openapi | jq '.' > server/openapi.json
+                  echo "OpenAPI definition extracted successfully"
+                  echo "Endpoints: $(jq '.paths | keys | length' server/openapi.json)"
+                  echo "Schemas: $(jq '.components.schemas | keys | length' server/openapi.json)"
+            - name: Commit OpenAPI changes
+              run: |
+                  git config --local user.email "action@github.com"
+                  git config --local user.name "GitHub Action"
+                  git add server/openapi.json
+                  if ! git diff --staged --quiet; then
+                    git commit -m "Update OpenAPI definition [skip ci]"
+                    git push
+                  else
+                    echo "No changes to OpenAPI definition"
+                  fi
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
