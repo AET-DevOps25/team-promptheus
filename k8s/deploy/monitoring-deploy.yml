@@ -15,7 +15,6 @@ spec:
       containers:
         - name: monitoring
           image: grafana/otel-monitoring:latest
-          restartPolicy: Always
           ports:
             - containerPort: 3000
             - containerPort: 4317

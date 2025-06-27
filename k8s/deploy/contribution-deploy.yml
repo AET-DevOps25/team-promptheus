@@ -16,7 +16,6 @@ spec:
             initContainers:
                 - name: init
                   imagePullPolicy: Always
-                  restartPolicy: OnFailure
                   image: ghcr.io/aet-devops25/promptheus-ms-init:main
                   env:
                       - name: MEILISEARCH_URL
