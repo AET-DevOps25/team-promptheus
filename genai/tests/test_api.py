@@ -1,6 +1,8 @@
-import pytest
+"""Tests for the FastAPI application endpoints."""
 import json
 import time
+
+import pytest
 
 from src.models import generate_uuidv7
 from tests.test_data import (
@@ -10,10 +12,10 @@ from tests.test_data import (
 
 
 class TestHealthEndpoints:
-    """Test health and monitoring endpoints"""
+    """Test health and monitoring endpoints."""
 
-    def test_health_endpoint(self, test_client):
-        """Test the health check endpoint"""
+    def test_health_endpoint(self, test_client) -> None:
+        """Test the health check endpoint."""
         response = test_client.get("/health")
         assert response.status_code == 200
 
@@ -32,8 +34,8 @@ class TestHealthEndpoints:
         # With real Meilisearch, status should be "healthy"
         assert services["meilisearch"] in ["healthy", "not_configured"]
 
-    def test_metrics_endpoint(self, test_client):
-        """Test the Prometheus metrics endpoint"""
+    def test_metrics_endpoint(self, test_client) -> None:
+        """Test the Prometheus metrics endpoint."""
         response = test_client.get("/metrics")
         assert response.status_code == 200
         assert "genai_service_info" in response.text
@@ -41,14 +43,12 @@ class TestHealthEndpoints:
 
 @pytest.mark.usefixtures("mock_summary_for_api")
 class TestUnifiedWorkflow:
-    """Test the unified workflow endpoint that handles ingestion and summarization in one task"""
+    """Test the unified workflow endpoint that handles ingestion and summarization in one task."""
 
-    def test_unified_task_creation(self, test_client, clean_services):
-        """Test creating a unified task with metadata-only contributions"""
+    def test_unified_task_creation(self, test_client, clean_services) -> None:
+        """Test creating a unified task with metadata-only contributions."""
         # Use metadata-only format - same as working tests
-        request_data = get_test_contributions_metadata_request(
-            contribution_types=["commit"]
-        )
+        request_data = get_test_contributions_metadata_request(contribution_types=["commit"])
 
         response = test_client.post("/contributions", json=request_data)
         assert response.status_code == 200
@@ -58,8 +58,8 @@ class TestUnifiedWorkflow:
         assert data["status"] == "queued"
         assert "summary_id" in data
 
-    def test_unified_task_completion_with_summary(self, test_client, clean_services):
-        """Test that unified task completes and includes summary when done"""
+    def test_unified_task_completion_with_summary(self, test_client, clean_services) -> None:
+        """Test that unified task completes and includes summary when done."""
         # Use metadata-only format
         request_data = get_test_contributions_metadata_request()
 
@@ -72,7 +72,7 @@ class TestUnifiedWorkflow:
 
         # Wait for completion and check status
         max_attempts = 20
-        for attempt in range(max_attempts):
+        for _attempt in range(max_attempts):
             status_response = test_client.get(f"/ingest/{task_id}")
             assert status_response.status_code == 200
             status_data = status_response.json()
@@ -98,29 +98,21 @@ class TestUnifiedWorkflow:
                 assert isinstance(summary["overview"], str)
                 assert len(summary["overview"]) > 0
                 break
-            elif status_data["status"] == "failed":
-                pytest.fail(
-                    f"Task failed: {status_data.get('error_message', 'Unknown error')}"
-                )
+            if status_data["status"] == "failed":
+                pytest.fail(f"Task failed: {status_data.get('error_message', 'Unknown error')}")
 
             time.sleep(0.5)
         else:
-            pytest.fail(
-                f"Task {task_id} did not complete within {max_attempts * 0.5} seconds"
-            )
+            pytest.fail(f"Task {task_id} did not complete within {max_attempts * 0.5} seconds")
 
-    def test_unified_task_with_github_api_failure(
-        self, test_client, clean_services, failing_github_service
-    ):
-        """Test that unified task properly handles GitHub API failures with FAILED status"""
+    def test_unified_task_with_github_api_failure(self, test_client, clean_services, failing_github_service) -> None:
+        """Test that unified task properly handles GitHub API failures with FAILED status."""
         # Use metadata-only format with invalid repository to trigger GitHub API failure
         request_data = {
             "user": "testuser",
             "week": "2024-W21",
             "repository": "invalid/repo",
-            "contributions": [
-                {"type": "commit", "id": "abc123def456", "selected": True}
-            ],
+            "contributions": [{"type": "commit", "id": "abc123def456", "selected": True}],
         }
 
         # Start unified task
@@ -132,7 +124,7 @@ class TestUnifiedWorkflow:
         # Wait for task to complete or fail
         max_attempts = 20
         final_status = None
-        for attempt in range(max_attempts):
+        for _attempt in range(max_attempts):
             status_response = test_client.get(f"/ingest/{task_id}")
             assert status_response.status_code == 200
             status_data = status_response.json()
@@ -142,9 +134,7 @@ class TestUnifiedWorkflow:
                 break
             time.sleep(0.5)
         else:
-            pytest.fail(
-                f"Task {task_id} did not complete within {max_attempts * 0.5} seconds"
-            )
+            pytest.fail(f"Task {task_id} did not complete within {max_attempts * 0.5} seconds")
 
         # Verify task failed gracefully with proper status
         assert final_status == "failed"
@@ -161,10 +151,8 @@ class TestUnifiedWorkflow:
         if "summary" in status_data:
             assert status_data["summary"] is None
 
-    def test_unified_task_with_partial_github_failure(
-        self, test_client, clean_services
-    ):
-        """Test that unified task handles partial GitHub API failures gracefully"""
+    def test_unified_task_with_partial_github_failure(self, test_client, clean_services) -> None:
+        """Test that unified task handles partial GitHub API failures gracefully."""
         # Use metadata with one contribution that will fail
         request_data = {
             "user": "testuser",
@@ -188,7 +176,7 @@ class TestUnifiedWorkflow:
 
         # Wait for completion
         max_attempts = 20
-        for attempt in range(max_attempts):
+        for _attempt in range(max_attempts):
             status_response = test_client.get(f"/ingest/{task_id}")
             assert status_response.status_code == 200
             status_data = status_response.json()
@@ -198,27 +186,21 @@ class TestUnifiedWorkflow:
                 assert status_data["failed_count"] > 0
                 assert "summary" in status_data
                 summary = status_data["summary"]
-                assert (
-                    summary is not None
-                )  # Should still generate summary with partial data
+                assert summary is not None  # Should still generate summary with partial data
                 break
-            elif status_data["status"] == "failed":
-                pytest.fail(
-                    f"Task failed when it should handle partial failures: {status_data.get('error_message')}"
-                )
+            if status_data["status"] == "failed":
+                pytest.fail(f"Task failed when it should handle partial failures: {status_data.get('error_message')}")
 
             time.sleep(0.5)
         else:
-            pytest.fail(
-                f"Task {task_id} did not complete within {max_attempts * 0.5} seconds"
-            )
+            pytest.fail(f"Task {task_id} did not complete within {max_attempts * 0.5} seconds")
 
 
 class TestTaskStatus:
-    """Test task status endpoints"""
+    """Test task status endpoints."""
 
-    def test_get_task_status_not_found(self, test_client):
-        """Test getting status for non-existent task"""
+    def test_get_task_status_not_found(self, test_client) -> None:
+        """Test getting status for non-existent task."""
         fake_task_id = generate_uuidv7()
 
         response = test_client.get(f"/ingest/{fake_task_id}")
@@ -227,11 +209,9 @@ class TestTaskStatus:
         data = response.json()
         assert "not found" in data["error"]
 
-    def test_simple_task_creation(self, test_client, clean_services):
-        """Test creating a task - debugging version"""
-        request_data = get_test_contributions_metadata_request(
-            contribution_types=["commit"]
-        )
+    def test_simple_task_creation(self, test_client, clean_services) -> None:
+        """Test creating a task - debugging version."""
+        request_data = get_test_contributions_metadata_request(contribution_types=["commit"])
 
         response = test_client.post("/contributions", json=request_data)
         assert response.status_code == 200
@@ -239,11 +219,9 @@ class TestTaskStatus:
         data = response.json()
         assert "task_id" in data
 
-    def test_task_status_progression(self, test_client, clean_services):
-        """Test that task status progresses through expected states"""
-        request_data = get_test_contributions_metadata_request(
-            contribution_types=["commit"]
-        )
+    def test_task_status_progression(self, test_client, clean_services) -> None:
+        """Test that task status progresses through expected states."""
+        request_data = get_test_contributions_metadata_request(contribution_types=["commit"])
 
         # Start the task
         response = test_client.post("/contributions", json=request_data)
@@ -270,23 +248,18 @@ class TestTaskStatus:
 
         # Should have seen at least queued and either done or some processing status
         assert "queued" in observed_statuses or len(observed_statuses) > 0
-        assert any(
-            status in observed_statuses
-            for status in ["done", "failed", "ingesting", "summarizing"]
-        )
+        assert any(status in observed_statuses for status in ["done", "failed", "ingesting", "summarizing"])
 
     def test_task_handles_github_api_failure_gracefully(
         self, test_client, clean_services, failing_github_service
-    ):
-        """Test that tasks handle GitHub API failures gracefully with proper FAILED status"""
+    ) -> None:
+        """Test that tasks handle GitHub API failures gracefully with proper FAILED status."""
         # Use metadata that will trigger GitHub API failure
         request_data = {
             "user": "testuser",
             "week": "2024-W21",
             "repository": "invalid/repo",  # This will trigger GitHub API failure
-            "contributions": [
-                {"type": "commit", "id": "abc123def456", "selected": True}
-            ],
+            "contributions": [{"type": "commit", "id": "abc123def456", "selected": True}],
         }
 
         # Start the task
@@ -302,9 +275,7 @@ class TestTaskStatus:
         for _ in range(20):  # 20 seconds max
             time.sleep(1)
             status_response = test_client.get(f"/ingest/{task_id}")
-            assert (
-                status_response.status_code == 200
-            )  # Should never crash, even on failure
+            assert status_response.status_code == 200  # Should never crash, even on failure
 
             status_data = status_response.json()
             final_status = status_data["status"]
@@ -314,9 +285,7 @@ class TestTaskStatus:
                 break
 
         # Verify the task failed gracefully with proper structure
-        assert final_status == "failed", (
-            f"Expected task to fail gracefully, but got status: {final_status}"
-        )
+        assert final_status == "failed", f"Expected task to fail gracefully, but got status: {final_status}"
         assert "error_message" in final_response
         assert final_response["error_message"] is not None
         assert len(final_response["error_message"]) > 0
@@ -332,14 +301,12 @@ class TestTaskStatus:
 
 
 class TestContributionsStatus:
-    """Test contributions status endpoints"""
+    """Test contributions status endpoints."""
 
-    def test_get_contributions_status_success(self, test_client, clean_services):
-        """Test getting contributions status after unified workflow"""
+    def test_get_contributions_status_success(self, test_client, clean_services) -> None:
+        """Test getting contributions status after unified workflow."""
         # First run unified ingestion + summarization
-        request_data = get_test_contributions_metadata_request(
-            contribution_types=["commit"]
-        )
+        request_data = get_test_contributions_metadata_request(contribution_types=["commit"])
 
         ingest_response = test_client.post("/contributions", json=request_data)
         assert ingest_response.status_code == 200
@@ -350,9 +317,7 @@ class TestContributionsStatus:
         time.sleep(2)
 
         # Then check status
-        response = test_client.get(
-            "/users/testuser/weeks/2024-W21/contributions/status"
-        )
+        response = test_client.get("/users/testuser/weeks/2024-W21/contributions/status")
         assert response.status_code == 200
 
         data = response.json()
@@ -367,11 +332,9 @@ class TestContributionsStatus:
         # With real Meilisearch, status should be "healthy"
         assert data["meilisearch_status"] in ["healthy", "not_configured"]
 
-    def test_get_contributions_status_no_data(self, test_client):
-        """Test getting status for user with no contributions"""
-        response = test_client.get(
-            "/users/nonexistent/weeks/2024-W21/contributions/status"
-        )
+    def test_get_contributions_status_no_data(self, test_client) -> None:
+        """Test getting status for user with no contributions."""
+        response = test_client.get("/users/nonexistent/weeks/2024-W21/contributions/status")
         assert response.status_code == 200
 
         data = response.json()
@@ -382,11 +345,11 @@ class TestContributionsStatus:
 
 
 class TestQuestionAnswering:
-    """Test question answering endpoints"""
+    """Test question answering endpoints."""
 
     @pytest.fixture(autouse=True)
-    def setup_test_data(self, test_client, clean_services):
-        """Set up test data before each test using unified workflow"""
+    def setup_test_data(self, test_client, clean_services) -> None:
+        """Set up test data before each test using unified workflow."""
         # Use unified workflow to ingest and summarize test data
         self.test_contributions = get_test_contributions_metadata_request()
 
@@ -406,8 +369,8 @@ class TestQuestionAnswering:
                 if status_data["status"] in ["done", "failed"]:
                     break
 
-    async def test_ask_question_success(self, test_client):
-        """Test successful question answering"""
+    async def test_ask_question_success(self, test_client) -> None:
+        """Test successful question answering."""
         request_data = {
             "question": "What commits were made?",
             "context": {
@@ -418,9 +381,7 @@ class TestQuestionAnswering:
             },
         }
 
-        response = test_client.post(
-            "/users/testuser/weeks/2024-W21/questions", json=request_data
-        )
+        response = test_client.post("/users/testuser/weeks/2024-W21/questions", json=request_data)
 
         assert response.status_code == 200
         data = response.json()
@@ -452,8 +413,8 @@ class TestQuestionAnswering:
         assert data["conversation_id"] == "testuser:2024-W21"
 
     @pytest.mark.skip(reason="Conversation history persistence is being refactored")
-    async def test_conversation_history_endpoints(self, test_client):
-        """Test conversation history API endpoints"""
+    async def test_conversation_history_endpoints(self, test_client) -> None:
+        """Test conversation history API endpoints."""
         user = "testuser"
         week = "2024-W21"
 
@@ -463,15 +424,11 @@ class TestQuestionAnswering:
             "context": {"include_evidence": True, "reasoning_depth": "detailed"},
         }
 
-        response = test_client.post(
-            f"/users/{user}/weeks/{week}/questions", json=request_data
-        )
+        response = test_client.post(f"/users/{user}/weeks/{week}/questions", json=request_data)
         assert response.status_code == 200
 
         # Test getting conversation history
-        history_response = test_client.get(
-            f"/users/{user}/weeks/{week}/conversations/history"
-        )
+        history_response = test_client.get(f"/users/{user}/weeks/{week}/conversations/history")
         assert history_response.status_code == 200
 
         history_data = history_response.json()
@@ -493,9 +450,7 @@ class TestQuestionAnswering:
         assert "session_id" in clear_data
 
         # Verify history is cleared
-        history_after_clear = test_client.get(
-            f"/users/{user}/weeks/{week}/conversations/history"
-        )
+        history_after_clear = test_client.get(f"/users/{user}/weeks/{week}/conversations/history")
         assert history_after_clear.status_code == 200
 
         cleared_history = history_after_clear.json()
@@ -506,11 +461,11 @@ class TestQuestionAnswering:
 
 @pytest.mark.usefixtures("mock_summary_for_api")
 class TestSummaryGeneration:
-    """Test summary generation endpoints (Legacy standalone + Unified workflow)"""
+    """Test summary generation endpoints (Legacy standalone + Unified workflow)."""
 
     @pytest.fixture(autouse=True)
-    def setup_test_data(self, test_client, clean_services, mock_summary_for_api):
-        """Set up test data before each test using unified workflow"""
+    def setup_test_data(self, test_client, clean_services, mock_summary_for_api) -> None:
+        """Set up test data before each test using unified workflow."""
         # Use unified workflow to ingest and summarize test data
         self.test_contributions = get_test_contributions_metadata_request()
 
@@ -532,17 +487,15 @@ class TestSummaryGeneration:
                     assert "summary" in status_data
                     self.task_summary = status_data["summary"]
                     break
-                elif status_data["status"] == "failed":
-                    pytest.fail(
-                        f"Setup task failed: {status_data.get('error_message', 'Unknown error')}"
-                    )
+                if status_data["status"] == "failed":
+                    pytest.fail(f"Setup task failed: {status_data.get('error_message', 'Unknown error')}")
             if i == 29:  # Last iteration
                 pytest.fail(
                     f"Task did not complete in time. Final status: {status_data.get('status', 'unknown') if 'status_data' in locals() else 'no response'}"
                 )
 
-    def test_summary_via_unified_workflow(self, test_client):
-        """Test that summary is available through unified workflow"""
+    def test_summary_via_unified_workflow(self, test_client) -> None:
+        """Test that summary is available through unified workflow."""
         # Get the completed task status which should include summary
         response = test_client.get(f"/ingest/{self.task_id}")
         assert response.status_code == 200
@@ -578,8 +531,8 @@ class TestSummaryGeneration:
         assert "generated_at" in metadata
         assert "processing_time_ms" in metadata
 
-    def test_generate_summary_standalone_success(self, test_client):
-        """Test legacy standalone summary generation (if still supported)"""
+    def test_generate_summary_standalone_success(self, test_client) -> None:
+        """Test legacy standalone summary generation (if still supported)."""
         summary_request = {
             "user": "testuser",
             "week": "2024-W21",
@@ -589,9 +542,7 @@ class TestSummaryGeneration:
             "max_detail_level": "comprehensive",
         }
 
-        response = test_client.post(
-            "/users/testuser/weeks/2024-W21/summary", json=summary_request
-        )
+        response = test_client.post("/users/testuser/weeks/2024-W21/summary", json=summary_request)
         assert response.status_code == 200
 
         data = response.json()
@@ -625,8 +576,8 @@ class TestSummaryGeneration:
         assert len(data["overview"]) > 0
         assert metadata["total_contributions"] >= 2  # At least 2 from test data
 
-    def test_generate_summary_no_contributions(self, test_client, clean_services):
-        """Test summary generation when no contributions exist"""
+    def test_generate_summary_no_contributions(self, test_client, clean_services) -> None:
+        """Test summary generation when no contributions exist."""
         summary_request = {
             "user": "nocontribuser",
             "week": "2024-W21",
@@ -636,18 +587,14 @@ class TestSummaryGeneration:
             "max_detail_level": "brief",
         }
 
-        response = test_client.post(
-            "/users/nocontribuser/weeks/2024-W21/summary", json=summary_request
-        )
-        assert (
-            response.status_code == 404
-        )  # Should return 404 when no contributions exist
+        response = test_client.post("/users/nocontribuser/weeks/2024-W21/summary", json=summary_request)
+        assert response.status_code == 404  # Should return 404 when no contributions exist
 
         data = response.json()
         assert "No contributions found" in data["error"]
 
-    def test_generate_summary_stream_success(self, test_client):
-        """Test successful streaming summary generation (if still supported)"""
+    def test_generate_summary_stream_success(self, test_client) -> None:
+        """Test successful streaming summary generation (if still supported)."""
         summary_request = {
             "user": "testuser",
             "week": "2024-W21",
@@ -657,9 +604,7 @@ class TestSummaryGeneration:
             "max_detail_level": "standard",
         }
 
-        response = test_client.post(
-            "/users/testuser/weeks/2024-W21/summary/stream", json=summary_request
-        )
+        response = test_client.post("/users/testuser/weeks/2024-W21/summary/stream", json=summary_request)
         assert response.status_code == 200
         assert response.headers["content-type"] == "text/plain; charset=utf-8"
 
@@ -681,33 +626,25 @@ class TestSummaryGeneration:
         assert "complete" in chunk_types
 
         # Find the metadata chunk
-        metadata_chunk = next(
-            (chunk for chunk in chunks if chunk.get("chunk_type") == "metadata"), None
-        )
+        metadata_chunk = next((chunk for chunk in chunks if chunk.get("chunk_type") == "metadata"), None)
         assert metadata_chunk is not None
         assert "metadata" in metadata_chunk
-        assert (
-            metadata_chunk["metadata"]["total_contributions"] >= 2
-        )  # At least 2 from test data
+        assert metadata_chunk["metadata"]["total_contributions"] >= 2  # At least 2 from test data
 
         # Find the completion chunk
-        complete_chunk = next(
-            (chunk for chunk in chunks if chunk.get("chunk_type") == "complete"), None
-        )
+        complete_chunk = next((chunk for chunk in chunks if chunk.get("chunk_type") == "complete"), None)
         assert complete_chunk is not None
         assert "summary_id" in complete_chunk["metadata"]
         assert "processing_time_ms" in complete_chunk["metadata"]
 
-    def test_get_summary_success(self, test_client):
-        """Test retrieving a previously generated summary by ID"""
+    def test_get_summary_success(self, test_client) -> None:
+        """Test retrieving a previously generated summary by ID."""
         # Use the summary from the unified workflow setup
         if hasattr(self, "task_summary"):
             summary_id = self.task_summary["summary_id"]
 
             # Retrieve summary by ID
-            response = test_client.get(
-                f"/users/testuser/weeks/2024-W21/summaries/{summary_id}"
-            )
+            response = test_client.get(f"/users/testuser/weeks/2024-W21/summaries/{summary_id}")
             assert response.status_code == 200
 
             data = response.json()
@@ -717,21 +654,19 @@ class TestSummaryGeneration:
             assert "overview" in data
             assert "metadata" in data
 
-    def test_get_summary_not_found(self, test_client):
-        """Test retrieving a non-existent summary"""
+    def test_get_summary_not_found(self, test_client) -> None:
+        """Test retrieving a non-existent summary."""
         fake_summary_id = generate_uuidv7()
-        response = test_client.get(
-            f"/users/testuser/weeks/2024-W21/summaries/{fake_summary_id}"
-        )
+        response = test_client.get(f"/users/testuser/weeks/2024-W21/summaries/{fake_summary_id}")
         assert response.status_code == 404
         assert "not found" in response.json()["error"]
 
 
 class TestDocumentation:
-    """Test API documentation endpoints"""
+    """Test API documentation endpoints."""
 
-    def test_openapi_json(self, test_client):
-        """Test OpenAPI JSON endpoint"""
+    def test_openapi_json(self, test_client) -> None:
+        """Test OpenAPI JSON endpoint."""
         response = test_client.get("/openapi.json")
         assert response.status_code == 200
 
@@ -740,18 +675,18 @@ class TestDocumentation:
         assert "info" in data
         assert data["info"]["title"] == "Prompteus GenAI Service"
 
-    def test_scalar_ui(self, test_client):
-        """Test Scalar UI endpoint"""
+    def test_scalar_ui(self, test_client) -> None:
+        """Test Scalar UI endpoint."""
         response = test_client.get("/reference")
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
 
 
 class TestErrorHandling:
-    """Test error handling scenarios"""
+    """Test error handling scenarios."""
 
-    def test_invalid_json(self, test_client):
-        """Test handling of invalid JSON"""
+    def test_invalid_json(self, test_client) -> None:
+        """Test handling of invalid JSON."""
         response = test_client.post(
             "/contributions",
             content="invalid json",
@@ -759,8 +694,8 @@ class TestErrorHandling:
         )
         assert response.status_code == 422
 
-    def test_missing_required_fields(self, test_client):
-        """Test handling of missing required fields"""
+    def test_missing_required_fields(self, test_client) -> None:
+        """Test handling of missing required fields."""
         request_data = {
             "user": "testuser"
             # Missing week and contributions
@@ -775,10 +710,10 @@ class TestErrorHandling:
 
 @pytest.mark.usefixtures("mock_summary_for_api")
 class TestFullWorkflow:
-    """Test complete workflow scenarios"""
+    """Test complete workflow scenarios."""
 
-    def test_complete_unified_workflow(self, test_client, clean_services):
-        """Test the complete unified workflow from ingestion to summarization to Q&A"""
+    def test_complete_unified_workflow(self, test_client, clean_services) -> None:
+        """Test the complete unified workflow from ingestion to summarization to Q&A."""
         # 1. Start unified ingestion + summarization task
         contributions_data = get_test_contributions_metadata_request(
             user="workflowuser",
@@ -809,26 +744,20 @@ class TestFullWorkflow:
             status_data = status_response.json()
             if status_data["status"] == "done":
                 # Verify both ingestion and summarization completed
-                assert (
-                    status_data["ingested_count"] >= 0
-                )  # May be 0 if GitHub API mocked
+                assert status_data["ingested_count"] >= 0  # May be 0 if GitHub API mocked
                 assert "summary" in status_data  # Summary included in unified workflow
                 summary = status_data["summary"]
                 assert "summary_id" in summary
                 assert summary["user"] == "workflowuser"
                 assert summary["week"] == "2024-W22"
                 break
-            elif status_data["status"] == "failed":
-                pytest.fail(
-                    f"Unified task failed: {status_data.get('error_message', 'Unknown error')}"
-                )
+            if status_data["status"] == "failed":
+                pytest.fail(f"Unified task failed: {status_data.get('error_message', 'Unknown error')}")
         else:
             pytest.fail("Unified task did not complete within timeout")
 
         # 2. Check contributions status
-        status_response = test_client.get(
-            "/users/workflowuser/weeks/2024-W22/contributions/status"
-        )
+        status_response = test_client.get("/users/workflowuser/weeks/2024-W22/contributions/status")
         assert status_response.status_code == 200
         status_data = status_response.json()
         assert status_data["user"] == "workflowuser"
@@ -844,9 +773,7 @@ class TestFullWorkflow:
             },
         }
 
-        q1_response = test_client.post(
-            "/users/workflowuser/weeks/2024-W22/questions", json=question1
-        )
+        q1_response = test_client.post("/users/workflowuser/weeks/2024-W22/questions", json=question1)
         assert q1_response.status_code == 200
         q1_data = q1_response.json()
         assert "answer" in q1_data
@@ -862,23 +789,19 @@ class TestFullWorkflow:
             },
         }
 
-        q2_response = test_client.post(
-            "/users/workflowuser/weeks/2024-W22/questions", json=question2
-        )
+        q2_response = test_client.post("/users/workflowuser/weeks/2024-W22/questions", json=question2)
         assert q2_response.status_code == 200
         q2_data = q2_response.json()
         assert "answer" in q2_data
 
         # 4. Retrieve questions by ID
         q1_id = q1_data["question_id"]
-        retrieve_response = test_client.get(
-            f"/users/workflowuser/weeks/2024-W22/questions/{q1_id}"
-        )
+        retrieve_response = test_client.get(f"/users/workflowuser/weeks/2024-W22/questions/{q1_id}")
         assert retrieve_response.status_code == 200
         assert retrieve_response.json()["question_id"] == q1_id
 
-    def test_multiple_users_same_week_unified(self, test_client, clean_services):
-        """Test handling multiple users in the same week with unified workflow"""
+    def test_multiple_users_same_week_unified(self, test_client, clean_services) -> None:
+        """Test handling multiple users in the same week with unified workflow."""
         week = "2024-W23"
 
         # Prepare metadata for both users
@@ -929,12 +852,8 @@ class TestFullWorkflow:
             },
         }
 
-        q1_response = test_client.post(
-            f"/users/user1/weeks/{week}/questions", json=question
-        )
-        q2_response = test_client.post(
-            f"/users/user2/weeks/{week}/questions", json=question
-        )
+        q1_response = test_client.post(f"/users/user1/weeks/{week}/questions", json=question)
+        q2_response = test_client.post(f"/users/user2/weeks/{week}/questions", json=question)
 
         assert q1_response.status_code == 200
         assert q2_response.status_code == 200
@@ -948,12 +867,10 @@ class TestFullWorkflow:
         assert q1_data["week"] == week
         assert q2_data["week"] == week
 
-    def test_legacy_workflow_compatibility(self, test_client, clean_services):
-        """Test that legacy workflow still works (backward compatibility)"""
+    def test_legacy_workflow_compatibility(self, test_client, clean_services) -> None:
+        """Test that legacy workflow still works (backward compatibility)."""
         # Use legacy format (without repository, full contribution data)
-        legacy_data = get_test_contributions_request(
-            user="legacyuser", week="2024-W24", contribution_types=["commit"]
-        )
+        legacy_data = get_test_contributions_request(user="legacyuser", week="2024-W24", contribution_types=["commit"])
 
         # This might fail validation due to missing repository field
         response = test_client.post("/contributions", json=legacy_data)

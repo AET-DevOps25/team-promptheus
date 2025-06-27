@@ -1,48 +1,50 @@
-import pytest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
-from src.services import SummaryService, ContributionsIngestionService
+import pytest
+
 from src.models import (
+    CommitAuthor,
+    CommitContribution,
+    CommitStats,
+    CommitTree,
+    GitHubContribution,
+    GitHubUser,
+    IssueContribution,
+    PullRequestContribution,
+    PullRequestRef,
+    ReleaseContribution,
+    SummaryMetadata,
     SummaryRequest,
     SummaryResponse,
-    SummaryMetadata,
     generate_uuidv7,
-    CommitContribution,
-    PullRequestContribution,
-    IssueContribution,
-    ReleaseContribution,
-    CommitAuthor,
-    CommitTree,
-    CommitStats,
-    GitHubUser,
-    PullRequestRef,
 )
+from src.services import ContributionsIngestionService, SummaryService
 
 
 class TestSummaryService:
-    """Test the SummaryService class with strongly-typed contributions"""
+    """Test the SummaryService class with strongly-typed contributions."""
 
     @pytest.fixture
-    def mock_ingestion_service(self):
-        """Create a mock ingestion service"""
+    def mock_ingestion_service(self) -> MagicMock:
+        """Create a mock ingestion service."""
         service = MagicMock(spec=ContributionsIngestionService)
         service.get_user_week_contributions = MagicMock()
         return service
 
     @pytest.fixture
-    def summary_service(self, mock_ingestion_service):
-        """Create a SummaryService instance with mocked dependencies"""
+    def summary_service(self, mock_ingestion_service) -> SummaryService:
+        """Create a SummaryService instance with mocked dependencies."""
         return SummaryService(mock_ingestion_service)
 
     @pytest.fixture
-    def sample_contributions(self):
-        """Create sample strongly-typed contributions for testing"""
+    def sample_contributions(self) -> list[GitHubContribution]:
+        """Create sample strongly-typed contributions for testing."""
         commit = CommitContribution(
             id="commit-123",
             repository="test/repo",
             author="testuser",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             url="https://api.github.com/repos/test/repo/commits/commit-123",
             sha="commit-123",
             message="Fix authentication bug",
@@ -54,12 +56,12 @@ class TestSummaryService:
             author_info=CommitAuthor(
                 name="Test User",
                 email="testuser@example.com",
-                date=datetime.now(timezone.utc),
+                date=datetime.now(UTC),
             ),
             committer=CommitAuthor(
                 name="Test User",
                 email="testuser@example.com",
-                date=datetime.now(timezone.utc),
+                date=datetime.now(UTC),
             ),
             stats=CommitStats(total=15, additions=10, deletions=5),
             files=[],
@@ -69,7 +71,7 @@ class TestSummaryService:
             id="pr-42",
             repository="test/repo",
             author="testuser",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             url="https://api.github.com/repos/test/repo/pulls/42",
             number=42,
             title="Add user management feature",
@@ -106,7 +108,7 @@ class TestSummaryService:
             id="issue-15",
             repository="test/repo",
             author="testuser",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             url="https://api.github.com/repos/test/repo/issues/15",
             number=15,
             title="Performance optimization needed",
@@ -122,8 +124,8 @@ class TestSummaryService:
         return [commit, pr, issue]
 
     @pytest.fixture
-    def summary_request(self):
-        """Create a sample summary request"""
+    def summary_request(self) -> SummaryRequest:
+        """Create a sample summary request."""
         return SummaryRequest(
             user="testuser",
             week="2024-W21",
@@ -140,17 +142,13 @@ class TestSummaryService:
         mock_ingestion_service,
         sample_contributions,
         summary_request,
-    ):
-        """Test generating a weekly progress report with contributions"""
+    ) -> None:
+        """Test generating a weekly progress report with contributions."""
         # Setup mock
-        mock_ingestion_service.get_user_week_contributions.return_value = (
-            sample_contributions
-        )
+        mock_ingestion_service.get_user_week_contributions.return_value = sample_contributions
 
         # Generate summary
-        result = await summary_service.generate_summary(
-            "testuser", "2024-W21", summary_request
-        )
+        result = await summary_service.generate_summary("testuser", "2024-W21", summary_request)
 
         # Verify result structure
         assert isinstance(result, SummaryResponse)
@@ -181,15 +179,13 @@ class TestSummaryService:
     @pytest.mark.asyncio
     async def test_generate_summary_no_contributions(
         self, summary_service, mock_ingestion_service, summary_request
-    ):
-        """Test generating a summary when no contributions exist"""
+    ) -> None:
+        """Test generating a summary when no contributions exist."""
         # Setup mock to return empty list
         mock_ingestion_service.get_user_week_contributions.return_value = []
 
         # Generate summary
-        result = await summary_service.generate_summary(
-            "testuser", "2024-W21", summary_request
-        )
+        result = await summary_service.generate_summary("testuser", "2024-W21", summary_request)
 
         # Verify empty summary structure
         assert isinstance(result, SummaryResponse)
@@ -218,19 +214,16 @@ class TestSummaryService:
         mock_ingestion_service,
         sample_contributions,
         summary_request,
-    ):
-        """Test streaming weekly progress report generation"""
+    ) -> None:
+        """Test streaming weekly progress report generation."""
         # Setup mock
-        mock_ingestion_service.get_user_week_contributions.return_value = (
-            sample_contributions
-        )
+        mock_ingestion_service.get_user_week_contributions.return_value = sample_contributions
 
         # Generate streaming summary
-        chunks = []
-        async for chunk in summary_service.generate_summary_stream(
-            "testuser", "2024-W21", summary_request
-        ):
-            chunks.append(chunk)
+        chunks = [
+            chunk
+            async for chunk in summary_service.generate_summary_stream("testuser", "2024-W21", summary_request)
+        ]
 
         # Verify we got chunks
         assert len(chunks) > 0
@@ -243,17 +236,13 @@ class TestSummaryService:
         assert "complete" in chunk_types
 
         # Find and verify metadata chunk
-        metadata_chunk = next(
-            (chunk for chunk in chunks if chunk.chunk_type == "metadata"), None
-        )
+        metadata_chunk = next((chunk for chunk in chunks if chunk.chunk_type == "metadata"), None)
         assert metadata_chunk is not None
         assert metadata_chunk.metadata is not None
         assert metadata_chunk.metadata["total_contributions"] == 3
 
         # Find and verify completion chunk
-        complete_chunk = next(
-            (chunk for chunk in chunks if chunk.chunk_type == "complete"), None
-        )
+        complete_chunk = next((chunk for chunk in chunks if chunk.chunk_type == "complete"), None)
         assert complete_chunk is not None
         assert "summary_id" in complete_chunk.metadata
         assert "processing_time_ms" in complete_chunk.metadata
@@ -275,41 +264,34 @@ class TestSummaryService:
     @pytest.mark.asyncio
     async def test_generate_summary_stream_no_contributions(
         self, summary_service, mock_ingestion_service, summary_request
-    ):
-        """Test streaming progress report when no contributions exist"""
+    ) -> None:
+        """Test streaming progress report when no contributions exist."""
         # Setup mock to return empty list
         mock_ingestion_service.get_user_week_contributions.return_value = []
 
         # Generate streaming summary
-        chunks = []
-        async for chunk in summary_service.generate_summary_stream(
-            "testuser", "2024-W21", summary_request
-        ):
-            chunks.append(chunk)
+        chunks = [
+            chunk
+            async for chunk in summary_service.generate_summary_stream("testuser", "2024-W21", summary_request)
+        ]
 
         # Verify we got chunks
         assert len(chunks) >= 2  # At least content and complete
 
         # Find content chunk
-        content_chunk = next(
-            (chunk for chunk in chunks if chunk.chunk_type == "content"), None
-        )
+        content_chunk = next((chunk for chunk in chunks if chunk.chunk_type == "content"), None)
         assert content_chunk is not None
         assert "No contributions found" in content_chunk.content
 
         # Find completion chunk
-        complete_chunk = next(
-            (chunk for chunk in chunks if chunk.chunk_type == "complete"), None
-        )
+        complete_chunk = next((chunk for chunk in chunks if chunk.chunk_type == "complete"), None)
         assert complete_chunk is not None
         assert complete_chunk.metadata["total_contributions"] == 0
 
-    def test_generate_metadata(self, summary_service, sample_contributions):
-        """Test metadata generation with strongly-typed contributions"""
-        start_time = datetime.now(timezone.utc)
-        metadata = summary_service._generate_metadata(
-            sample_contributions, "2024-W21", start_time, 100
-        )
+    def test_generate_metadata(self, summary_service, sample_contributions) -> None:
+        """Test metadata generation with strongly-typed contributions."""
+        start_time = datetime.now(UTC)
+        metadata = summary_service._generate_metadata(sample_contributions, "2024-W21", start_time, 100)
 
         assert isinstance(metadata, SummaryMetadata)
         assert metadata.total_contributions == 3
@@ -322,20 +304,14 @@ class TestSummaryService:
         assert "test/repo" in metadata.repositories
         assert metadata.processing_time_ms == 100
 
-    def test_format_contributions_for_prompt(
-        self, summary_service, sample_contributions
-    ):
-        """Test formatting strongly-typed contributions for AI prompt"""
-        formatted = summary_service._format_contributions_for_prompt(
-            sample_contributions
-        )
+    def test_format_contributions_for_prompt(self, summary_service, sample_contributions) -> None:
+        """Test formatting strongly-typed contributions for AI prompt."""
+        formatted = summary_service._format_contributions_for_prompt(sample_contributions)
 
         assert isinstance(formatted, str)
         assert len(formatted) > 0
         assert "COMMIT in test/repo: Fix authentication bug" in formatted
-        assert (
-            "PULL REQUEST in test/repo: Add user management feature (open)" in formatted
-        )
+        assert "PULL REQUEST in test/repo: Add user management feature (open)" in formatted
         assert "ISSUE in test/repo: Performance optimization needed (open)" in formatted
 
     @pytest.mark.asyncio
@@ -345,12 +321,10 @@ class TestSummaryService:
         mock_ingestion_service,
         sample_contributions,
         summary_request,
-    ):
-        """Test that the progress report has the expected structure"""
+    ) -> None:
+        """Test that the progress report has the expected structure."""
         # Setup mock
-        mock_ingestion_service.get_user_week_contributions.return_value = (
-            sample_contributions
-        )
+        mock_ingestion_service.get_user_week_contributions.return_value = sample_contributions
 
         # Generate progress report
         progress_report = await summary_service._generate_progress_report(
@@ -370,8 +344,8 @@ class TestSummaryService:
 
         assert len(progress_report.summary) > 0
 
-    def test_get_summary_exists(self, summary_service):
-        """Test retrieving an existing summary"""
+    def test_get_summary_exists(self, summary_service) -> None:
+        """Test retrieving an existing summary."""
         # Create a mock summary
         summary_id = generate_uuidv7()
         mock_summary = SummaryResponse(
@@ -394,10 +368,10 @@ class TestSummaryService:
                 releases_count=0,
                 repositories=["test/repo"],
                 time_period="2024-W21",
-                generated_at=datetime.now(timezone.utc),
+                generated_at=datetime.now(UTC),
                 processing_time_ms=100,
             ),
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
 
         # Store the summary
@@ -407,23 +381,21 @@ class TestSummaryService:
         result = summary_service.get_summary(summary_id)
         assert result == mock_summary
 
-    def test_get_summary_not_exists(self, summary_service):
-        """Test retrieving a non-existent summary"""
+    def test_get_summary_not_exists(self, summary_service) -> None:
+        """Test retrieving a non-existent summary."""
         fake_id = generate_uuidv7()
         result = summary_service.get_summary(fake_id)
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_summary_with_releases(
-        self, summary_service, mock_ingestion_service, summary_request
-    ):
-        """Test progress report generation with releases"""
+    async def test_summary_with_releases(self, summary_service, mock_ingestion_service, summary_request) -> None:
+        """Test progress report generation with releases."""
         # Create contributions including a release
         release = ReleaseContribution(
             id="release-101",
             repository="test/repo",
             author="testuser",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             url="https://api.github.com/repos/test/repo/releases/101",
             tag_name="v1.2.0",
             target_commitish="main",
@@ -431,7 +403,7 @@ class TestSummaryService:
             body="## What's New\n- Added user management\n- Fixed authentication bugs",
             draft=False,
             prerelease=False,
-            published_at=datetime.now(timezone.utc),
+            published_at=datetime.now(UTC),
             author_info=GitHubUser(login="testuser", id=12345, type="User"),
             assets=[],
         )
@@ -439,46 +411,32 @@ class TestSummaryService:
         contributions = [release]
         mock_ingestion_service.get_user_week_contributions.return_value = contributions
 
-        result = await summary_service.generate_summary(
-            "testuser", "2024-W21", summary_request
-        )
+        result = await summary_service.generate_summary("testuser", "2024-W21", summary_request)
 
         # Verify releases are included
         assert result.metadata.releases_count == 1
         assert result.releases_summary == "Published 1 releases"
 
     @pytest.mark.asyncio
-    async def test_summary_error_handling(
-        self, summary_service, mock_ingestion_service, summary_request
-    ):
-        """Test error handling in summary generation"""
+    async def test_summary_error_handling(self, summary_service, mock_ingestion_service, summary_request) -> None:
+        """Test error handling in summary generation."""
         # Setup mock to raise an exception
-        mock_ingestion_service.get_user_week_contributions.side_effect = Exception(
-            "Test error"
-        )
+        mock_ingestion_service.get_user_week_contributions.side_effect = Exception("Test error")
 
         # Should propagate the exception
         with pytest.raises(Exception, match="Test error"):
-            await summary_service.generate_summary(
-                "testuser", "2024-W21", summary_request
-            )
+            await summary_service.generate_summary("testuser", "2024-W21", summary_request)
 
     @pytest.mark.asyncio
-    async def test_streaming_error_handling(
-        self, summary_service, mock_ingestion_service, summary_request
-    ):
-        """Test error handling in streaming summary generation"""
+    async def test_streaming_error_handling(self, summary_service, mock_ingestion_service, summary_request) -> None:
+        """Test error handling in streaming summary generation."""
         # Setup mock to raise an exception
-        mock_ingestion_service.get_user_week_contributions.side_effect = Exception(
-            "Test error"
-        )
+        mock_ingestion_service.get_user_week_contributions.side_effect = Exception("Test error")
 
         # Should yield an error chunk
-        chunks = []
-        async for chunk in summary_service.generate_summary_stream(
-            "testuser", "2024-W21", summary_request
-        ):
-            chunks.append(chunk)
+        chunks = [
+            chunk async for chunk in summary_service.generate_summary_stream("testuser", "2024-W21", summary_request)
+        ]
 
         # Should have at least one error chunk
         error_chunks = [chunk for chunk in chunks if chunk.chunk_type == "error"]

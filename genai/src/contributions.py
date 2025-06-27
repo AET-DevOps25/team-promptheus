@@ -1,34 +1,34 @@
-"""
-GitHub Content Service
+"""GitHub Content Service.
 
 Service for fetching actual GitHub contribution content based on metadata.
 This service handles authentication and fetching of commits, pull requests, issues, and releases.
 """
 
-import os
 import base64
-from datetime import datetime, timezone, timedelta
-from typing import List, Optional
-import structlog
+import os
+from datetime import UTC, datetime, timedelta
+from typing import Any
+
 import requests
+import structlog
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from .models import (
-    ContributionType,
-    ContributionMetadata,
-    GitHubContribution,
-    CommitContribution,
-    PullRequestContribution,
-    IssueContribution,
-    ReleaseContribution,
-    GitHubUser,
     CommitAuthor,
-    CommitTree,
+    CommitContribution,
+    CommitFile,
     CommitParent,
     CommitStats,
-    CommitFile,
+    CommitTree,
+    ContributionMetadata,
+    ContributionType,
+    GitHubContribution,
+    GitHubUser,
+    IssueContribution,
+    PullRequestContribution,
     PullRequestRef,
+    ReleaseContribution,
 )
 
 logger = structlog.get_logger()
@@ -46,23 +46,19 @@ RETRY_STATUS_CODES = [429, 500, 502, 503, 504]
 
 
 class GitHubContentService:
-    """Service for fetching GitHub contribution content from GitHub API"""
+    """Service for fetching GitHub contribution content from GitHub API."""
 
-    def __init__(self, github_token: Optional[str] = None):
-        self.github_token = (
-            github_token or os.getenv("GITHUB_TOKEN") or os.getenv("GH_PAT")
-        )
+    def __init__(self, github_token: str | None = None) -> None:
+        self.github_token = github_token or os.getenv("GITHUB_TOKEN") or os.getenv("GH_PAT")
 
         if not self.github_token:
-            logger.warning(
-                "No GitHub token provided - API requests will be rate limited"
-            )
+            logger.warning("No GitHub token provided - API requests will be rate limited")
 
         self.session = self._create_session()
         self._configure_authentication()
 
     def _create_session(self) -> requests.Session:
-        """Create a requests session with retry strategy"""
+        """Create a requests session with retry strategy."""
         session = requests.Session()
 
         # Configure retry strategy
@@ -78,7 +74,7 @@ class GitHubContentService:
         return session
 
     def _configure_authentication(self) -> None:
-        """Configure GitHub API authentication headers"""
+        """Configure GitHub API authentication headers."""
         headers = {"Accept": "application/vnd.github.v3+json", "User-Agent": USER_AGENT}
 
         if self.github_token:
@@ -91,10 +87,9 @@ class GitHubContentService:
         repository: str,
         user: str,
         week: str,
-        metadata_list: List[ContributionMetadata],
-    ) -> List[GitHubContribution]:
-        """Fetch actual contribution content based on metadata for selected contributions only"""
-
+        metadata_list: list[ContributionMetadata],
+    ) -> list[GitHubContribution]:
+        """Fetch actual contribution content based on metadata for selected contributions only."""
         # Only fetch contributions marked as selected
         selected_metadata = [m for m in metadata_list if self._get_selected(m)]
 
@@ -115,7 +110,7 @@ class GitHubContentService:
         week_start, week_end = self._parse_iso_week(week)
 
         # Group metadata by type for efficient fetching
-        metadata_by_type = {}
+        metadata_by_type: dict[ContributionType, list[ContributionMetadata]] = {}
         for metadata in selected_metadata:
             contrib_type = self._get_type(metadata)
             if contrib_type not in metadata_by_type:
@@ -126,27 +121,15 @@ class GitHubContentService:
         for contrib_type, type_metadata in metadata_by_type.items():
             try:
                 if contrib_type == ContributionType.COMMIT:
-                    contributions.extend(
-                        await self._fetch_commits_by_metadata(repository, type_metadata)
-                    )
+                    contributions.extend(await self._fetch_commits_by_metadata(repository, type_metadata))
                 elif contrib_type == ContributionType.PULL_REQUEST:
-                    contributions.extend(
-                        await self._fetch_pull_requests_by_metadata(
-                            repository, type_metadata
-                        )
-                    )
+                    contributions.extend(await self._fetch_pull_requests_by_metadata(repository, type_metadata))
                 elif contrib_type == ContributionType.ISSUE:
-                    contributions.extend(
-                        await self._fetch_issues_by_metadata(repository, type_metadata)
-                    )
+                    contributions.extend(await self._fetch_issues_by_metadata(repository, type_metadata))
                 elif contrib_type == ContributionType.RELEASE:
-                    contributions.extend(
-                        await self._fetch_releases_by_metadata(
-                            repository, type_metadata
-                        )
-                    )
+                    contributions.extend(await self._fetch_releases_by_metadata(repository, type_metadata))
             except Exception as e:
-                logger.error(
+                logger.exception(
                     "Error fetching contributions by type",
                     type=contrib_type,
                     error=str(e),
@@ -163,54 +146,48 @@ class GitHubContentService:
 
         return contributions
 
-    def _get_id(self, metadata) -> str:
-        """Safely get ID from metadata (supports both dict and ContributionMetadata objects)"""
+    def _get_id(self, metadata: ContributionMetadata | dict[str, Any]) -> str:
+        """Safely get ID from metadata (supports both dict and ContributionMetadata objects)."""
         if hasattr(metadata, "id"):
             return metadata.id
-        elif isinstance(metadata, dict):
-            return metadata["id"]
-        else:
-            raise ValueError(f"Cannot get id from metadata: {type(metadata)}")
+        # isinstance check is exhaustive for the union type
+        return metadata["id"]
 
-    def _get_type(self, metadata):
-        """Safely get type from metadata (supports both dict and ContributionMetadata objects)"""
+    def _get_type(self, metadata: ContributionMetadata | dict[str, Any]) -> ContributionType:
+        """Safely get type from metadata (supports both dict and ContributionMetadata objects)."""
         if hasattr(metadata, "type"):
             return metadata.type
-        elif isinstance(metadata, dict):
-            contrib_type = metadata["type"]
-            # Handle string type conversion to enum
-            if isinstance(contrib_type, str):
-                return ContributionType(contrib_type.lower())
-            return contrib_type
-        else:
-            raise ValueError(f"Cannot get type from metadata: {type(metadata)}")
+        # isinstance check is exhaustive for the union type
+        contrib_type = metadata["type"]
+        # Handle string type conversion to enum
+        if isinstance(contrib_type, str):
+            return ContributionType(contrib_type.lower())
+        return contrib_type
 
-    def _get_selected(self, metadata) -> bool:
-        """Safely get selected from metadata (supports both dict and ContributionMetadata objects)"""
+    def _get_selected(self, metadata: ContributionMetadata | dict[str, Any]) -> bool:
+        """Safely get selected from metadata (supports both dict and ContributionMetadata objects)."""
         if hasattr(metadata, "selected"):
             return metadata.selected
-        elif isinstance(metadata, dict):
-            return metadata["selected"]
-        else:
-            raise ValueError(f"Cannot get selected from metadata: {type(metadata)}")
+        # isinstance check is exhaustive for the union type
+        return metadata["selected"]
 
     def _parse_iso_week(self, week: str) -> tuple[datetime, datetime]:
-        """Parse ISO week format (YYYY-WXX) and return start/end dates"""
-        year, week_num = week.split("-W")
-        year = int(year)
-        week_num = int(week_num)
+        """Parse ISO week format (YYYY-WXX) and return start/end dates."""
+        year_str, week_str = week.split("-W")
+        year = int(year_str)
+        week_num = int(week_str)
 
         # Calculate week start and end dates (timezone-aware)
-        jan_1 = datetime(year, 1, 1, tzinfo=timezone.utc)
+        jan_1 = datetime(year, 1, 1, tzinfo=UTC)
         week_start = jan_1 + timedelta(weeks=week_num - 1)
         week_end = week_start + timedelta(days=7)
 
         return week_start, week_end
 
     async def _fetch_commits_by_metadata(
-        self, repository: str, metadata_list: List[ContributionMetadata]
-    ) -> List[GitHubContribution]:
-        """Fetch commits based on metadata list"""
+        self, repository: str, metadata_list: list[ContributionMetadata]
+    ) -> list[GitHubContribution]:
+        """Fetch commits based on metadata list."""
         commits = []
 
         for metadata in metadata_list:
@@ -221,7 +198,7 @@ class GitHubContentService:
                 if commit_detail:
                     commits.append(commit_detail)
             except Exception as e:
-                logger.error(
+                logger.exception(
                     "Error fetching commit by metadata",
                     metadata_id=self._get_id(metadata),
                     error=str(e),
@@ -230,10 +207,8 @@ class GitHubContentService:
 
         return commits
 
-    async def get_commit_details(
-        self, repository: str, sha: str
-    ) -> Optional[GitHubContribution]:
-        """Get detailed information for a specific commit"""
+    async def get_commit_details(self, repository: str, sha: str) -> GitHubContribution | None:
+        """Get detailed information for a specific commit."""
         try:
             url = f"{GITHUB_API_BASE_URL}/repos/{repository}/commits/{sha}"
             response = self.session.get(url, timeout=DEFAULT_TIMEOUT)
@@ -242,19 +217,18 @@ class GitHubContentService:
                 commit_data = response.json()
 
                 # Transform to our format
-                stats_data = commit_data.get(
-                    "stats", {"total": 0, "additions": 0, "deletions": 0}
-                )
+                stats_data = commit_data.get("stats", {"total": 0, "additions": 0, "deletions": 0})
+                created_at = self._parse_datetime(commit_data["commit"]["author"]["date"])
+                if created_at is None:
+                    logger.warning("Invalid created_at datetime for commit", sha=sha)
+                    return None
+
                 return CommitContribution(
                     id=f"commit-{sha}",
-                    type="commit",
+                    type=ContributionType.COMMIT,
                     repository=repository,
-                    author=commit_data["author"]["login"]
-                    if commit_data.get("author")
-                    else "unknown",
-                    created_at=self._parse_datetime(
-                        commit_data["commit"]["author"]["date"]
-                    ),
+                    author=commit_data["author"]["login"] if commit_data.get("author") else "unknown",
+                    created_at=created_at,
                     url=commit_data["url"],
                     sha=sha,
                     message=commit_data["commit"]["message"],
@@ -263,22 +237,17 @@ class GitHubContentService:
                         url=commit_data["commit"]["tree"]["url"],
                     ),
                     parents=[
-                        CommitParent(sha=parent["sha"], url=parent["url"])
-                        for parent in commit_data.get("parents", [])
+                        CommitParent(sha=parent["sha"], url=parent["url"]) for parent in commit_data.get("parents", [])
                     ],
                     author_info=CommitAuthor(
                         name=commit_data["commit"]["author"]["name"],
                         email=commit_data["commit"]["author"]["email"],
-                        date=self._parse_datetime(
-                            commit_data["commit"]["author"]["date"]
-                        ),
+                        date=self._parse_datetime(commit_data["commit"]["author"]["date"]) or created_at,
                     ),
                     committer=CommitAuthor(
                         name=commit_data["commit"]["committer"]["name"],
                         email=commit_data["commit"]["committer"]["email"],
-                        date=self._parse_datetime(
-                            commit_data["commit"]["committer"]["date"]
-                        ),
+                        date=self._parse_datetime(commit_data["commit"]["committer"]["date"]) or created_at,
                     ),
                     stats=CommitStats(
                         total=stats_data["total"],
@@ -300,15 +269,14 @@ class GitHubContentService:
                         for file in commit_data.get("files", [])
                     ],
                 )
-            else:
-                logger.warning(
-                    "Failed to fetch commit details",
-                    status_code=response.status_code,
-                    repository=repository,
-                    sha=sha,
-                )
+            logger.warning(
+                "Failed to fetch commit details",
+                status_code=response.status_code,
+                repository=repository,
+                sha=sha,
+            )
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Error fetching commit details",
                 error=str(e),
                 sha=sha,
@@ -318,9 +286,9 @@ class GitHubContentService:
         return None
 
     async def _fetch_pull_requests_by_metadata(
-        self, repository: str, metadata_list: List[ContributionMetadata]
-    ) -> List[GitHubContribution]:
-        """Fetch pull requests based on metadata list"""
+        self, repository: str, metadata_list: list[ContributionMetadata]
+    ) -> list[GitHubContribution]:
+        """Fetch pull requests based on metadata list."""
         pull_requests = []
 
         for metadata in metadata_list:
@@ -331,7 +299,7 @@ class GitHubContentService:
                 if pr_detail:
                     pull_requests.append(pr_detail)
             except Exception as e:
-                logger.error(
+                logger.exception(
                     "Error fetching pull request by metadata",
                     metadata_id=self._get_id(metadata),
                     error=str(e),
@@ -340,10 +308,8 @@ class GitHubContentService:
 
         return pull_requests
 
-    async def get_pull_request_details(
-        self, repository: str, pr_number: str
-    ) -> Optional[GitHubContribution]:
-        """Get detailed information for a specific pull request"""
+    async def get_pull_request_details(self, repository: str, pr_number: str) -> GitHubContribution | None:
+        """Get detailed information for a specific pull request."""
         try:
             url = f"{GITHUB_API_BASE_URL}/repos/{repository}/pulls/{pr_number}"
             response = self.session.get(url, timeout=DEFAULT_TIMEOUT)
@@ -352,12 +318,17 @@ class GitHubContentService:
                 pr = response.json()
 
                 # Transform to our format
+                created_at = self._parse_datetime(pr["created_at"])
+                if created_at is None:
+                    logger.warning("Invalid created_at datetime for PR", pr_number=pr_number)
+                    return None
+
                 return PullRequestContribution(
                     id=f"pr-{pr['id']}",
-                    type="pull_request",
+                    type=ContributionType.PULL_REQUEST,
                     repository=repository,
                     author=pr["user"]["login"],
-                    created_at=self._parse_datetime(pr["created_at"]),
+                    created_at=created_at,
                     url=pr["url"],
                     number=pr["number"],
                     title=pr["title"],
@@ -374,12 +345,8 @@ class GitHubContentService:
                         ref=pr["head"]["ref"],
                         sha=pr["head"]["sha"],
                         repo={
-                            "name": pr["head"]["repo"]["name"]
-                            if pr["head"]["repo"]
-                            else "",
-                            "full_name": pr["head"]["repo"]["full_name"]
-                            if pr["head"]["repo"]
-                            else "",
+                            "name": pr["head"]["repo"]["name"] if pr["head"]["repo"] else "",
+                            "full_name": pr["head"]["repo"]["full_name"] if pr["head"]["repo"] else "",
                         },
                     ),
                     base=PullRequestRef(
@@ -403,15 +370,14 @@ class GitHubContentService:
                     commits_data=[],
                     files_data=[],
                 )
-            else:
-                logger.warning(
-                    "Failed to fetch pull request details",
-                    status_code=response.status_code,
-                    repository=repository,
-                    pr_number=pr_number,
-                )
+            logger.warning(
+                "Failed to fetch pull request details",
+                status_code=response.status_code,
+                repository=repository,
+                pr_number=pr_number,
+            )
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Error fetching pull request details",
                 error=str(e),
                 pr_number=pr_number,
@@ -421,9 +387,9 @@ class GitHubContentService:
         return None
 
     async def _fetch_issues_by_metadata(
-        self, repository: str, metadata_list: List[ContributionMetadata]
-    ) -> List[GitHubContribution]:
-        """Fetch issues based on metadata list"""
+        self, repository: str, metadata_list: list[ContributionMetadata]
+    ) -> list[GitHubContribution]:
+        """Fetch issues based on metadata list."""
         issues = []
 
         for metadata in metadata_list:
@@ -434,7 +400,7 @@ class GitHubContentService:
                 if issue_detail:
                     issues.append(issue_detail)
             except Exception as e:
-                logger.error(
+                logger.exception(
                     "Error fetching issue by metadata",
                     metadata_id=self._get_id(metadata),
                     error=str(e),
@@ -443,10 +409,8 @@ class GitHubContentService:
 
         return issues
 
-    async def get_issue_details(
-        self, repository: str, issue_number: str
-    ) -> Optional[GitHubContribution]:
-        """Get detailed information for a specific issue"""
+    async def get_issue_details(self, repository: str, issue_number: str) -> GitHubContribution | None:
+        """Get detailed information for a specific issue."""
         try:
             url = f"{GITHUB_API_BASE_URL}/repos/{repository}/issues/{issue_number}"
             response = self.session.get(url, timeout=DEFAULT_TIMEOUT)
@@ -458,12 +422,17 @@ class GitHubContentService:
                 if "pull_request" in issue:
                     return None
 
+                created_at = self._parse_datetime(issue["created_at"])
+                if created_at is None:
+                    logger.warning("Invalid created_at datetime for issue", issue_id=issue["id"])
+                    return None
+
                 return IssueContribution(
                     id=f"issue-{issue['id']}",
-                    type="issue",
+                    type=ContributionType.ISSUE,
                     repository=repository,
                     author=issue["user"]["login"],
-                    created_at=self._parse_datetime(issue["created_at"]),
+                    created_at=created_at,
                     url=issue["url"],
                     number=issue["number"],
                     title=issue["title"],
@@ -479,15 +448,14 @@ class GitHubContentService:
                     comments_data=[],
                     events_data=[],
                 )
-            else:
-                logger.warning(
-                    "Failed to fetch issue details",
-                    status_code=response.status_code,
-                    repository=repository,
-                    issue_number=issue_number,
-                )
+            logger.warning(
+                "Failed to fetch issue details",
+                status_code=response.status_code,
+                repository=repository,
+                issue_number=issue_number,
+            )
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Error fetching issue details",
                 error=str(e),
                 issue_number=issue_number,
@@ -497,9 +465,9 @@ class GitHubContentService:
         return None
 
     async def _fetch_releases_by_metadata(
-        self, repository: str, metadata_list: List[ContributionMetadata]
-    ) -> List[GitHubContribution]:
-        """Fetch releases based on metadata list"""
+        self, repository: str, metadata_list: list[ContributionMetadata]
+    ) -> list[GitHubContribution]:
+        """Fetch releases based on metadata list."""
         releases = []
 
         for metadata in metadata_list:
@@ -510,7 +478,7 @@ class GitHubContentService:
                 if release_detail:
                     releases.append(release_detail)
             except Exception as e:
-                logger.error(
+                logger.exception(
                     "Error fetching release by metadata",
                     metadata_id=self._get_id(metadata),
                     error=str(e),
@@ -519,10 +487,8 @@ class GitHubContentService:
 
         return releases
 
-    async def _get_release_details(
-        self, repository: str, release_id: str
-    ) -> Optional[GitHubContribution]:
-        """Get detailed information for a specific release"""
+    async def _get_release_details(self, repository: str, release_id: str) -> GitHubContribution | None:
+        """Get detailed information for a specific release."""
         try:
             url = f"{GITHUB_API_BASE_URL}/repos/{repository}/releases/{release_id}"
             response = self.session.get(url, timeout=DEFAULT_TIMEOUT)
@@ -530,14 +496,17 @@ class GitHubContentService:
             if response.status_code == 200:
                 release = response.json()
 
+                created_at = self._parse_datetime(release.get("published_at", release.get("created_at")))
+                if created_at is None:
+                    logger.warning("Invalid created_at datetime for release", release_id=release["id"])
+                    return None
+
                 return ReleaseContribution(
                     id=f"release-{release['id']}",
-                    type="release",
+                    type=ContributionType.RELEASE,
                     repository=repository,
                     author=release["author"]["login"],
-                    created_at=self._parse_datetime(
-                        release.get("published_at", release.get("created_at"))
-                    ),
+                    created_at=created_at,
                     url=release["url"],
                     tag_name=release["tag_name"],
                     target_commitish=release["target_commitish"],
@@ -555,15 +524,14 @@ class GitHubContentService:
                     ),
                     assets=[],  # Could be extended to include asset details
                 )
-            else:
-                logger.warning(
-                    "Failed to fetch release details",
-                    status_code=response.status_code,
-                    repository=repository,
-                    release_id=release_id,
-                )
+            logger.warning(
+                "Failed to fetch release details",
+                status_code=response.status_code,
+                repository=repository,
+                release_id=release_id,
+            )
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Error fetching release details",
                 error=str(e),
                 release_id=release_id,
@@ -572,7 +540,7 @@ class GitHubContentService:
 
         return None
 
-    async def get_file_content(self, repository: str, file_path: str) -> Optional[str]:
+    async def get_file_content(self, repository: str, file_path: str) -> str | None:
         """Get content of a file in a repository."""
         try:
             url = f"{GITHUB_API_BASE_URL}/repos/{repository}/contents/{file_path}"
@@ -583,14 +551,13 @@ class GitHubContentService:
                 if data.get("type") == "file" and "content" in data:
                     content_b64 = data["content"]
                     return base64.b64decode(content_b64).decode("utf-8")
-                else:
-                    logger.warning(
-                        "Path is not a file or has no content",
-                        repository=repository,
-                        file_path=file_path,
-                    )
-                    return f"Path '{file_path}' is not a file or has no content."
-            elif response.status_code == 404:
+                logger.warning(
+                    "Path is not a file or has no content",
+                    repository=repository,
+                    file_path=file_path,
+                )
+                return f"Path '{file_path}' is not a file or has no content."
+            if response.status_code == 404:
                 logger.warning(
                     "File not found",
                     status_code=response.status_code,
@@ -598,16 +565,15 @@ class GitHubContentService:
                     file_path=file_path,
                 )
                 return f"File '{file_path}' not found in repository '{repository}'."
-            else:
-                logger.warning(
-                    "Failed to get file content",
-                    status_code=response.status_code,
-                    repository=repository,
-                    file_path=file_path,
-                )
-                return f"Failed to get file content for '{file_path}'. Status: {response.status_code}"
+            logger.warning(
+                "Failed to get file content",
+                status_code=response.status_code,
+                repository=repository,
+                file_path=file_path,
+            )
+            return f"Failed to get file content for '{file_path}'. Status: {response.status_code}"
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Error getting file content",
                 error=str(e),
                 file_path=file_path,
@@ -616,8 +582,8 @@ class GitHubContentService:
 
         return None
 
-    async def search_code(self, repository: str, query: str) -> List[dict]:
-        """Search for code in a repository"""
+    async def search_code(self, repository: str, query: str) -> list[dict]:
+        """Search for code in a repository."""
         try:
             url = f"{GITHUB_API_BASE_URL}/search/code"
             params = {"q": f"{query} repo:{repository}"}
@@ -625,19 +591,16 @@ class GitHubContentService:
 
             if response.status_code == 200:
                 return response.json().get("items", [])
-            else:
-                logger.warning(
-                    "Failed to search code",
-                    status_code=response.status_code,
-                    repository=repository,
-                    query=query,
-                    response_text=response.text,
-                )
-                return []
-        except Exception as e:
-            logger.error(
-                "Error searching code", error=str(e), query=query, repository=repository
+            logger.warning(
+                "Failed to search code",
+                status_code=response.status_code,
+                repository=repository,
+                query=query,
+                response_text=response.text,
             )
+            return []
+        except Exception as e:
+            logger.exception("Error searching code", error=str(e), query=query, repository=repository)
             return []
 
     async def search_issues_and_prs(
@@ -645,9 +608,9 @@ class GitHubContentService:
         repository: str,
         query: str,
         is_pr: bool = False,
-        is_open: Optional[bool] = None,
-    ) -> List[dict]:
-        """Search for issues and PRs in a repository"""
+        is_open: bool | None = None,
+    ) -> list[dict]:
+        """Search for issues and PRs in a repository."""
         try:
             url = f"{GITHUB_API_BASE_URL}/search/issues"
 
@@ -658,24 +621,21 @@ class GitHubContentService:
             elif is_open is False:
                 state_filter = "is:closed"
 
-            params = {
-                "q": f"repo:{repository} {pr_filter} {state_filter} {query}".strip()
-            }
+            params = {"q": f"repo:{repository} {pr_filter} {state_filter} {query}".strip()}
             response = self.session.get(url, params=params, timeout=DEFAULT_TIMEOUT)
 
             if response.status_code == 200:
                 return response.json().get("items", [])
-            else:
-                logger.warning(
-                    "Failed to search issues/prs",
-                    status_code=response.status_code,
-                    repository=repository,
-                    query=query,
-                    response_text=response.text,
-                )
-                return []
+            logger.warning(
+                "Failed to search issues/prs",
+                status_code=response.status_code,
+                repository=repository,
+                query=query,
+                response_text=response.text,
+            )
+            return []
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Error searching issues/prs",
                 error=str(e),
                 query=query,
@@ -683,32 +643,29 @@ class GitHubContentService:
             )
             return []
 
-    async def search_commits(self, repository: str, query: str) -> List[dict]:
-        """Search for commits in a repository"""
+    async def search_commits(self, repository: str, query: str) -> list[dict]:
+        """Search for commits in a repository."""
         try:
             url = f"{GITHUB_API_BASE_URL}/search/commits"
             params = {"q": f"repo:{repository} {query}"}
             # Special header for commit search API preview
-            headers = self.session.headers.copy()
+            headers = dict(self.session.headers)
             headers["Accept"] = "application/vnd.github.cloak-preview+json"
 
-            response = self.session.get(
-                url, params=params, headers=headers, timeout=DEFAULT_TIMEOUT
-            )
+            response = self.session.get(url, params=params, headers=headers, timeout=DEFAULT_TIMEOUT)
 
             if response.status_code == 200:
                 return response.json().get("items", [])
-            else:
-                logger.warning(
-                    "Failed to search commits",
-                    status_code=response.status_code,
-                    repository=repository,
-                    query=query,
-                    response_text=response.text,
-                )
-                return []
+            logger.warning(
+                "Failed to search commits",
+                status_code=response.status_code,
+                repository=repository,
+                query=query,
+                response_text=response.text,
+            )
+            return []
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Error searching commits",
                 error=str(e),
                 query=query,
@@ -716,8 +673,8 @@ class GitHubContentService:
             )
             return []
 
-    def _parse_datetime(self, datetime_str: Optional[str]) -> Optional[datetime]:
-        """Parse GitHub API datetime string to datetime object"""
+    def _parse_datetime(self, datetime_str: str | None) -> datetime | None:
+        """Parse GitHub API datetime string to datetime object."""
         if not datetime_str:
             return None
         if datetime_str.endswith("Z"):
