@@ -80,6 +80,6 @@ jobs:
       dockerfile: Dockerfile.meiliinit
     permissions:
       id-token: write
-      contents: read
+      contents: write
       packages: write
       attestations: write
