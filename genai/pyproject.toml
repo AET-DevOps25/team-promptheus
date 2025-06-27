@@ -1,0 +1,147 @@
+# GenAI Project Configuration
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+indent-width = 4
+
+[tool.ruff.lint]
+# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
+# Also enable isort (`I`), pydocstyle (`D`), pyupgrade (`UP`), and more
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # Pyflakes
+    "I",  # isort
+    "N",  # pep8-naming
+    "D",  # pydocstyle
+    "UP", # pyupgrade
+    "YTT", # flake8-2020
+    "ANN", # flake8-annotations
+    "S",  # flake8-bandit
+    "BLE", # flake8-blind-except
+    "FBT", # flake8-boolean-trap
+    "B",  # flake8-bugbear
+    "A",  # flake8-builtins
+    "C4", # flake8-comprehensions
+    "DTZ", # flake8-datetimez
+    "T10", # flake8-debugger
+    "EM", # flake8-errmsg
+    "FA", # flake8-future-annotations
+    "ISC", # flake8-implicit-str-concat
+    "ICN", # flake8-import-conventions
+    "G",  # flake8-logging-format
+    "INP", # flake8-no-pep420
+    "PIE", # flake8-pie
+    "T20", # flake8-print
+    "PYI", # flake8-pyi
+    "PT", # flake8-pytest-style
+    "Q",  # flake8-quotes
+    "RSE", # flake8-raise
+    "RET", # flake8-return
+    "SLF", # flake8-self
+    "SLOT", # flake8-slots
+    "SIM", # flake8-simplify
+    "TID", # flake8-tidy-imports
+    "TCH", # flake8-type-checking
+    "INT", # flake8-gettext
+    "ARG", # flake8-unused-arguments
+    "PTH", # flake8-use-pathlib
+    "ERA", # eradicate
+    "PD", # pandas-vet
+    "PGH", # pygrep-hooks
+    "PL", # Pylint
+    "TRY", # tryceratops
+    "FLY", # flynt
+    "NPY", # NumPy-specific rules
+    "PERF", # Perflint
+    "RUF", # Ruff-specific rules
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Ignore these rules for now - can be re-enabled gradually
+ignore = [
+    "TRY300",   # try-consider-else - stylistic
+    "TRY301",   # raise-within-try - stylistic 
+    "PLR2004",  # magic-value-comparison - too many false positives
+    "ANN201",   # missing-return-type-undocumented-public-function
+    "ANN202",   # missing-return-type-private-function
+    "ANN401",   # any-type - sometimes necessary
+    "BLE001",   # blind-except - sometimes intentional
+    "PLC0415",  # import-outside-top-level - sometimes necessary in tests
+    "B008",     # function-call-in-default-argument - false positives
+    "B904",     # raise-without-from-inside-except
+    "D107",     # undocumented-public-init
+    "D103",     # undocumented-public-function
+    "PLR0912",  # too-many-branches
+    "S110",     # try-except-pass
+    "SIM105",   # suppressible-exception
+    "TRY002",   # raise-vanilla-class
+    "PERF401",  # manual-list-comprehension - not always more readable
+    "SLF001",   # private-member-access - sometimes necessary
+    "RUF006",   # asyncio-dangling-task - sometimes intentional
+    "FBT001",   # boolean-type-hint-positional-argument
+    "FBT002",   # boolean-default-value-positional-argument
+    "ARG001",   # unused-function-argument - sometimes necessary for interfaces
+    "PLW1508",  # invalid-envvar-default - false positive with int conversion
+    "S104",     # hardcoded-bind-all-interfaces - common in development
+    "S105",     # hardcoded-password-string - false positive for env var names
+    "DTZ005",   # call-datetime-now-without-tzinfo - sometimes not needed
+    "D100",     # undocumented-public-module - can be added gradually
+    "D104",     # undocumented-public-package - can be added gradually
+    "D205",     # missing-blank-line-after-summary - stylistic
+    "E501",     # line-too-long - handled by formatter in most cases
+]
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "migrations",
+    "__pycache__",
+]
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+[tool.ruff.lint.per-file-ignores]
+# Tests can use magic values, assertions, and fixtures
+"tests/**/*" = ["PLR2004", "S101", "ARG", "FBT", "ANN001", "SLF001"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google" 

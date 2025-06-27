@@ -1,33 +1,34 @@
-"""
-Pytest configuration and fixtures for GenAI service tests
-"""
+"""Pytest configuration and fixtures for GenAI service tests."""
+
+import asyncio
+from datetime import UTC, datetime
+from typing import Never
+from unittest.mock import patch
 
 import pytest
 import pytest_asyncio
-import asyncio
 from fastapi.testclient import TestClient
-from unittest.mock import patch
-from datetime import datetime, timezone
+
+from src.meilisearch import MeilisearchService
+from src.models import (
+    CommitAuthor,
+    CommitContribution,
+    CommitStats,
+    CommitTree,
+    GitHubUser,
+    IssueContribution,
+    PullRequestContribution,
+    PullRequestRef,
+    SummaryMetadata,
+    SummaryResponse,
+    generate_uuidv7,
+)
 
 # Import our application and services
 from src.services import (
     ContributionsIngestionService,
     QuestionAnsweringService,
     SummaryService,
-)
-from src.meilisearch import MeilisearchService
-from src.models import (
-    CommitContribution,
-    PullRequestContribution,
-    IssueContribution,
-    GitHubUser,
-    CommitAuthor,
-    CommitTree,
-    CommitStats,
-    PullRequestRef,
-    SummaryResponse,
-    SummaryMetadata,
-    generate_uuidv7,
 )
 
 # Configure pytest-asyncio
@@ -36,7 +37,7 @@ pytest_plugins = ("pytest_asyncio",)
 
 @pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def meilisearch_service():
-    """Create and initialize a real Meilisearch service for testing"""
+    """Create and initialize a real Meilisearch service for testing."""
     service = MeilisearchService()
 
     try:
@@ -58,7 +59,7 @@ async def meilisearch_service():
 
 @pytest.fixture(scope="session")
 def test_services(meilisearch_service):
-    """Initialize test services with real Meilisearch"""
+    """Initialize test services with real Meilisearch."""
     ingestion_service = ContributionsIngestionService(meilisearch_service)
     qa_service = QuestionAnsweringService(ingestion_service)
     summary_service = SummaryService(ingestion_service)
@@ -73,7 +74,7 @@ def test_services(meilisearch_service):
 
 @pytest.fixture(scope="session")
 def test_client(test_services):
-    """Create a test client with properly initialized services"""
+    """Create a test client with properly initialized services."""
     # Import app inside the fixture to avoid circular imports
     import app as app_module
 
@@ -96,8 +97,8 @@ def test_client(test_services):
 
 
 @pytest.fixture(autouse=True)
-def ensure_services(test_services):
-    """Ensure services are available for each test"""
+def ensure_services(test_services) -> None:
+    """Ensure services are available for each test."""
     import app as app_module
 
     # Always set the services for tests
@@ -109,7 +110,7 @@ def ensure_services(test_services):
 
 @pytest_asyncio.fixture(loop_scope="function")
 async def clean_services(test_services):
-    """Clean service state between tests"""
+    """Clean service state between tests."""
     # Clear any stored data
     test_services["ingestion"].contributions_store.clear()
     test_services["ingestion"].embedding_jobs.clear()
@@ -137,7 +138,7 @@ def event_loop():
 
 @pytest.fixture
 def mock_github_service():
-    """Mock GitHubContentService to return test data instead of hitting real GitHub API"""
+    """Mock GitHubContentService to return test data instead of hitting real GitHub API."""
 
     def create_mock_commit(sha="abc123def456", repository="test/repo"):
         return CommitContribution(
@@ -145,7 +146,7 @@ def mock_github_service():
             type="commit",
             repository=repository,
             author="testuser",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             url=f"https://api.github.com/repos/{repository}/commits/{sha}",
             sha=sha,
             message="Fix authentication bug",
@@ -157,12 +158,12 @@ def mock_github_service():
             author_info=CommitAuthor(
                 name="Test User",
                 email="testuser@example.com",
-                date=datetime.now(timezone.utc),
+                date=datetime.now(UTC),
             ),
             committer=CommitAuthor(
                 name="Test User",
                 email="testuser@example.com",
-                date=datetime.now(timezone.utc),
+                date=datetime.now(UTC),
             ),
             stats=CommitStats(total=15, additions=10, deletions=5),
             files=[],
@@ -174,7 +175,7 @@ def mock_github_service():
             type="pull_request",
             repository=repository,
             author="testuser",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             url=f"https://api.github.com/repos/{repository}/pulls/{pr_id}",
             number=int(pr_id),
             title="Add user management feature",
@@ -213,7 +214,7 @@ def mock_github_service():
             type="issue",
             repository=repository,
             author="testuser",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             url=f"https://api.github.com/repos/{repository}/issues/{issue_id}",
             number=int(issue_id),
             title="Performance optimization needed",
@@ -227,14 +228,16 @@ def mock_github_service():
         )
 
     async def mock_fetch_contributions(self, repository, user, week, metadata_list):
-        """Mock fetch_contributions to return test data or simulate failures"""
+        """Mock fetch_contributions to return test data or simulate failures."""
         # Check if we should simulate a failure
         if hasattr(self, "_should_fail") and self._should_fail:
-            raise Exception("Simulated GitHub API failure")
+            msg = "Simulated GitHub API failure"
+            raise Exception(msg)
 
         # Check for invalid repository to simulate 404
         if repository == "invalid/repo":
-            raise Exception("Repository not found (404)")
+            msg = "Repository not found (404)"
+            raise Exception(msg)
 
         results = []
         for metadata in metadata_list:
@@ -270,7 +273,7 @@ def mock_github_service():
         mock_fetch_contributions,
     ):
         # Patch new async methods for agent_tools
-        async def mock_get_file_content(self, repository, file_path):
+        async def mock_get_file_content(self, repository, file_path) -> str | None:
             if file_path == "notfound.py":
                 return None
             return f"# Mock content of {file_path} in {repository}"
@@ -283,9 +286,7 @@ def mock_github_service():
                 }
             ]
 
-        async def mock_search_issues_and_prs(
-            self, repository, query, is_pr=False, is_open=None
-        ):
+        async def mock_search_issues_and_prs(self, repository, query, is_pr=False, is_open=None):
             if is_pr:
                 return [
                     {
@@ -295,15 +296,14 @@ def mock_github_service():
                         "html_url": f"https://github.com/{repository}/pull/1",
                     }
                 ]
-            else:
-                return [
-                    {
-                        "number": 2,
-                        "title": "Mock Issue",
-                        "state": "open",
-                        "html_url": f"https://github.com/{repository}/issues/2",
-                    }
-                ]
+            return [
+                {
+                    "number": 2,
+                    "title": "Mock Issue",
+                    "state": "open",
+                    "html_url": f"https://github.com/{repository}/issues/2",
+                }
+            ]
 
         async def mock_search_commits(self, repository, query):
             return [
@@ -314,13 +314,13 @@ def mock_github_service():
                 }
             ]
 
-        async def mock_get_commit_details(self, repository, sha):
+        async def mock_get_commit_details(self, repository, sha) -> None:
             return None
 
-        async def mock_get_issue_details(self, repository, issue_number):
+        async def mock_get_issue_details(self, repository, issue_number) -> None:
             return None
 
-        async def mock_get_pull_request_details(self, repository, pr_number):
+        async def mock_get_pull_request_details(self, repository, pr_number) -> None:
             return None
 
         patchers = [
@@ -328,9 +328,7 @@ def mock_github_service():
                 "src.contributions.GitHubContentService.get_file_content",
                 mock_get_file_content,
             ),
-            patch(
-                "src.contributions.GitHubContentService.search_code", mock_search_code
-            ),
+            patch("src.contributions.GitHubContentService.search_code", mock_search_code),
             patch(
                 "src.contributions.GitHubContentService.search_issues_and_prs",
                 mock_search_issues_and_prs,
@@ -361,13 +359,12 @@ def mock_github_service():
 
 @pytest.fixture
 def failing_github_service():
-    """Mock GitHubContentService to simulate failures for error handling tests"""
+    """Mock GitHubContentService to simulate failures for error handling tests."""
 
-    async def mock_fetch_contributions_fail(
-        self, repository, user, week, metadata_list
-    ):
-        """Mock that always fails"""
-        raise Exception("GitHub API connection failed")
+    async def mock_fetch_contributions_fail(self, repository, user, week, metadata_list) -> Never:
+        """Mock that always fails."""
+        msg = "GitHub API connection failed"
+        raise Exception(msg)
 
     with patch(
         "src.contributions.GitHubContentService.fetch_contributions",
@@ -378,7 +375,7 @@ def failing_github_service():
 
 @pytest.fixture(autouse=True)
 def auto_mock_github():
-    """Automatically apply GitHub mocking to all tests"""
+    """Automatically apply GitHub mocking to all tests."""
 
     def create_mock_commit(sha="abc123def456", repository="test/repo"):
         return CommitContribution(
@@ -386,7 +383,7 @@ def auto_mock_github():
             type="commit",
             repository=repository,
             author="testuser",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             url=f"https://api.github.com/repos/{repository}/commits/{sha}",
             sha=sha,
             message="Fix authentication bug",
@@ -398,12 +395,12 @@ def auto_mock_github():
             author_info=CommitAuthor(
                 name="Test User",
                 email="testuser@example.com",
-                date=datetime.now(timezone.utc),
+                date=datetime.now(UTC),
             ),
             committer=CommitAuthor(
                 name="Test User",
                 email="testuser@example.com",
-                date=datetime.now(timezone.utc),
+                date=datetime.now(UTC),
             ),
             stats=CommitStats(total=15, additions=10, deletions=5),
             files=[],
@@ -415,7 +412,7 @@ def auto_mock_github():
             type="pull_request",
             repository=repository,
             author="testuser",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             url=f"https://api.github.com/repos/{repository}/pulls/{pr_id}",
             number=int(pr_id),
             title="Add user management feature",
@@ -454,7 +451,7 @@ def auto_mock_github():
             type="issue",
             repository=repository,
             author="testuser",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             url=f"https://api.github.com/repos/{repository}/issues/{issue_id}",
             number=int(issue_id),
             title="Performance optimization needed",
@@ -468,14 +465,16 @@ def auto_mock_github():
         )
 
     async def mock_fetch_contributions(self, repository, user, week, metadata_list):
-        """Mock fetch_contributions to return test data or simulate failures"""
+        """Mock fetch_contributions to return test data or simulate failures."""
         # Check if we should simulate a failure
         if hasattr(self, "_should_fail") and self._should_fail:
-            raise Exception("Simulated GitHub API failure")
+            msg = "Simulated GitHub API failure"
+            raise Exception(msg)
 
         # Check for invalid repository to simulate 404
         if repository == "invalid/repo":
-            raise Exception("Repository not found (404)")
+            msg = "Repository not found (404)"
+            raise Exception(msg)
 
         results = []
         for metadata in metadata_list:
@@ -515,10 +514,10 @@ def auto_mock_github():
 
 @pytest.fixture
 def mock_summary_for_api():
-    """Automatically mock summary service to prevent OpenAI API calls during tests"""
+    """Automatically mock summary service to prevent OpenAI API calls during tests."""
 
     async def mock_generate_summary(self, user, week, request, summary_id=None):
-        """Mock summary generation to return test data quickly"""
+        """Mock summary generation to return test data quickly."""
         if summary_id is None:
             summary_id = generate_uuidv7()
 
@@ -527,23 +526,13 @@ def mock_summary_for_api():
         total_contributions = len(contributions)
 
         # Count by type
-        commits_count = sum(
-            1 for c in contributions if getattr(c, "type", None) == "commit"
-        )
-        prs_count = sum(
-            1 for c in contributions if getattr(c, "type", None) == "pull_request"
-        )
-        issues_count = sum(
-            1 for c in contributions if getattr(c, "type", None) == "issue"
-        )
-        releases_count = sum(
-            1 for c in contributions if getattr(c, "type", None) == "release"
-        )
+        commits_count = sum(1 for c in contributions if getattr(c, "type", None) == "commit")
+        prs_count = sum(1 for c in contributions if getattr(c, "type", None) == "pull_request")
+        issues_count = sum(1 for c in contributions if getattr(c, "type", None) == "issue")
+        releases_count = sum(1 for c in contributions if getattr(c, "type", None) == "release")
 
         # Extract repositories
-        repositories = list(
-            set(getattr(c, "repository", "test/repo") for c in contributions)
-        )
+        repositories = list({getattr(c, "repository", "test/repo") for c in contributions})
         if not repositories:
             repositories = ["test/repo"]
 
@@ -556,7 +545,7 @@ def mock_summary_for_api():
             releases_count=releases_count,
             repositories=repositories,
             time_period=week,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
             processing_time_ms=100,
         )
 
@@ -574,7 +563,7 @@ def mock_summary_for_api():
             key_achievements=["Completed development tasks"],
             areas_for_improvement=["Continue consistent contribution patterns"],
             metadata=metadata,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
 
         # Store the summary in the service's store
