@@ -78,8 +78,11 @@
 		"lint-fix": "biome check --write",
 		"start": "next start",
 		"type-check": "tsc --noEmit",
-		"type-refresh-genai": "openapi-typescript ../genai/openapi.json --output src/services/genai.ts --export-type --immutable-types --support-array-length",
-		"type-refresh-server": "openapi-typescript ../server/openapi.json --output src/services/server.ts --export-type --immutable-types --support-array-length"
+		"type-refresh-genai": "openapi-typescript ../genai/openapi.json --output lib/api/types/genai.ts --export-type --immutable-types --support-array-length",
+		"type-refresh-contributions": "openapi-typescript ../contributions/openapi.json --output lib/api/types/contributions.ts --export-type --immutable-types --support-array-length",
+		"type-refresh-server": "openapi-typescript ../server/openapi.json --output lib/api/types/server.ts --export-type --immutable-types --support-array-length",
+		"type-refresh-search": "openapi-typescript ../server/openapi.json --output lib/api/types/search.ts --export-type --immutable-types --support-array-length",
+		"type-refresh": "pnpm run type-refresh-genai && pnpm run type-refresh-contributions && pnpm run type-refresh-server && pnpm run type-refresh-search"
 	},
 	"version": "0.1.0",
 	"packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184"
