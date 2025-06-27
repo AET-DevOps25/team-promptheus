@@ -125,6 +125,12 @@ jobs:
                   npx openapi-typescript ${{ inputs.context }}/openapi.json --output client/lib/api/types/${{ inputs.image_suffix }}.ts --export-type --immutable --array-length
 
                   echo "::endgroup::"
+                  echo "::group::fix formatting mistakes"
+
+                  pip install pre-commit
+                  pre-commit run --all-files
+
+                  echo "::endgroup::"
                   echo "::group::Commit OpenAPI changes"
 
                   git config --local user.email "action@github.com"
