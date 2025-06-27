@@ -2,7 +2,7 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
     - repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v3.2.0
+      rev: v5.0.0
       hooks:
           - id: trailing-whitespace
           - id: end-of-file-fixer
@@ -10,14 +10,14 @@ repos:
             args: [--allow-multiple-documents]
           - id: check-added-large-files
     - repo: https://github.com/biomejs/pre-commit
-      rev: "v0.6.1"
+      rev: "v2.0.6"
       hooks:
       - id: biome-format
         additional_dependencies: ["@biomejs/biome@2.0.4"]
       - id: biome-lint
         additional_dependencies: ["@biomejs/biome@2.0.4"]
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.12.0
+      rev: v0.12.1
       hooks:
         - id: ruff-check
         - id: ruff-format
