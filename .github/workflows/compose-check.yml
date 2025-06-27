@@ -20,7 +20,7 @@ jobs:
         run: docker compose build
 
       - name: Start services in detached mode
-        run: docker compose up --build -d
+        run: docker compose up -d
 
       - name: Wait for services to initialize
         run: |
