@@ -132,7 +132,7 @@ jobs:
                   git add ${{ inputs.context }}/openapi.json
                   git add client/lib/api/types/${{ inputs.image_suffix }}.ts
                   if ! git diff --staged --quiet; then
-                    git commit -m "chore: Update OpenAPI definition [skip ci]"
+                    git commit -m "chore(${{ inputs.image_suffix }}): Update OpenAPI definition [skip ci]"
                     git push
                   else
                     echo "No changes to OpenAPI definition"
