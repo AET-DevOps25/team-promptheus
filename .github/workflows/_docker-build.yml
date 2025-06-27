@@ -122,7 +122,7 @@ jobs:
                   echo "::endgroup::"
                   echo "::group::writing to client/lib/api/types/${{ inputs.image_suffix }}.ts"
 
-                  npx openapi-typescript ${{ inputs.context }}/openapi.json --output client/lib/api/types/${{ inputs.image_suffix }}.ts --export-type --immutable-types --support-array-length
+                  npx openapi-typescript ${{ inputs.context }}/openapi.json --output client/lib/api/types/${{ inputs.image_suffix }}.ts --export-type --immutable --array-length
 
                   echo "::endgroup::"
                   echo "::group::Commit OpenAPI changes"
