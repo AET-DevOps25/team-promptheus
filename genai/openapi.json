@@ -11,42 +11,6 @@
     }
   ],
   "paths": {
-    "/health": {
-      "get": {
-        "summary": "Health Check",
-        "description": "Enhanced health check endpoint with comprehensive service status",
-        "operationId": "health_check_health_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HealthResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/metrics": {
-      "get": {
-        "summary": "Get Prometheus Metrics",
-        "description": "Prometheus metrics endpoint for monitoring",
-        "operationId": "get_prometheus_metrics_metrics_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
-      }
-    },
     "/contributions": {
       "post": {
         "summary": "Start Contributions Ingestion Task",
@@ -734,33 +698,6 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
-      },
-      "HealthResponse": {
-        "properties": {
-          "status": {
-            "type": "string",
-            "title": "Status"
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Timestamp"
-          },
-          "services": {
-            "additionalProperties": {
-              "type": "string"
-            },
-            "type": "object",
-            "title": "Services"
-          }
-        },
-        "type": "object",
-        "required": [
-          "status",
-          "timestamp"
-        ],
-        "title": "HealthResponse",
-        "description": "Health check response"
       },
       "IngestTaskResponse": {
         "properties": {

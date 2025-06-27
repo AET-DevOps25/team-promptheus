@@ -4,46 +4,6 @@
  */
 
 export type paths = {
-	readonly "/health": {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		/**
-		 * Health Check
-		 * @description Enhanced health check endpoint with comprehensive service status
-		 */
-		readonly get: operations["health_check_health_get"];
-		readonly put?: never;
-		readonly post?: never;
-		readonly delete?: never;
-		readonly options?: never;
-		readonly head?: never;
-		readonly patch?: never;
-		readonly trace?: never;
-	};
-	readonly "/metrics": {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		/**
-		 * Get Prometheus Metrics
-		 * @description Prometheus metrics endpoint for monitoring
-		 */
-		readonly get: operations["get_prometheus_metrics_metrics_get"];
-		readonly put?: never;
-		readonly post?: never;
-		readonly delete?: never;
-		readonly options?: never;
-		readonly head?: never;
-		readonly patch?: never;
-		readonly trace?: never;
-	};
 	readonly "/contributions": {
 		readonly parameters: {
 			readonly query?: never;
@@ -314,23 +274,6 @@ export type components = {
 			readonly detail?: readonly components["schemas"]["ValidationError"][];
 		};
 		/**
-		 * HealthResponse
-		 * @description Health check response
-		 */
-		readonly HealthResponse: {
-			/** Status */
-			readonly status: string;
-			/**
-			 * Timestamp
-			 * Format: date-time
-			 */
-			readonly timestamp: string;
-			/** Services */
-			readonly services?: {
-				readonly [key: string]: string;
-			};
-		};
-		/**
 		 * IngestTaskResponse
 		 * @description Response from starting a contributions ingestion task
 		 */
@@ -597,46 +540,6 @@ export type components = {
 };
 export type $defs = Record<string, never>;
 export interface operations {
-	readonly health_check_health_get: {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		readonly requestBody?: never;
-		readonly responses: {
-			/** @description Successful Response */
-			readonly 200: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": components["schemas"]["HealthResponse"];
-				};
-			};
-		};
-	};
-	readonly get_prometheus_metrics_metrics_get: {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		readonly requestBody?: never;
-		readonly responses: {
-			/** @description Successful Response */
-			readonly 200: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": unknown;
-				};
-			};
-		};
-	};
 	readonly start_contributions_ingestion_task_contributions_post: {
 		readonly parameters: {
 			readonly query?: never;
