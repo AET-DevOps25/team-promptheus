@@ -9,7 +9,12 @@ repos:
           - id: check-yaml
             args: [--allow-multiple-documents]
             exclude: '^k8s/.+$'
+          - id: check-json
+          - id: check-toml
           - id: check-added-large-files
+          - id: check-merge-conflict
+          - id: debug-statements
+
     - repo: https://github.com/biomejs/pre-commit
       rev: "v2.0.6"
       hooks:
@@ -20,5 +25,6 @@ repos:
     - repo: https://github.com/astral-sh/ruff-pre-commit
       rev: v0.12.1
       hooks:
-          - id: ruff-check
-          - id: ruff-format
+        - id: ruff
+          args: [--fix]
+        - id: ruff-format

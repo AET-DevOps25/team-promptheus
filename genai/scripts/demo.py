@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Prompteus Demo Script
+"""Prompteus Demo Script.
 
 This script demonstrates the new metadata-only Prompteus workflow:
 1. Prompts for GitHub Personal Access Token (PAT) or uses provided token
@@ -38,17 +37,17 @@ import getpass
 import os
 import sys
 import time
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
+import questionary
 import requests
 import structlog
-import questionary
 from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
+from urllib3.util.retry import Retry
 
 # Configuration constants
 GITHUB_API_BASE_URL = "https://api.github.com"
@@ -91,11 +90,11 @@ console = Console()
 
 
 class GitHubTokenManager:
-    """Manages GitHub Personal Access Token retrieval from various sources"""
+    """Manages GitHub Personal Access Token retrieval from various sources."""
 
     @staticmethod
-    def get_token(args) -> str:
-        """Get GitHub Personal Access Token from args, environment, or prompt user"""
+    def get_token(args: argparse.Namespace) -> str:
+        """Get GitHub Personal Access Token from args, environment, or prompt user."""
         # Priority 1: Command line argument
         if args.github_token:
             logger.info("Using GitHub token from command line argument")
@@ -115,43 +114,27 @@ class GitHubTokenManager:
 
     @staticmethod
     def _prompt_for_token() -> str:
-        """Prompt user for GitHub token with helpful instructions"""
-        print("🔑 GitHub Personal Access Token Required")
-        print("=" * 50)
-        print(
-            "To fetch your GitHub contributions, we need a Personal Access Token (PAT)."
-        )
-        print("You can create one at: https://github.com/settings/tokens")
-        print(
-            "Required scopes: 'repo' (for private repos) or 'public_repo' (for public repos only)"
-        )
-        print()
-        print("💡 Tip: You can avoid this prompt by:")
-        print("  - Using --github-token TOKEN argument")
-        print(f"  - Setting {GITHUB_TOKEN_ENV_VAR} environment variable")
-        print()
-
+        """Prompt user for GitHub token with helpful instructions."""
         token = getpass.getpass("Enter your GitHub PAT: ").strip()
 
         if not token:
-            print("❌ No token provided. Exiting.")
             sys.exit(1)
 
         return token
 
 
 class DateTimeHelper:
-    """Helper class for date and time operations"""
+    """Helper class for date and time operations."""
 
     @staticmethod
     def parse_iso_week(week: str) -> tuple[datetime, datetime]:
-        """Parse ISO week format (YYYY-WXX) and return start/end dates"""
-        year, week_num = week.split("-W")
-        year = int(year)
-        week_num = int(week_num)
+        """Parse ISO week format (YYYY-WXX) and return start/end dates."""
+        year_str, week_str = week.split("-W")
+        year = int(year_str)
+        week_num = int(week_str)
 
         # Calculate week start and end dates (timezone-aware)
-        jan_1 = datetime(year, 1, 1, tzinfo=timezone.utc)
+        jan_1 = datetime(year, 1, 1, tzinfo=UTC)
         week_start = jan_1 + timedelta(weeks=week_num - 1)
         week_end = week_start + timedelta(days=7)
 
@@ -159,7 +142,7 @@ class DateTimeHelper:
 
     @staticmethod
     def get_current_iso_week() -> str:
-        """Get the current ISO week in YYYY-WXX format"""
+        """Get the current ISO week in YYYY-WXX format."""
         current_date = datetime.now()
         year = current_date.year
         week_num = current_date.isocalendar()[1]
@@ -167,14 +150,14 @@ class DateTimeHelper:
 
 
 class HTTPClientMixin:
-    """Mixin providing configured HTTP session with retry logic"""
+    """Mixin providing configured HTTP session with retry logic."""
 
-    def __init__(self, base_url: str):
+    def __init__(self, base_url: str) -> None:
         self.base_url = base_url
         self.session = self._create_session()
 
     def _create_session(self) -> requests.Session:
-        """Create a requests session with retry strategy"""
+        """Create a requests session with retry strategy."""
         session = requests.Session()
 
         # Configure retry strategy
@@ -191,15 +174,15 @@ class HTTPClientMixin:
 
 
 class GitHubAPIClient(HTTPClientMixin):
-    """GitHub API client for fetching contribution metadata"""
+    """GitHub API client for fetching contribution metadata."""
 
-    def __init__(self, token: str):
+    def __init__(self, token: str) -> None:
         super().__init__(GITHUB_API_BASE_URL)
         self.token = token
         self._configure_authentication()
 
     def _configure_authentication(self) -> None:
-        """Configure GitHub API authentication headers"""
+        """Configure GitHub API authentication headers."""
         self.session.headers.update(
             {
                 "Authorization": f"token {self.token}",
@@ -209,28 +192,21 @@ class GitHubAPIClient(HTTPClientMixin):
         )
 
     def test_authentication(self) -> bool:
-        """Test if the GitHub token is valid"""
+        """Test if the GitHub token is valid."""
         try:
             response = self.session.get(f"{self.base_url}/user")
             if response.status_code == 200:
                 user_data = response.json()
-                logger.info(
-                    "GitHub authentication successful", user=user_data.get("login")
-                )
+                logger.info("GitHub authentication successful", user=user_data.get("login"))
                 return True
-            else:
-                logger.error(
-                    "GitHub authentication failed", status_code=response.status_code
-                )
-                return False
+            logger.error("GitHub authentication failed", status_code=response.status_code)
+            return False
         except Exception as e:
-            logger.error("GitHub authentication error", error=str(e))
+            logger.exception("GitHub authentication error", error=str(e))
             return False
 
-    def get_contribution_metadata(
-        self, username: str, repo: str, week: str
-    ) -> List[Dict[str, Any]]:
-        """Fetch metadata for all contributions in the specified week"""
+    def get_contribution_metadata(self, username: str, repo: str, week: str) -> list[dict[str, Any]]:
+        """Fetch metadata for all contributions in the specified week."""
         week_start, week_end = DateTimeHelper.parse_iso_week(week)
 
         logger.info(
@@ -245,18 +221,10 @@ class GitHubAPIClient(HTTPClientMixin):
         metadata = []
 
         # Fetch all contribution types metadata
-        metadata.extend(
-            self._fetch_commits_metadata(username, repo, week_start, week_end)
-        )
-        metadata.extend(
-            self._fetch_pull_requests_metadata(username, repo, week_start, week_end)
-        )
-        metadata.extend(
-            self._fetch_issues_metadata(username, repo, week_start, week_end)
-        )
-        metadata.extend(
-            self._fetch_releases_metadata(username, repo, week_start, week_end)
-        )
+        metadata.extend(self._fetch_commits_metadata(username, repo, week_start, week_end))
+        metadata.extend(self._fetch_pull_requests_metadata(username, repo, week_start, week_end))
+        metadata.extend(self._fetch_issues_metadata(username, repo, week_start, week_end))
+        metadata.extend(self._fetch_releases_metadata(username, repo, week_start, week_end))
 
         logger.info(
             "Contribution metadata fetched successfully",
@@ -269,16 +237,16 @@ class GitHubAPIClient(HTTPClientMixin):
 
     def _fetch_commits_metadata(
         self, username: str, repo: str, start_date: datetime, end_date: datetime
-    ) -> List[Dict[str, Any]]:
-        """Fetch commit metadata"""
+    ) -> list[dict[str, Any]]:
+        """Fetch commit metadata."""
         metadata = []
         try:
             url = f"{self.base_url}/repos/{repo}/commits"
-            params = {
+            params: dict[str, str] = {
                 "author": username,
                 "since": start_date.isoformat(),
                 "until": end_date.isoformat(),
-                "per_page": 100,
+                "per_page": "100",
             }
 
             response = self.session.get(url, params=params)
@@ -289,14 +257,13 @@ class GitHubAPIClient(HTTPClientMixin):
                         {
                             "type": "commit",
                             "id": commit["sha"],
-                            "title": commit["commit"]["message"].split("\n")[0][:60]
-                            + "...",
+                            "title": commit["commit"]["message"].split("\n")[0][:60] + "...",
                             "created_at": commit["commit"]["author"]["date"],
                             "selected": False,  # Default to not selected
                         }
                     )
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Error fetching commits metadata",
                 error=str(e),
                 repo=repo,
@@ -307,29 +274,24 @@ class GitHubAPIClient(HTTPClientMixin):
 
     def _fetch_pull_requests_metadata(
         self, username: str, repo: str, start_date: datetime, end_date: datetime
-    ) -> List[Dict[str, Any]]:
-        """Fetch pull request metadata"""
+    ) -> list[dict[str, Any]]:
+        """Fetch pull request metadata."""
         metadata = []
         try:
             url = f"{self.base_url}/repos/{repo}/pulls"
-            params = {
+            params: dict[str, str] = {
                 "state": "all",
                 "sort": "created",
                 "direction": "desc",
-                "per_page": 100,
+                "per_page": "100",
             }
 
             response = self.session.get(url, params=params)
             if response.status_code == 200:
                 pulls = response.json()
                 for pr in pulls:
-                    pr_created = datetime.fromisoformat(
-                        pr["created_at"].replace("Z", "+00:00")
-                    )
-                    if (
-                        start_date <= pr_created <= end_date
-                        and pr["user"]["login"] == username
-                    ):
+                    pr_created = datetime.fromisoformat(pr["created_at"].replace("Z", "+00:00"))
+                    if start_date <= pr_created <= end_date and pr["user"]["login"] == username:
                         metadata.append(
                             {
                                 "type": "pull_request",
@@ -340,7 +302,7 @@ class GitHubAPIClient(HTTPClientMixin):
                             }
                         )
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Error fetching pull requests metadata",
                 error=str(e),
                 repo=repo,
@@ -351,17 +313,17 @@ class GitHubAPIClient(HTTPClientMixin):
 
     def _fetch_issues_metadata(
         self, username: str, repo: str, start_date: datetime, end_date: datetime
-    ) -> List[Dict[str, Any]]:
-        """Fetch issue metadata"""
+    ) -> list[dict[str, Any]]:
+        """Fetch issue metadata."""
         metadata = []
         try:
             url = f"{self.base_url}/repos/{repo}/issues"
-            params = {
+            params: dict[str, str] = {
                 "creator": username,
                 "state": "all",
                 "sort": "created",
                 "direction": "desc",
-                "per_page": 100,
+                "per_page": "100",
             }
 
             response = self.session.get(url, params=params)
@@ -372,9 +334,7 @@ class GitHubAPIClient(HTTPClientMixin):
                     if "pull_request" in issue:
                         continue
 
-                    issue_created = datetime.fromisoformat(
-                        issue["created_at"].replace("Z", "+00:00")
-                    )
+                    issue_created = datetime.fromisoformat(issue["created_at"].replace("Z", "+00:00"))
                     if start_date <= issue_created <= end_date:
                         metadata.append(
                             {
@@ -386,7 +346,7 @@ class GitHubAPIClient(HTTPClientMixin):
                             }
                         )
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Error fetching issues metadata",
                 error=str(e),
                 repo=repo,
@@ -397,8 +357,8 @@ class GitHubAPIClient(HTTPClientMixin):
 
     def _fetch_releases_metadata(
         self, username: str, repo: str, start_date: datetime, end_date: datetime
-    ) -> List[Dict[str, Any]]:
-        """Fetch release metadata"""
+    ) -> list[dict[str, Any]]:
+        """Fetch release metadata."""
         metadata = []
         try:
             url = f"{self.base_url}/repos/{repo}/releases"
@@ -411,13 +371,8 @@ class GitHubAPIClient(HTTPClientMixin):
                     if not release.get("published_at"):
                         continue
 
-                    release_created = datetime.fromisoformat(
-                        release["published_at"].replace("Z", "+00:00")
-                    )
-                    if (
-                        start_date <= release_created <= end_date
-                        and release["author"]["login"] == username
-                    ):
+                    release_created = datetime.fromisoformat(release["published_at"].replace("Z", "+00:00"))
+                    if start_date <= release_created <= end_date and release["author"]["login"] == username:
                         metadata.append(
                             {
                                 "type": "release",
@@ -429,7 +384,7 @@ class GitHubAPIClient(HTTPClientMixin):
                             }
                         )
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Error fetching releases metadata",
                 error=str(e),
                 repo=repo,
@@ -440,19 +395,16 @@ class GitHubAPIClient(HTTPClientMixin):
 
 
 class InteractiveSelector:
-    """Handle interactive selection of contributions using questionary"""
+    """Handle interactive selection of contributions using questionary."""
 
     @staticmethod
     def select_contributions(
-        contributions: List[Dict[str, Any]],
-    ) -> List[Dict[str, Any]]:
-        """Display contributions and allow user to select which ones to process"""
+        contributions: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """Display contributions and allow user to select which ones to process."""
         if not contributions:
-            print("📭 No contributions found for the specified period.")
             return []
 
-        print("\n📋 Select Contributions to Process")
-        print("=" * 50)
 
         # Create choices for questionary with better formatting
         choices = []
@@ -479,7 +431,6 @@ class InteractiveSelector:
             ).ask()
 
             if selected_contributions is None:  # User cancelled with Ctrl+C
-                print("\n❌ Selection cancelled.")
                 sys.exit(0)
 
             # Mark selected contributions
@@ -487,24 +438,20 @@ class InteractiveSelector:
                 contrib["selected"] = contrib in selected_contributions
 
             selected_count = len(selected_contributions)
-            total_count = len(contributions)
+            len(contributions)
 
-            print(f"\n✅ Selected {selected_count} out of {total_count} contributions")
 
             if selected_count == 0:
-                print(
-                    "💡 No contributions selected. You can re-run the script to select different contributions."
-                )
+                pass
 
             return contributions
 
         except KeyboardInterrupt:
-            print("\n👋 Selection cancelled by user.")
             sys.exit(0)
 
     @staticmethod
-    def _format_contribution_choice(contrib: Dict[str, Any]) -> str:
-        """Format a contribution for display in the selection list"""
+    def _format_contribution_choice(contrib: dict[str, Any]) -> str:
+        """Format a contribution for display in the selection list."""
         contrib_type = contrib["type"].replace("_", " ").title()
         title = contrib["title"]
         date = contrib["created_at"][:10]  # Just the date part
@@ -516,9 +463,9 @@ class InteractiveSelector:
         return f"[{contrib_type}] {title} ({date})"
 
     @staticmethod
-    def _group_choices_by_type(choices: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Group choices by contribution type for better organization"""
-        grouped = {}
+    def _group_choices_by_type(choices: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Group choices by contribution type for better organization."""
+        grouped: dict[str, list[dict[str, Any]]] = {}
 
         # Group by type
         for choice in choices:
@@ -528,7 +475,7 @@ class InteractiveSelector:
             grouped[contrib_type].append(choice)
 
         # Create final list with separators
-        final_choices = []
+        final_choices: list[Any] = []
 
         type_order = ["commit", "pull_request", "issue", "release"]
         type_names = {
@@ -544,9 +491,7 @@ class InteractiveSelector:
                 if final_choices:  # Add spacing between groups
                     final_choices.append(questionary.Separator())
 
-                final_choices.append(
-                    questionary.Separator(f"── {type_names[contrib_type]} ──")
-                )
+                final_choices.append(questionary.Separator(f"── {type_names[contrib_type]} ──"))
 
                 # Add choices for this type
                 final_choices.extend(grouped[contrib_type])
@@ -554,8 +499,8 @@ class InteractiveSelector:
         return final_choices
 
     @staticmethod
-    def _get_questionary_style():
-        """Get custom styling for questionary prompts"""
+    def _get_questionary_style() -> Any:
+        """Get custom styling for questionary prompts."""
         from questionary import Style
 
         return Style(
@@ -574,11 +519,11 @@ class InteractiveSelector:
 
 
 class UserInputManager:
-    """Manages user input collection for demo parameters using questionary"""
+    """Manages user input collection for demo parameters using questionary."""
 
     @staticmethod
-    def get_user_parameters(args) -> tuple[str, str, str]:
-        """Get user, repository, and week from args or user input"""
+    def get_user_parameters(args: argparse.Namespace) -> tuple[str, str, str]:
+        """Get user, repository, and week from args or user input."""
         user = args.user or UserInputManager._get_username()
         repo = args.repo or UserInputManager._get_repository()
         week = args.week or UserInputManager._get_week()
@@ -587,23 +532,19 @@ class UserInputManager:
 
     @staticmethod
     def _get_username() -> str:
-        """Get GitHub username from user input"""
+        """Get GitHub username from user input."""
         try:
-            username = questionary.text(
-                "GitHub username:", style=InteractiveSelector._get_questionary_style()
-            ).ask()
+            username = questionary.text("GitHub username:", style=InteractiveSelector._get_questionary_style()).ask()
 
             if not username or not username.strip():
-                print("❌ Username is required.")
                 sys.exit(1)
             return username.strip()
         except KeyboardInterrupt:
-            print("\n👋 Cancelled by user.")
             sys.exit(0)
 
     @staticmethod
     def _get_repository() -> str:
-        """Get repository from user input"""
+        """Get repository from user input."""
         try:
             repo = questionary.text(
                 "Repository (format: owner/repo):",
@@ -611,16 +552,14 @@ class UserInputManager:
             ).ask()
 
             if not repo or not repo.strip() or "/" not in repo:
-                print("❌ Repository must be in format: owner/repo")
                 sys.exit(1)
             return repo.strip()
         except KeyboardInterrupt:
-            print("\n👋 Cancelled by user.")
             sys.exit(0)
 
     @staticmethod
     def _get_week() -> str:
-        """Get week from user input or default to current week"""
+        """Get week from user input or default to current week."""
         try:
             current_week = DateTimeHelper.get_current_iso_week()
             week = questionary.text(
@@ -631,40 +570,32 @@ class UserInputManager:
 
             if not week or not week.strip():
                 week = current_week
-                print(f"✅ Using current week: {week}")
             return week.strip()
         except KeyboardInterrupt:
-            print("\n👋 Cancelled by user.")
             sys.exit(0)
 
 
 class ContributionSummaryPrinter:
-    """Utility class for printing contribution summaries"""
+    """Utility class for printing contribution summaries."""
 
     @staticmethod
-    def print_summary(contributions: List[Dict[str, Any]]) -> None:
-        """Print a formatted summary of fetched contributions"""
+    def print_summary(contributions: list[dict[str, Any]]) -> None:
+        """Print a formatted summary of fetched contributions."""
         if not contributions:
-            print("📭 No contributions found for the specified period.")
             return
 
-        print("\n📊 Contributions Summary")
-        print("=" * 30)
 
         # Count by type
         type_counts = ContributionSummaryPrinter._count_by_type(contributions)
 
-        for contrib_type, count in type_counts.items():
-            formatted_type = contrib_type.replace("_", " ").title()
-            print(f"  {formatted_type}: {count}")
+        for contrib_type in type_counts:
+            contrib_type.replace("_", " ").title()
 
-        print(f"  Total: {len(contributions)}")
-        print()
 
     @staticmethod
-    def _count_by_type(contributions: List[Dict[str, Any]]) -> Dict[str, int]:
-        """Count contributions by type"""
-        type_counts = {}
+    def _count_by_type(contributions: list[dict[str, Any]]) -> dict[str, int]:
+        """Count contributions by type."""
+        type_counts: dict[str, int] = {}
         for contrib in contributions:
             contrib_type = contrib["type"]
             type_counts[contrib_type] = type_counts.get(contrib_type, 0) + 1
@@ -672,13 +603,13 @@ class ContributionSummaryPrinter:
 
 
 class PrompteusAPIClient(HTTPClientMixin):
-    """Client for interacting with the Prompteus GenAI service"""
+    """Client for interacting with the Prompteus GenAI service."""
 
-    def __init__(self, base_url: str = DEFAULT_GENAI_URL):
+    def __init__(self, base_url: str = DEFAULT_GENAI_URL) -> None:
         super().__init__(base_url)
 
     def health_check(self) -> bool:
-        """Check if the GenAI service is running and healthy"""
+        """Check if the GenAI service is running and healthy."""
         try:
             response = self.session.get(f"{self.base_url}/health")
             return response.status_code == 200
@@ -690,9 +621,9 @@ class PrompteusAPIClient(HTTPClientMixin):
         user: str,
         week: str,
         repo: str,
-        contributions_metadata: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
-        """Ingest contributions using the simplified API - returns summary when complete"""
+        contributions_metadata: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Ingest contributions using the simplified API - returns summary when complete."""
         payload = {
             "user": user,
             "week": week,
@@ -723,8 +654,8 @@ class PrompteusAPIClient(HTTPClientMixin):
         # Poll for completion
         return self._poll_task_completion(task_id)
 
-    def _start_ingestion_task(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        """Start the ingestion task and return task response"""
+    def _start_ingestion_task(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Start the ingestion task and return task response."""
         response = self.session.post(f"{self.base_url}/contributions", json=payload)
         if response.status_code != 200:
             logger.error(
@@ -736,8 +667,8 @@ class PrompteusAPIClient(HTTPClientMixin):
         response.raise_for_status()
         return response.json()
 
-    def _poll_task_completion(self, task_id: str) -> Dict[str, Any]:
-        """Poll for task completion with timeout"""
+    def _poll_task_completion(self, task_id: str) -> dict[str, Any]:
+        """Poll for task completion with timeout."""
         max_retries = 120  # 2 minutes with 1-second intervals (ingestion + summarization takes longer)
 
         for attempt in range(max_retries):
@@ -758,14 +689,13 @@ class PrompteusAPIClient(HTTPClientMixin):
 
                     return status_data  # Return the complete status with summary
 
-                elif status == "failed":
+                if status == "failed":
                     error_msg = status_data.get("error_message", "Unknown error")
-                    logger.error(
-                        "Task failed", task_id=task_id, error_message=error_msg
-                    )
-                    raise Exception(f"Task failed: {error_msg}")
+                    logger.error("Task failed", task_id=task_id, error_message=error_msg)
+                    msg = f"Task failed: {error_msg}"
+                    raise Exception(msg)
 
-                elif status in ["queued", "ingesting", "summarizing"]:
+                if status in ["queued", "ingesting", "summarizing"]:
                     logger.debug(
                         "Task in progress",
                         task_id=task_id,
@@ -774,22 +704,10 @@ class PrompteusAPIClient(HTTPClientMixin):
                     )
 
                     # Show progress to user
-                    status_emoji = {
-                        "queued": "⏳",
-                        "ingesting": "📥",
-                        "summarizing": "🤖",
-                    }
-                    print(
-                        f"\r{status_emoji.get(status, '⏳')} {status.title()}...",
-                        end="",
-                        flush=True,
-                    )
                     time.sleep(1)  # Wait 1 second before next check
 
                 else:
-                    logger.warning(
-                        "Unknown task status", task_id=task_id, status=status
-                    )
+                    logger.warning("Unknown task status", task_id=task_id, status=status)
                     time.sleep(1)
 
             except Exception as e:
@@ -804,10 +722,11 @@ class PrompteusAPIClient(HTTPClientMixin):
                 time.sleep(1)
 
         # If we reach here, the task didn't complete in time
-        raise Exception(f"Task {task_id} did not complete within {max_retries} seconds")
+        msg = f"Task {task_id} did not complete within {max_retries} seconds"
+        raise Exception(msg)
 
-    def ask_question(self, user: str, week: str, question: str) -> Dict[str, Any]:
-        """Ask a question about the user's contributions"""
+    def ask_question(self, user: str, week: str, question: str) -> dict[str, Any]:
+        """Ask a question about the user's contributions."""
         payload = {
             "question": question,
             "context": {
@@ -817,14 +736,12 @@ class PrompteusAPIClient(HTTPClientMixin):
             },
         }
 
-        response = self.session.post(
-            f"{self.base_url}/users/{user}/weeks/{week}/questions", json=payload
-        )
+        response = self.session.post(f"{self.base_url}/users/{user}/weeks/{week}/questions", json=payload)
         response.raise_for_status()
         return response.json()
 
-    def generate_summary(self, user: str, week: str) -> Dict[str, Any]:
-        """Generate a comprehensive summary of the user's weekly contributions"""
+    def generate_summary(self, user: str, week: str) -> dict[str, Any]:
+        """Generate a comprehensive summary of the user's weekly contributions."""
         payload = {
             "user": user,
             "week": week,
@@ -834,23 +751,21 @@ class PrompteusAPIClient(HTTPClientMixin):
             "max_detail_level": "comprehensive",
         }
 
-        response = self.session.post(
-            f"{self.base_url}/users/{user}/weeks/{week}/summary", json=payload
-        )
+        response = self.session.post(f"{self.base_url}/users/{user}/weeks/{week}/summary", json=payload)
         response.raise_for_status()
         return response.json()
 
 
 class InteractiveQASession:
-    """Manages interactive Q&A sessions with conversation context visualization"""
+    """Manages interactive Q&A sessions with conversation context visualization."""
 
-    def __init__(self, prompteus_client: PrompteusAPIClient):
+    def __init__(self, prompteus_client: PrompteusAPIClient) -> None:
         self.client = prompteus_client
         self.conversation_id = None
         self.question_count = 0
 
     async def run_session(self, user: str, week: str) -> None:
-        """Run an interactive Q&A session with conversation context"""
+        """Run an interactive Q&A session with conversation context."""
         self._print_session_header()
 
         try:
@@ -870,10 +785,10 @@ class InteractiveQASession:
                 await self._process_question(user, week, question)
 
         except KeyboardInterrupt:
-            print("\n👋 Goodbye!")
+            pass
 
     def _print_session_header(self) -> None:
-        """Print the Q&A session header with instructions"""
+        """Print the Q&A session header with instructions."""
         qa_panel = Panel(
             "[bold cyan]🤖 Interactive Q&A Session with Conversation Context[/]\n\n"
             "Ask questions about the contributions. The AI will remember our conversation!\n\n"
@@ -894,26 +809,24 @@ class InteractiveQASession:
         console.print(qa_panel)
 
     def _should_exit(self, question: str) -> bool:
-        """Check if the user wants to exit the session"""
+        """Check if the user wants to exit the session."""
         return question.lower() in ["quit", "exit", "q"]
 
-    async def _handle_special_commands(
-        self, user: str, week: str, question: str
-    ) -> bool:
+    async def _handle_special_commands(self, user: str, week: str, question: str) -> bool:
         """Handle special commands like 'history' and 'clear'. Returns True if command was handled."""
         command = question.lower().strip()
 
         if command == "history":
             await self._show_conversation_history(user, week)
             return True
-        elif command == "clear":
+        if command == "clear":
             await self._clear_conversation_history(user, week)
             return True
 
         return False
 
     async def _show_conversation_history(self, user: str, week: str) -> None:
-        """Show the current conversation history"""
+        """Show the current conversation history."""
         try:
             response = self.client.session.get(
                 f"{self.client.base_url}/users/{user}/weeks/{week}/conversations/history"
@@ -923,14 +836,11 @@ class InteractiveQASession:
 
                 # Handle structured response from API
                 messages = history_data.get("messages", [])
-                session_id = history_data.get("session_id", "unknown")
+                history_data.get("session_id", "unknown")
 
                 if not messages:
-                    print("📝 No conversation history yet. Start asking questions!")
                     return
 
-                print(f"\n📜 Conversation History (Session: {session_id}):")
-                print("=" * 60)
 
                 # Process LangChain message format
                 question_count = 0
@@ -946,60 +856,45 @@ class InteractiveQASession:
 
                     if message_type == "human":
                         question_count += 1
-                        print(f"👤 Q{question_count}: {content}")
                     elif message_type == "ai":
                         # Truncate long AI responses for readability
-                        display_content = (
-                            content[:200] + "..." if len(content) > 200 else content
-                        )
-                        print(f"🤖 A{question_count}: {display_content}")
-                        print()
+                        content[:200] + "..." if len(content) > 200 else content
 
-                print(f"Total messages: {len(messages)}")
             else:
-                print("❌ Could not retrieve conversation history")
-        except Exception as e:
-            print(f"❌ Error retrieving history: {e}")
-        print()
+                pass
+        except Exception:
+            pass
 
     async def _clear_conversation_history(self, user: str, week: str) -> None:
-        """Clear the conversation history"""
+        """Clear the conversation history."""
         try:
-            response = self.client.session.delete(
-                f"{self.client.base_url}/users/{user}/weeks/{week}/conversations"
-            )
+            response = self.client.session.delete(f"{self.client.base_url}/users/{user}/weeks/{week}/conversations")
             if response.status_code == 200:
-                print("🗑️  Conversation history cleared. Starting fresh!")
                 self.conversation_id = None
                 self.question_count = 0
             else:
-                print("❌ Could not clear conversation history")
-        except Exception as e:
-            print(f"❌ Error clearing history: {e}")
-        print()
+                pass
+        except Exception:
+            pass
 
     async def _process_question(self, user: str, week: str, question: str) -> None:
-        """Process a single question and display the response with context indicators"""
+        """Process a single question and display the response with context indicators."""
         try:
             self.question_count += 1
-            print(f"🤔 Thinking... (Question {self.question_count})")
             response = self.client.ask_question(user, week, question)
 
             # Track conversation ID from first response
             if not self.conversation_id and response.get("conversation_id"):
                 self.conversation_id = response["conversation_id"]
-                console.print(
-                    f"💬 Started conversation session: [cyan]{self.conversation_id}[/]"
-                )
+                console.print(f"💬 Started conversation session: [cyan]{self.conversation_id}[/]")
 
             self._display_answer_with_context(response)
 
-        except Exception as e:
-            print(f"❌ Error processing question: {e}")
-            print()
+        except Exception:
+            pass
 
-    def _display_answer_with_context(self, response: Dict[str, Any]) -> None:
-        """Display the answer with conversation context indicators"""
+    def _display_answer_with_context(self, response: dict[str, Any]) -> None:
+        """Display the answer with conversation context indicators."""
         answer = response["answer"]
         confidence = response["confidence"]
 
@@ -1040,29 +935,25 @@ class InteractiveQASession:
         if response.get("reasoning_steps") and confidence > 0.7:
             self._display_reasoning(response["reasoning_steps"])
 
-        print()
 
-    def _display_evidence(self, evidence: List[Dict[str, Any]]) -> None:
-        """Display supporting evidence for the answer"""
-        print(f"\n📚 Evidence ({len(evidence)} items):")
-        for i, item in enumerate(evidence[:3], 1):
-            title = item.get("title", "No title available")
-            excerpt = item.get("excerpt", "No excerpt available")
-            print(f"   {i}. {title}: {excerpt[:80]}...")
+    def _display_evidence(self, evidence: list[dict[str, Any]]) -> None:
+        """Display supporting evidence for the answer."""
+        for _i, item in enumerate(evidence[:3], 1):
+            item.get("title", "No title available")
+            item.get("excerpt", "No excerpt available")
 
-    def _display_reasoning(self, reasoning_steps: List[str]) -> None:
-        """Display reasoning steps for transparent AI decision making"""
-        print("\n🧠 Reasoning:")
-        for i, step in enumerate(reasoning_steps[:3], 1):
-            print(f"   {i}. {step}")
+    def _display_reasoning(self, reasoning_steps: list[str]) -> None:
+        """Display reasoning steps for transparent AI decision making."""
+        for _i, _step in enumerate(reasoning_steps[:3], 1):
+            pass
 
 
 class ArgumentParser:
-    """Handles command line argument parsing for the demo script"""
+    """Handles command line argument parsing for the demo script."""
 
     @staticmethod
     def parse_arguments() -> argparse.Namespace:
-        """Parse and return command line arguments"""
+        """Parse and return command line arguments."""
         parser = argparse.ArgumentParser(description="Prompteus Demo Script")
 
         # User input arguments
@@ -1087,31 +978,29 @@ class ArgumentParser:
 
 
 class ServiceHealthChecker:
-    """Utility class for checking service health"""
+    """Utility class for checking service health."""
 
     @staticmethod
     def check_genai_service(genai_url: str) -> None:
-        """Check if GenAI service is running and exit if not"""
+        """Check if GenAI service is running and exit if not."""
         prompteus_client = PrompteusAPIClient(genai_url)
 
         if not prompteus_client.health_check():
-            print(f"❌ GenAI service is not running at {genai_url}")
-            print("Please start the service with: docker compose up")
             sys.exit(1)
 
         console.print(f"✅ GenAI service is running at {genai_url}", style="green")
 
 
 class DemoRunner:
-    """Main class that orchestrates the demo workflow"""
+    """Main class that orchestrates the demo workflow."""
 
-    def __init__(self, args: argparse.Namespace):
+    def __init__(self, args: argparse.Namespace) -> None:
         self.args = args
-        self.github_client: Optional[GitHubAPIClient] = None
-        self.prompteus_client: Optional[PrompteusAPIClient] = None
+        self.github_client: GitHubAPIClient | None = None
+        self.prompteus_client: PrompteusAPIClient | None = None
 
     def run(self) -> None:
-        """Execute the complete demo workflow"""
+        """Execute the complete demo workflow."""
         self._print_welcome_banner()
         self._initialize_services()
         self._authenticate_github()
@@ -1128,7 +1017,7 @@ class DemoRunner:
         asyncio.run(self._run_qa_session(user, week))
 
     def _print_welcome_banner(self) -> None:
-        """Print the welcome banner"""
+        """Print the welcome banner."""
         welcome_panel = Panel(
             "[bold blue]🚀 Welcome to Prompteus Demo![/]",
             title="[bold green]Prompteus[/]",
@@ -1138,73 +1027,58 @@ class DemoRunner:
         console.print(welcome_panel)
 
     def _initialize_services(self) -> None:
-        """Initialize and health check all required services"""
+        """Initialize and health check all required services."""
         ServiceHealthChecker.check_genai_service(self.args.genai_url)
         self.prompteus_client = PrompteusAPIClient(self.args.genai_url)
 
     def _authenticate_github(self) -> None:
-        """Get GitHub token and initialize authenticated client"""
+        """Get GitHub token and initialize authenticated client."""
         github_token = GitHubTokenManager.get_token(self.args)
 
         self.github_client = GitHubAPIClient(github_token)
         if not self.github_client.test_authentication():
-            print("❌ GitHub authentication failed. Please check your token.")
             sys.exit(1)
 
         console.print("✅ GitHub authentication successful", style="green")
 
-    def _fetch_and_process_contributions(
-        self, user: str, repo: str, week: str
-    ) -> Dict[str, Any]:
-        """Fetch contribution metadata and process them with the GenAI service"""
+    def _fetch_and_process_contributions(self, user: str, repo: str, week: str) -> dict[str, Any]:
+        """Fetch contribution metadata and process them with the GenAI service."""
         try:
-            print(
-                f"\n📥 Fetching contribution metadata for {user} in {repo} for week {week}..."
-            )
 
-            contributions_metadata = self.github_client.get_contribution_metadata(
-                user, repo, week
-            )
+            if not self.github_client:
+                msg = "GitHub client not initialized"
+                raise RuntimeError(msg)
+            contributions_metadata = self.github_client.get_contribution_metadata(user, repo, week)
             ContributionSummaryPrinter.print_summary(contributions_metadata)
 
             if not contributions_metadata:
-                print("No contributions to analyze. Exiting.")
                 sys.exit(0)
 
             # Interactive selection of contributions
-            selected_contributions = InteractiveSelector.select_contributions(
-                contributions_metadata
-            )
+            selected_contributions = InteractiveSelector.select_contributions(contributions_metadata)
 
             selected_count = sum(1 for c in selected_contributions if c["selected"])
             if selected_count == 0:
-                print("No contributions selected. Exiting.")
                 sys.exit(0)
 
             # Process selected contributions (ingestion + summarization)
-            print(f"\n🚀 Processing {selected_count} selected contributions...")
-            print("This will ingest the contributions and generate a summary.")
 
-            result = self.prompteus_client.ingest_contributions(
-                user, week, repo, selected_contributions
-            )
+            if not self.prompteus_client:
+                msg = "Prompteus client not initialized"
+                raise RuntimeError(msg)
+            result = self.prompteus_client.ingest_contributions(user, week, repo, selected_contributions)
             console.print("\n✅ Task completed successfully!", style="green bold")
-            console.print(
-                f"   [green]Ingested:[/] {result.get('ingested_count', 0)} contributions"
-            )
-            console.print(
-                f"   [red]Failed:[/] {result.get('failed_count', 0)} contributions"
-            )
+            console.print(f"   [green]Ingested:[/] {result.get('ingested_count', 0)} contributions")
+            console.print(f"   [red]Failed:[/] {result.get('failed_count', 0)} contributions")
 
             return result
 
         except Exception as e:
-            logger.error("Failed to fetch and process contributions", error=str(e))
-            print(f"❌ Failed to fetch and process contributions: {e}")
+            logger.exception("Failed to fetch and process contributions", error=str(e))
             sys.exit(1)
 
-    def _display_summary(self, result: Dict[str, Any]) -> None:
-        """Display the generated summary from the task result using rich markdown formatting"""
+    def _display_summary(self, result: dict[str, Any]) -> None:
+        """Display the generated summary from the task result using rich markdown formatting."""
         summary = result.get("summary")
         if not summary:
             console.print("⚠️  No summary available from the task.", style="yellow")
@@ -1260,36 +1134,33 @@ class DemoRunner:
         metadata = summary.get("metadata", {})
         if metadata:
             markdown_content.append("## Summary Statistics\n")
-            markdown_content.append(
-                f"• **Total contributions:** {metadata.get('total_contributions', 0)}\n"
-            )
-            markdown_content.append(
-                f"• **Processing time:** {metadata.get('processing_time_ms', 0)}ms\n"
-            )
+            markdown_content.append(f"• **Total contributions:** {metadata.get('total_contributions', 0)}\n")
+            markdown_content.append(f"• **Processing time:** {metadata.get('processing_time_ms', 0)}ms\n")
 
         # Render the markdown content using rich
         full_markdown = "\n".join(markdown_content)
         console.print(Markdown(full_markdown))
 
     async def _run_qa_session(self, user: str, week: str) -> None:
-        """Run the interactive Q&A session"""
+        """Run the interactive Q&A session."""
+        if not self.prompteus_client:
+            msg = "Prompteus client not initialized"
+            raise RuntimeError(msg)
         qa_session = InteractiveQASession(self.prompteus_client)
         await qa_session.run_session(user, week)
 
 
-def main():
-    """Main entry point for the demo script"""
+def main() -> None:
+    """Main entry point for the demo script."""
     try:
         args = ArgumentParser.parse_arguments()
         demo_runner = DemoRunner(args)
         demo_runner.run()
 
     except KeyboardInterrupt:
-        print("\n👋 Demo interrupted by user. Goodbye!")
         sys.exit(0)
     except Exception as e:
-        logger.error("Demo failed with unexpected error", error=str(e))
-        print(f"❌ Demo failed: {e}")
+        logger.exception("Demo failed with unexpected error", error=str(e))
         sys.exit(1)
 
 

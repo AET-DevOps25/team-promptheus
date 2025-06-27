@@ -1,12 +1,12 @@
-"""
-Test data for GenAI API tests
+"""Test data for GenAI API tests.
 
 This module provides properly structured test data that matches the GitHub API models.
 """
+from typing import Any
 
 
-def get_test_commit_contribution():
-    """Get a properly structured commit contribution for testing"""
+def get_test_commit_contribution() -> dict[str, Any]:
+    """Get a properly structured commit contribution for testing."""
     return {
         "id": "commit-123",
         "type": "commit",
@@ -53,8 +53,8 @@ def get_test_commit_contribution():
     }
 
 
-def get_test_pull_request_contribution():
-    """Get a properly structured pull request contribution for testing"""
+def get_test_pull_request_contribution() -> dict[str, Any]:
+    """Get a properly structured pull request contribution for testing."""
     return {
         "id": "pr-456",
         "type": "pull_request",
@@ -94,8 +94,8 @@ def get_test_pull_request_contribution():
     }
 
 
-def get_test_issue_contribution():
-    """Get a properly structured issue contribution for testing"""
+def get_test_issue_contribution() -> dict[str, Any]:
+    """Get a properly structured issue contribution for testing."""
     return {
         "id": "issue-789",
         "type": "issue",
@@ -115,8 +115,8 @@ def get_test_issue_contribution():
     }
 
 
-def get_test_release_contribution():
-    """Get a properly structured release contribution for testing"""
+def get_test_release_contribution() -> dict[str, Any]:
+    """Get a properly structured release contribution for testing."""
     return {
         "id": "release-101",
         "type": "release",
@@ -136,34 +136,34 @@ def get_test_release_contribution():
     }
 
 
-def get_test_commit_metadata(selected=True):
-    """Get commit contribution metadata for the new API"""
+def get_test_commit_metadata(selected: bool = True) -> dict[str, Any]:
+    """Get commit contribution metadata for the new API."""
     return {"type": "commit", "id": "abc123def456", "selected": selected}
 
 
-def get_test_pull_request_metadata(selected=True):
-    """Get pull request contribution metadata for the new API"""
+def get_test_pull_request_metadata(selected: bool = True) -> dict[str, Any]:
+    """Get pull request contribution metadata for the new API."""
     return {"type": "pull_request", "id": "42", "selected": selected}
 
 
-def get_test_issue_metadata(selected=True):
-    """Get issue contribution metadata for the new API"""
+def get_test_issue_metadata(selected: bool = True) -> dict[str, Any]:
+    """Get issue contribution metadata for the new API."""
     return {"type": "issue", "id": "15", "selected": selected}
 
 
-def get_test_release_metadata(selected=True):
-    """Get release contribution metadata for the new API"""
+def get_test_release_metadata(selected: bool = True) -> dict[str, Any]:
+    """Get release contribution metadata for the new API."""
     return {"type": "release", "id": "101", "selected": selected}
 
 
 def get_test_contributions_metadata_request(
-    user="testuser",
-    week="2024-W21",
-    repository="test/repo",
-    contribution_types=None,
-    selected=True,
-):
-    """Get a complete contributions request with metadata-only format (NEW API)"""
+    user: str = "testuser",
+    week: str = "2024-W21",
+    repository: str = "test/repo",
+    contribution_types: list[str] | None = None,
+    selected: bool = True,
+) -> dict[str, Any]:
+    """Get a complete contributions request with metadata-only format (NEW API)."""
     if contribution_types is None:
         contribution_types = ["commit", "pull_request"]
 
@@ -190,9 +190,11 @@ def get_test_contributions_metadata_request(
 
 
 def get_test_contributions_request(
-    user="testuser", week="2024-W21", contribution_types=None
-):
-    """Get a complete contributions request with full contribution data (LEGACY - for backward compatibility)"""
+    user: str = "testuser",
+    week: str = "2024-W21",
+    contribution_types: list[str] | None = None
+) -> dict[str, Any]:
+    """Get a complete contributions request with full contribution data (LEGACY - for backward compatibility)."""
     if contribution_types is None:
         contribution_types = ["commit", "pull_request"]
 
@@ -213,8 +215,8 @@ def get_test_contributions_request(
     return {"user": user, "week": week, "contributions": contributions}
 
 
-def get_minimal_commit_contribution():
-    """Get a minimal commit contribution for simple tests"""
+def get_minimal_commit_contribution() -> dict[str, Any]:
+    """Get a minimal commit contribution for simple tests."""
     return {
         "id": "commit-simple",
         "type": "commit",
@@ -244,6 +246,6 @@ def get_minimal_commit_contribution():
     }
 
 
-def get_minimal_commit_metadata(selected=True):
-    """Get minimal commit metadata for simple tests (NEW API)"""
+def get_minimal_commit_metadata(selected: bool = True) -> dict[str, Any]:
+    """Get minimal commit metadata for simple tests (NEW API)."""
     return {"type": "commit", "id": "simple123", "selected": selected}
