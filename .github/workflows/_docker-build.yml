@@ -87,7 +87,7 @@ jobs:
                   subject-digest: ${{ steps.push.outputs.digest }}
                   push-to-registry: true
             - name: Update OpenAPI spec
-              if: github.ref != 'refs/heads/main' && (inputs.image_suffix == 'server')
+              if: github.ref != 'refs/heads/main' && (inputs.image_suffix == 'server' || inputs.image_suffix == 'contribution' || inputs.image_suffix == 'search' || inputs.image_suffix == 'genai')
               run:  |
                   echo "::group::Start services"
 
