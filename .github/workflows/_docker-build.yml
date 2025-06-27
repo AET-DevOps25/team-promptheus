@@ -120,11 +120,17 @@ jobs:
                   jq '.components.schemas | keys' ${{ inputs.context }}/openapi.json
 
                   echo "::endgroup::"
+                  echo "::group::writing to client/lib/api/types/${{ inputs.image_suffix }}.ts"
+
+                  npx openapi-typescript ${{ inputs.context }}/openapi.json --output client/lib/api/types/${{ inputs.image_suffix }}.ts --export-type --immutable-types --support-array-length
+
+                  echo "::endgroup::"
                   echo "::group::Commit OpenAPI changes"
 
                   git config --local user.email "action@github.com"
                   git config --local user.name "GitHub Action"
                   git add ${{ inputs.context }}/openapi.json
+                  git add client/lib/api/types/${{ inputs.image_suffix }}.ts
                   if ! git diff --staged --quiet; then
                     git commit -m "chore: Update OpenAPI definition [skip ci]"
                     git push
