@@ -1,0 +1,44 @@
+name: Docker Compose Healthcheck
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  docker-compose-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build services
+        run: docker compose build
+
+      - name: Start services in detached mode
+        run: docker compose up --build -d
+
+      - name: Wait for services to initialize
+        run: |
+          timeout=300  # Maximum wait time in seconds
+          interval=10  # Interval between health checks in seconds
+          elapsed=0
+          while [ $elapsed -lt $timeout ]; do
+            unhealthy=$(docker ps --format '{{.Names}} {{.Status}}' | grep -v 'healthy' | grep 'health')
+            if [ -z "$unhealthy" ]; then
+              echo "All containers are healthy."
+              break
+            fi
+            echo "Waiting for containers to become healthy..."
+            sleep $interval
+            elapsed=$((elapsed + interval))
+          done
+          if [ $elapsed -ge $timeout ]; then
+            echo "Timeout reached. Some containers are not healthy:"
+            echo "$unhealthy"
+            exit 1
+          fi
