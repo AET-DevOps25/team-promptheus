@@ -19,6 +19,15 @@ spec:
                   image: ghcr.io/aet-devops25/promptheus-client:main
                   ports:
                       - containerPort: 3000
+                  env:
+                      - name: NEXT_PUBLIC_SERVER_API_URL
+                        value: http://server-service:8080
+                      - name: NEXT_PUBLIC_GENAI_API_URL
+                        value: http://genai-service:3003
+                      - name: NEXT_PUBLIC_SEARCH_API_URL
+                        value: http://search-service:8070
+                      - name: NEXT_PUBLIC_CONTRIBUTIONS_API_URL
+                        value: http://collector-service:8082
                   securityContext:
                       runAsNonRoot: true
                       allowPrivilegeEscalation: false
