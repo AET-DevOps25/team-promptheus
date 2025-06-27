@@ -1,22 +1,40 @@
-# Kubernetes Deployment Instructions
+# Team Promptheus Helm Chart
+
+This Helm chart deploys the Team Promptheus application stack on Kubernetes, including all microservices, PostgreSQL database, MeiliSearch, and monitoring components.
 
 ## Prerequisites
 
-We require a [prometheus operator](https://github.com/prometheus-operator/kube-prometheus) to be installed
+- Kubernetes 1.21+
+- Helm 3.8+
+- kubectl configured to access your cluster
+
+### 1. Install Dependencies
 
 ```bash
-git clone https://github.com/prometheus-operator/kube-prometheus.git
-kubectl create -f kube-prometheus/manifests/setup
-until kubectl get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done
-kubectl create -f kube-prometheus/manifests/
-rm -fr kube-prometheus
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+
+helm install prometheus-operator prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace
 ```
 
-## Installation
+### 2. Install Team Promptheus
 
-Then we can apply our own configuration
+#### Development Installation
 
 ```bash
-kubectl apply -f k8s/namespace.yml
-kubectl apply -f k8s -R
+helm install team-promptheus ./k8s \
+  --namespace team-promptheus \
+  --create-namespace \
+  --values ./k8s/values-dev.yaml
+```
+
+#### Production Installation
+
+```bash
+helm install team-promptheus ./k8s \
+  --namespace team-promptheus \
+  --create-namespace \
+  --set secrets.postgresPassword="your-secure-password" \
+  --set secrets.meiliMasterKey="your-super-super-secure-key"
 ```

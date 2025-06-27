@@ -1,0 +1,9 @@
+# Development values for team-promptheus.
+
+# Development secrets (insecure - for dev only)
+
+defaultReplicas: 1
+
+secrets:
+    postgresPassword: "postgres"
+    meiliMasterKey: "change_me_change_me_change_me"
