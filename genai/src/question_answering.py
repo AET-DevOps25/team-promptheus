@@ -1,4 +1,5 @@
 """Question answering service using LangGraph agents with automatic tool usage."""
+
 import asyncio
 import os
 from datetime import UTC, datetime
@@ -80,9 +81,14 @@ class QuestionAnsweringService:
         self.llm = ChatOllama(
             model=model_name,
             base_url=ollama_base_url,
-            client_kwargs={"headers": {"Authorization": f"Bearer {ollama_api_key}"}},
+            client_kwargs={
+                "headers": {"Authorization": f"Bearer {ollama_api_key}"},
+                "timeout": 30.0,  # Set a reasonable timeout
+            },
             temperature=0.2,
             num_predict=-1,
+            # Add request timeout to prevent hanging
+            request_timeout=60.0,
         )
 
         # Create LangGraph agent with automatic tool usage
@@ -111,7 +117,6 @@ Evidence from {user}'s contributions in week {week}:
 
 Use the available GitHub API tools whenever they can provide better or more current
 information than the static evidence alone."""
-
 
     @time_operation(question_answering_duration, {"user": "unknown", "week": "unknown"})
     async def answer_question(self, user: str, week: str, request: QuestionRequest) -> QuestionResponse:
@@ -160,7 +165,37 @@ information than the static evidence alone."""
             )
 
             # 7. Invoke the agent (it will automatically use tools as needed)
-            agent_response = await self.agent.ainvoke({"messages": messages}, config=config)
+            try:
+                agent_response = await self.agent.ainvoke({"messages": messages}, config=config)
+            except RuntimeError as e:
+                if "Event loop is closed" in str(e):
+                    logger.exception(
+                        "Event loop closed during agent invocation - this indicates async resource cleanup issue",
+                        user=user,
+                        week=week,
+                        session_id=session_id,
+                        error=str(e),
+                    )
+                    # Return a fallback response instead of crashing
+                    response = QuestionResponse(
+                        question_id=question_id,
+                        user=user,
+                        week=week,
+                        question=request.question,
+                        answer="I apologize, but I encountered a technical issue while processing your question. Please try again.",
+                        confidence=0.0,
+                        evidence=evidence,
+                        reasoning_steps=["Technical error occurred during processing"],
+                        suggested_actions=["Please try asking your question again"],
+                        asked_at=datetime.now(UTC),
+                        response_time_ms=int((datetime.now(UTC) - start_time).total_seconds() * 1000),
+                        conversation_id=session_id,
+                    )
+
+                    # Store the question for retrieval
+                    self.questions_store[question_id] = response
+                    return response
+                raise
 
             # 8. Extract the final answer from agent response
             final_message = agent_response["messages"][-1]
@@ -181,8 +216,7 @@ information than the static evidence alone."""
             for msg in agent_response["messages"]:
                 if hasattr(msg, "tool_calls") and msg.tool_calls:
                     reasoning_steps.extend(
-                        f"Used {tool_call['name']} to gather additional information"
-                        for tool_call in msg.tool_calls
+                        f"Used {tool_call['name']} to gather additional information" for tool_call in msg.tool_calls
                     )
 
             if not reasoning_steps:
@@ -378,11 +412,7 @@ information than the static evidence alone."""
     def _get_release_title(self, contrib: GitHubContribution) -> str:
         """Get title for release contribution."""
         if hasattr(contrib, "name"):
-            return (
-                contrib.name or f"Release {contrib.tag_name}"
-                if hasattr(contrib, "tag_name")
-                else "Untitled release"
-            )
+            return contrib.name or f"Release {contrib.tag_name}" if hasattr(contrib, "tag_name") else "Untitled release"
         return "Untitled release"
 
     def get_question(self, question_id: str) -> QuestionResponse | None:
@@ -446,3 +476,12 @@ information than the static evidence alone."""
                 thread_id=thread_id,
                 error=str(e),
             )
+
+    async def cleanup(self) -> None:
+        """Clean up async resources properly."""
+        try:
+            # If the LLM has an async client, close it properly
+            if hasattr(self.llm, "_async_client") and self.llm._async_client:
+                await self.llm._async_client.aclose()
+        except Exception as e:
+            logger.warning("Error during LLM cleanup", error=str(e))

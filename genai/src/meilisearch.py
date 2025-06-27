@@ -215,11 +215,8 @@ class MeilisearchService:
             "patch": patch.strip(),
             "content": "\n".join(content_parts),
             "relevance_score": 1.0,  # Default relevance score
-            "is_selected": getattr(
-                contribution, "is_selected", True
-            ),  # Default to True if not present
+            "is_selected": getattr(contribution, "is_selected", True),  # Default to True if not present
         }
-
 
     async def search_contributions(self, user: str, week: str, query: str, limit: int = 10) -> list[dict[str, Any]]:
         """Search contributions for a specific user's week."""
@@ -367,7 +364,7 @@ class MeilisearchService:
             index_stats: dict[str, Any]
             if self.contributions_index:
                 stats_result = await asyncio.to_thread(self.contributions_index.get_stats)
-                index_stats = stats_result if isinstance(stats_result, dict) else {}
+                index_stats = dict(stats_result) if stats_result else {}
             else:
                 index_stats = {}
 

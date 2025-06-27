@@ -66,10 +66,17 @@ class ServiceContainer:
         self.ingestion_service: ContributionsIngestionService | None = None
         self.qa_service: QuestionAnsweringService | None = None
         self.summary_service: SummaryService | None = None
+        # Telemetry components
+        self.span_processor: BatchSpanProcessor | None = None
+        self.otlp_exporter: OTLPSpanExporter | None = None
+        self.tracer_provider: TracerProvider | None = None
 
     async def initialize_services(self) -> None:
         """Initialize all services with proper dependency injection."""
         logger.info("Initializing GenAI services...")
+
+        # Initialize OpenTelemetry first
+        await self._initialize_telemetry()
 
         # Initialize Meilisearch service
         self.meilisearch_service = MeilisearchService()
@@ -96,9 +103,78 @@ class ServiceContainer:
 
         logger.info("GenAI services initialized successfully")
 
+    async def _initialize_telemetry(self) -> None:
+        """Initialize OpenTelemetry with proper async context."""
+        try:
+            # Initialize OpenTelemetry
+            self.tracer_provider = TracerProvider()
+            trace.set_tracer_provider(self.tracer_provider)
+
+            # Set up OTLP exporter
+            self.otlp_exporter = OTLPSpanExporter(
+                endpoint=os.environ.get("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://localhost:4317/v1/traces")
+            )
+            self.span_processor = BatchSpanProcessor(self.otlp_exporter)
+            self.tracer_provider.add_span_processor(self.span_processor)
+
+            logger.info("OpenTelemetry initialized successfully")
+        except Exception as e:
+            logger.warning("Failed to initialize OpenTelemetry", error=str(e))
+
+    def instrument_app(self, app: FastAPI) -> None:
+        """Instrument FastAPI app with OpenTelemetry after telemetry is initialized."""
+        try:
+            if self.tracer_provider:
+                FastAPIInstrumentor.instrument_app(app)
+                logger.info("FastAPI instrumented with OpenTelemetry")
+        except Exception as e:
+            logger.warning("Failed to instrument FastAPI with OpenTelemetry", error=str(e))
+
     def cleanup_services(self) -> None:
         """Cleanup services on shutdown."""
         logger.info("Shutting down GenAI services...")
+
+    async def cleanup_services_async(self) -> None:
+        """Async cleanup of services on shutdown."""
+        logger.info("Shutting down GenAI services...")
+
+        # Clean up QA service async resources
+        if self.qa_service:
+            try:
+                await self.qa_service.cleanup()
+            except Exception as e:
+                logger.warning("Error cleaning up QA service", error=str(e))
+
+        # Clean up OpenTelemetry resources
+        await self._cleanup_telemetry()
+
+    async def _cleanup_telemetry(self) -> None:
+        """Clean up OpenTelemetry resources properly."""
+        try:
+            # Clean up FastAPI instrumentation first
+            try:
+                FastAPIInstrumentor.uninstrument_app(app)
+            except Exception as e:
+                logger.warning("Error uninstrumenting FastAPI", error=str(e))
+
+            if self.span_processor:
+                # Force flush and shutdown the span processor
+                if hasattr(self.span_processor, "force_flush"):
+                    self.span_processor.force_flush(timeout_millis=5000)
+                if hasattr(self.span_processor, "shutdown"):
+                    self.span_processor.shutdown()
+
+            if self.otlp_exporter and hasattr(self.otlp_exporter, "shutdown"):
+                # Shutdown the OTLP exporter
+                self.otlp_exporter.shutdown()
+
+            if self.tracer_provider and hasattr(self.tracer_provider, "shutdown"):
+                # Shutdown the tracer provider
+                self.tracer_provider.shutdown()
+
+            logger.info("OpenTelemetry resources cleaned up successfully")
+        except Exception as e:
+            logger.warning("Error cleaning up OpenTelemetry resources", error=str(e))
 
 
 def configure_structured_logging() -> None:
@@ -132,8 +208,9 @@ services = ServiceContainer()
 async def application_lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager with proper resource management."""
     await services.initialize_services()
+    services.instrument_app(_app)
     yield
-    services.cleanup_services()
+    await services.cleanup_services_async()
 
 
 def create_application() -> FastAPI:
@@ -154,19 +231,6 @@ def create_application() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
-    # Initialize OpenTelemetry
-    trace.set_tracer_provider(TracerProvider())
-
-    # Set up OTLP exporter
-    otlp_exporter = OTLPSpanExporter(
-        endpoint=os.environ.get("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://localhost:4317/v1/traces")
-    )
-    span_processor = BatchSpanProcessor(otlp_exporter)
-    trace.get_tracer_provider().add_span_processor(span_processor)  # type: ignore[attr-defined]
-
-    # Instrument FastAPI with OpenTelemetry
-    FastAPIInstrumentor.instrument_app(app)
 
     return app
 
