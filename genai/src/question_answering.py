@@ -73,13 +73,15 @@ class QuestionAnsweringService:
         ollama_base_url = os.getenv("OLLAMA_BASE_URL")
         ollama_api_key = os.getenv("OLLAMA_API_KEY")
         model_name = os.getenv("LANGCHAIN_MODEL_NAME", "llama3.3:latest")
-        
+
         self.llm = ChatOllama(
             model=model_name,
             base_url=ollama_base_url,
-            async_client_kwargs={"headers": {"Authorization": f"Bearer {ollama_api_key}"}},
+            async_client_kwargs={
+                "headers": {"Authorization": f"Bearer {ollama_api_key}"}
+            },
             temperature=0.2,
-            num_predict=-1
+            num_predict=-1,
         )
 
         # Create LangGraph agent with automatic tool usage

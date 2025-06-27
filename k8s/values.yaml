@@ -1,0 +1,5 @@
+defaultReplicas: 1
+
+secrets:
+    postgresPassword: ""
+    meiliMasterKey: ""

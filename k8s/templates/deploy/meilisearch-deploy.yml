@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: meilisearch
+    namespace: {{ $.Release.Namespace }}
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: meilisearch
+    template:
+        metadata:
+            labels:
+                app: meilisearch
+        spec:
+            containers:
+                - name: meilisearch
+                  imagePullPolicy: Always
+                  image: getmeili/meilisearch
+                  ports:
+                      - containerPort: 7700
+                  env:
+                      - name: MEILI_ENV
+                        value: production
+                      # secrets
+                      - name: MEILI_MASTER_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: MEILI_MASTER_KEY
+                  volumeMounts:
+                      - name: meilisearch-data
+                        mountPath: /data
+                  livenessProbe:
+                      httpGet:
+                          path: /health
+                          port: 7700
+                      initialDelaySeconds: 1
+                      periodSeconds: 10
+                      failureThreshold: 5
+                  readinessProbe:
+                      httpGet:
+                          path: /health
+                          port: 7700
+                      initialDelaySeconds: 1
+                      periodSeconds: 10
+                      failureThreshold: 5
+            volumes:
+                - name: meilisearch-data
+                  persistentVolumeClaim:
+                      claimName: meilisearch-pvc

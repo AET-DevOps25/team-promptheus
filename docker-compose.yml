@@ -16,7 +16,7 @@ services:
       start_period: 1s
       start_interval: 100ms
   meilisearch-setup:
-    image: ghcr.io/aet-devops25/promptheus-server:main
+    image: ghcr.io/aet-devops25/promptheus-ms-init:main
     environment:
       - MEILISEARCH_URL=http://meilisearch:7700
       - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
@@ -29,7 +29,7 @@ services:
         condition: service_healthy
     restart: on-failure:10  # Run once and exit, retry 10 times on failour
   search:
-    image: ghcr.io/aet-devops25/promptheus-search:latest
+    image: ghcr.io/aet-devops25/promptheus-search:main
     environment:
       spring.datasource.url: jdbc:postgresql://db:5432/${POSTGRES_DB:-postgres}
       spring.datasource.username: ${POSTGRES_USER:-postgres}
@@ -89,7 +89,7 @@ services:
       start_period: 1s
       start_interval: 100ms
   server:
-    image: ghcr.io/aet-devops25/promptheus-server:latest
+    image: ghcr.io/aet-devops25/promptheus-server:main
     environment:
       spring.datasource.url: jdbc:postgresql://db:5432/${POSTGRES_DB:-postgres}
       spring.datasource.username: ${POSTGRES_USER:-postgres}
@@ -125,7 +125,7 @@ services:
       start_period: 1s
       start_interval: 100ms
   genai:
-    image: ghcr.io/aet-devops25/promptheus-genai:latest
+    image: ghcr.io/aet-devops25/promptheus-genai:main
     build:
       context: ./genai
     ports:
@@ -178,7 +178,7 @@ services:
       meilisearch-setup:
         condition: service_completed_successfully
   contribution:
-    image: ghcr.io/aet-devops25/promptheus-contribution:latest
+    image: ghcr.io/aet-devops25/promptheus-contribution:main
     build:
       context: ./contribution
     ports:
@@ -212,9 +212,10 @@ services:
       meilisearch-setup:
         condition: service_completed_successfully
   client:
-    image: ghcr.io/aet-devops25/promptheus-client:latest
+    image: ghcr.io/aet-devops25/promptheus-client:main
     build:
-      context: frontend
+      context: ./client
+      dockerfile: ./Dockerfile
     ports:
       - 8081:${CLIENT_PORT:-8081}
     restart: unless-stopped

@@ -205,7 +205,9 @@ class MeilisearchService:
             "patch": patch.strip(),
             "content": "\n".join(content_parts),
             "relevance_score": 1.0,  # Default relevance score
-            "is_selected": getattr(contribution, "is_selected", True),  # Default to True if not present
+            "is_selected": getattr(
+                contribution, "is_selected", True
+            ),  # Default to True if not present
         }
 
         return document

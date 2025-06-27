@@ -17,24 +17,24 @@ public class ContributionDto {
 
     @NotBlank(message = "ID is required")
     private String id; // Required for PUT operations
-    
+
     @NotNull
     private Long gitRepositoryId;
-    
+
     @NotNull
     private String type;
-    
+
     @NotNull
     private String username;
-    
+
     @NotNull
     private String summary;
-    
+
     @NotNull
     private Boolean isSelected;
-    
+
     private Instant createdAt;
-    
+
     // Helper method to create DTO from entity
     public static ContributionDto fromEntity(de.promptheus.contributions.entity.Contribution contribution) {
         return ContributionDto.builder()
@@ -47,4 +47,4 @@ public class ContributionDto {
                 .createdAt(contribution.getCreatedAt())
                 .build();
     }
-} 
+}

@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+    name: meilisearch-metrics
+    namespace: {{ $.Release.Namespace }}
+    labels:
+        app: meilisearch
+spec:
+    selector:
+        matchLabels:
+            app: meilisearch
+    endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s

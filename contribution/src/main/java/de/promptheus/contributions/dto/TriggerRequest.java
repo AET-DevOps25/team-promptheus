@@ -11,9 +11,9 @@ import jakarta.validation.constraints.Pattern;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TriggerRequest {
-    
+
     @NotBlank(message = "Repository URL is required")
-    @Pattern(regexp = "^https://github\\.com/[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$", 
+    @Pattern(regexp = "^https://github\\.com/[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$",
              message = "Repository URL must be a valid GitHub repository URL")
     private String repositoryUrl;
-} 
+}

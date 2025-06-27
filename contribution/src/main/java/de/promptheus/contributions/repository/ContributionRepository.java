@@ -53,4 +53,4 @@ public interface ContributionRepository extends JpaRepository<Contribution, Stri
             @Param("startDate") Instant startDate,
             @Param("endDate") Instant endDate,
             Pageable pageable);
-} 
+}

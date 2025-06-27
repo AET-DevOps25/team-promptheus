@@ -39,15 +39,15 @@ log_debug() {
 # Check if Meilisearch is healthy
 check_meilisearch_health() {
     log_info "Checking Meilisearch health..."
-    
+
     local health_response
     health_response=$(curl -s -w "%{http_code}" \
         -H "Authorization: Bearer ${MEILI_MASTER_KEY}" \
         "${MEILISEARCH_URL}/health" 2>/dev/null || echo "000")
-    
+
     local http_code="${health_response: -3}"
     local response_body="${health_response%???}"
-    
+
     if [ "$http_code" = "200" ]; then
         log_info "✅ Meilisearch is healthy"
         return 0
@@ -60,7 +60,7 @@ check_meilisearch_health() {
 # Create contributions index
 create_contributions_index() {
     log_info "Creating contributions index..."
-    
+
     local response
     response=$(curl -s -w "%{http_code}" \
         -X POST \
@@ -68,13 +68,13 @@ create_contributions_index() {
         -H "Authorization: Bearer ${MEILI_MASTER_KEY}" \
         -d '{"uid":"contributions","primaryKey":"id"}' \
         "${MEILISEARCH_URL}/indexes" 2>/dev/null || echo "000")
-    
+
     local http_code="${response: -3}"
     local response_body="${response%???}"
-    
+
     if [ "$http_code" = "202" ] || [ "$http_code" = "201" ]; then
         log_info "✅ Contributions index created successfully"
-        
+
         # Wait for index creation to complete
         local task_uid
         task_uid=$(echo "$response_body" | grep -o '"taskUid":[0-9]*' | cut -d':' -f2)
@@ -93,7 +93,7 @@ create_contributions_index() {
 # Configure index settings
 configure_index_settings() {
     log_info "Configuring index settings..."
-    
+
     # Prepare embedder configuration based on both Java and Python implementations
     local embedders_config=""
     if [ -n "$OLLAMA_API_KEY" ]; then
@@ -171,13 +171,13 @@ configure_index_settings() {
         -H "Authorization: Bearer ${MEILI_MASTER_KEY}" \
         -d "$settings_json" \
         "${MEILISEARCH_URL}/indexes/contributions/settings" 2>/dev/null || echo "000")
-    
+
     local http_code="${response: -3}"
     local response_body="${response%???}"
-    
+
     if [ "$http_code" = "202" ]; then
         log_info "✅ Index settings updated successfully"
-        
+
         # Wait for settings update to complete
         local task_uid
         task_uid=$(echo "$response_body" | grep -o '"taskUid":[0-9]*' | cut -d':' -f2)
@@ -194,16 +194,16 @@ configure_index_settings() {
 wait_for_task() {
     local task_uid="$1"
     log_debug "Waiting for task $task_uid to complete..."
-    
+
     local max_attempts=30
     local attempt=0
-    
+
     while [ $attempt -lt $max_attempts ]; do
         local response
         response=$(curl -s \
             -H "Authorization: Bearer ${MEILI_MASTER_KEY}" \
             "${MEILISEARCH_URL}/tasks/${task_uid}" 2>/dev/null || echo "")
-        
+
         if echo "$response" | grep -q '"status":"succeeded"'; then
             log_debug "✅ Task $task_uid completed successfully"
             return 0
@@ -217,11 +217,11 @@ wait_for_task() {
                 return 1
             fi
         fi
-        
+
         sleep 1
         attempt=$((attempt + 1))
     done
-    
+
     log_warn "⚠️ Task $task_uid did not complete within expected time"
     return 1
 }
@@ -229,13 +229,13 @@ wait_for_task() {
 # Verify the setup
 verify_setup() {
     log_info "Verifying Meilisearch setup..."
-    
+
     # Get index stats
     local stats_response
     stats_response=$(curl -s \
         -H "Authorization: Bearer ${MEILI_MASTER_KEY}" \
         "${MEILISEARCH_URL}/indexes/contributions/stats" 2>/dev/null || echo "")
-    
+
     if echo "$stats_response" | grep -q '"numberOfDocuments"'; then
         local doc_count
         doc_count=$(echo "$stats_response" | grep -o '"numberOfDocuments":[0-9]*' | cut -d':' -f2)
@@ -244,37 +244,37 @@ verify_setup() {
         log_error "❌ Failed to verify index setup"
         return 1
     fi
-    
+
     # Get settings to verify configuration matches Java/Python services
     local settings_response
     settings_response=$(curl -s \
         -H "Authorization: Bearer ${MEILI_MASTER_KEY}" \
         "${MEILISEARCH_URL}/indexes/contributions/settings" 2>/dev/null || echo "")
-    
+
     if echo "$settings_response" | grep -q '"searchableAttributes"'; then
         log_info "✅ Index settings verified"
-        
+
         # Verify specific configuration elements
         if echo "$settings_response" | grep -q '"content".*"title".*"message"'; then
             log_debug "✅ Searchable attributes configured correctly"
         fi
-        
+
         if echo "$settings_response" | grep -q '"user".*"week".*"contribution_type"'; then
             log_debug "✅ Filterable attributes configured correctly"
         fi
-        
+
         if echo "$settings_response" | grep -q '"created_at_timestamp".*"relevance_score"'; then
             log_debug "✅ Sortable attributes configured correctly"
         fi
-        
+
         if echo "$settings_response" | grep -q '"words".*"typo".*"proximity"'; then
             log_debug "✅ Ranking rules configured correctly"
         fi
-        
+
         if echo "$settings_response" | grep -q '"bug".*"issue"'; then
             log_debug "✅ Synonyms configured correctly"
         fi
-        
+
         # Check embedders configuration
         if echo "$settings_response" | grep -q '"embedders"'; then
             if [ -n "$OLLAMA_API_KEY" ] && echo "$settings_response" | grep -q '"source":"rest"'; then
@@ -297,7 +297,7 @@ verify_setup() {
 # Test basic functionality
 test_functionality() {
     log_info "Testing basic functionality..."
-    
+
     # Test search endpoint
     local search_response
     search_response=$(curl -s -w "%{http_code}" \
@@ -306,9 +306,9 @@ test_functionality() {
         -H "Authorization: Bearer ${MEILI_MASTER_KEY}" \
         -d '{"q":"test","limit":1}' \
         "${MEILISEARCH_URL}/indexes/contributions/search" 2>/dev/null || echo "000")
-    
+
     local http_code="${search_response: -3}"
-    
+
     if [ "$http_code" = "200" ]; then
         log_info "✅ Search functionality working"
     else
@@ -329,37 +329,37 @@ main() {
     echo "  Ollama Model: $OLLAMA_EMBEDDING_MODEL"
     echo "  Ollama API Key: ${OLLAMA_API_KEY:+✓ Available}"
     echo ""
-    
+
     # Check health first
     if ! check_meilisearch_health; then
         log_error "❌ Meilisearch is not available. Please ensure it's running."
         exit 1
     fi
-    
+
     # Create index
     if ! create_contributions_index; then
         log_error "❌ Failed to create contributions index"
         exit 1
     fi
-    
+
     # Configure settings
     if ! configure_index_settings; then
         log_error "❌ Failed to configure index settings"
         exit 1
     fi
-    
+
     # Verify setup
     if ! verify_setup; then
         log_error "❌ Setup verification failed"
         exit 1
     fi
-    
+
     # Test functionality
     if ! test_functionality; then
         log_error "❌ Functionality test failed"
         exit 1
     fi
-    
+
     echo ""
     echo "🎉 Meilisearch setup completed successfully!"
     echo ""
@@ -382,4 +382,4 @@ main() {
 }
 
 # Run main function
-main "$@" 
+main "$@"

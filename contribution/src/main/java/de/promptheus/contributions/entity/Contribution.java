@@ -55,4 +55,4 @@ public class Contribution {
             isSelected = true;  // Database default is true
         }
     }
-} 
+}

@@ -24,4 +24,4 @@ public interface GitRepositoryRepository extends JpaRepository<GitRepository, Lo
 
     @Query("SELECT gr FROM GitRepository gr WHERE gr.lastFetchedAt < :cutoffTime")
     List<GitRepository> findRepositoriesLastFetchedBefore(Instant cutoffTime);
-} 
+}
