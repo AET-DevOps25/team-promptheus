@@ -17,7 +17,9 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build services
-        run: docker compose build
+        run: |
+            touch .env
+            docker compose build
 
       - name: Start services in detached mode
         run: docker compose up -d
