@@ -24,9 +24,9 @@ jobs:
       - run:  npx @biomejs/biome ci
   client-build:
     uses: ./.github/workflows/_docker-build.yml
-    needs:
-      - client-type-check
-      - client-linting
+    #needs:
+    #  - client-type-check
+    #  - client-linting
     with:
       image_suffix: client
       context: ./client

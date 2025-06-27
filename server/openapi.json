@@ -1,3 +1,4 @@
+
 {
 	"openapi": "3.1.0",
 	"info": { "title": "OpenAPI definition", "version": "v0" },
@@ -164,41 +165,6 @@
 				}
 			}
 		},
-		"/api/repositories/{usercode}/search": {
-			"get": {
-				"tags": ["git-repo-controller"],
-				"summary": "allows searching the repository's content",
-				"operationId": "search",
-				"parameters": [
-					{
-						"name": "usercode",
-						"in": "path",
-						"required": true,
-						"schema": { "type": "string", "format": "uuid" }
-					},
-					{
-						"name": "query",
-						"in": "query",
-						"required": true,
-						"schema": { "type": "string", "minLength": 1 }
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "searched repository-content",
-						"content": {
-							"application/json": {
-								"schema": { "$ref": "#/components/schemas/SearchResult" }
-							}
-						}
-					},
-					"403": {
-						"description": "Forbidden - Requested code does not exist",
-						"content": { "text/plain": { "schema": { "type": "string" } } }
-					}
-				}
-			}
-		},
 		"/api/repositories/ping": {
 			"get": {
 				"tags": ["git-repo-controller"],
@@ -303,27 +269,6 @@
 				"properties": {
 					"min": { "type": "number", "format": "double" },
 					"max": { "type": "number", "format": "double" }
-				}
-			},
-			"SearchResult": {
-				"type": "object",
-				"properties": {
-					"hits": {
-						"type": "array",
-						"items": { "type": "object", "additionalProperties": {} }
-					},
-					"facetDistribution": {},
-					"facetStats": {
-						"type": "object",
-						"additionalProperties": {
-							"$ref": "#/components/schemas/FacetRating"
-						}
-					},
-					"processingTimeMs": { "type": "integer", "format": "int32" },
-					"query": { "type": "string" },
-					"offset": { "type": "integer", "format": "int32" },
-					"limit": { "type": "integer", "format": "int32" },
-					"estimatedTotalHits": { "type": "integer", "format": "int32" }
 				}
 			}
 		}

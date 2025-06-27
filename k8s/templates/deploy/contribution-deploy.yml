@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: contribution
+    namespace: {{ $.Release.Namespace }}
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: contribution
+    template:
+        metadata:
+            labels:
+                app: contribution
+        spec:
+            initContainers:
+                - name: init
+                  imagePullPolicy: Always
+                  image: ghcr.io/aet-devops25/promptheus-ms-init:main
+                  env:
+                      - name: MEILISEARCH_URL
+                        value: http://meilisearch-service:7700
+                      - name: OLLAMA_BASE_URL
+                        value: https://gpu.aet.cit.tum.de/ollama
+                      - name: OLLAMA_EMBEDDING_MODEL
+                        value: tinyllama:latest
+                      - name: MEILI_MASTER_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: MEILI_MASTER_KEY
+            containers:
+                - name: contribution
+                  imagePullPolicy: Always
+                  image: ghcr.io/aet-devops25/promptheus-contribution:main
+                  ports:
+                      - containerPort: 8082
+                  env:
+                      # secrets
+                      - name: app.meiliMasterKey
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: MEILI_MASTER_KEY
+                      - name: spring.datasource.username
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: POSTGRES_USER
+                      - name: spring.datasource.url
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: spring.datasource.url
+                      - name: spring.datasource.password
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: POSTGRES_PASSWORD
+                      # routing
+                      - name: app.meiliHost
+                        value: http://meilisearch-service:7700
+                      - name: management.otlp.tracing.endpoint
+                        value: http://monitoring-service:4318/v1/traces
+                      - name: management.otlp.metrics.export.url
+                        value: http://monitoring-service:4318/v1/metrics
+                      - name: management.otlp.logging.endpoint
+                        value: http://monitoring-service:4318/v1/logs
+                  securityContext:
+                      runAsNonRoot: true
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: false # JIT requires writing
+                      runAsUser: 1000
+                      runAsGroup: 1000
+                      privileged: false
+                  livenessProbe:
+                      httpGet:
+                          path: /actuator/health
+                          port: 8082
+                      initialDelaySeconds: 1
+                      periodSeconds: 10
+                      timeoutSeconds: 3
+                      failureThreshold: 5
+                  readinessProbe:
+                      httpGet:
+                          path: /actuator/health
+                          port: 8082
+                      initialDelaySeconds: 1
+                      periodSeconds: 10
+                      timeoutSeconds: 3
+                      failureThreshold: 5

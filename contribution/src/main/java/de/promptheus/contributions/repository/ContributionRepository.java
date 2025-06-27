@@ -1,6 +1,8 @@
 package de.promptheus.contributions.repository;
 
 import de.promptheus.contributions.entity.Contribution;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -34,4 +36,21 @@ public interface ContributionRepository extends JpaRepository<Contribution, Stri
 
     @Query("SELECT c FROM Contribution c WHERE c.isSelected = true")
     List<Contribution> findSelectedContributions();
+
+    // New filtering methods with pagination support
+    Page<Contribution> findByUsername(String username, Pageable pageable);
+
+    Page<Contribution> findByCreatedAtBetween(Instant startDate, Instant endDate, Pageable pageable);
+
+    Page<Contribution> findByUsernameAndCreatedAtBetween(String username, Instant startDate, Instant endDate, Pageable pageable);
+
+    @Query("SELECT c FROM Contribution c WHERE " +
+           "(:username IS NULL OR c.username = :username) AND " +
+           "(:startDate IS NULL OR c.createdAt >= :startDate) AND " +
+           "(:endDate IS NULL OR c.createdAt <= :endDate)")
+    Page<Contribution> findWithFilters(
+            @Param("username") String username,
+            @Param("startDate") Instant startDate,
+            @Param("endDate") Instant endDate,
+            Pageable pageable);
 }

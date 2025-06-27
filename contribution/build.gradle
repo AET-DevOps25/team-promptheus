@@ -28,13 +28,20 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-	runtimeOnly 'org.postgresql:postgresql'
-	// docs
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
-	// search
-	implementation 'com.meilisearch.sdk:meilisearch-java:0.14.4'
+    // search
+	implementation 'com.meilisearch.sdk:meilisearch-java:0.15.0'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+	runtimeOnly 'org.postgresql:postgresql'
+
 	// tests
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.testcontainers:testcontainers:1.21.2'
+	testImplementation 'org.testcontainers:postgresql:1.21.2'
+	testImplementation 'org.testcontainers:junit-jupiter:1.21.2'
+	testImplementation 'io.vanslog:testcontainers-meilisearch:1.0.5'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation 'org.mockito:mockito-core'
 	// observability

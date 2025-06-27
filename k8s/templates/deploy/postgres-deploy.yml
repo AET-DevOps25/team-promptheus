@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: postgres
+    namespace: {{ $.Release.Namespace }}
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: postgres
+    template:
+        metadata:
+            labels:
+                app: postgres
+        spec:
+            containers:
+                - name: postgres-exporter
+                  imagePullPolicy: Always
+                  image: quay.io/prometheuscommunity/postgres-exporter
+                  ports:
+                      - containerPort: 9187
+                        name: monitoring
+                  env:
+                      - name: DATA_SOURCE_URI
+                        value: "localhost:5432/postgres?sslmode=disable"
+                      - name: DATA_SOURCE_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: POSTGRES_USER
+                      - name: DATA_SOURCE_PASS
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: POSTGRES_PASSWORD
+                  securityContext:
+                      runAsNonRoot: true
+                      allowPrivilegeEscalation: false
+                      runAsUser: 1000
+                      runAsGroup: 1000
+                      privileged: false
+                - name: postgres
+                  imagePullPolicy: Always
+                  image: postgres:17
+                  ports:
+                      - containerPort: 5432
+                  envFrom:
+                      - configMapRef:
+                            name: postgres-config
+                  env:
+                      - name: POSTGRES_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: POSTGRES_PASSWORD
+                      - name: POSTGRES_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: POSTGRES_USER
+                      - name: POSTGRES_DB
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: POSTGRES_DB
+                  securityContext:
+                      runAsNonRoot: true
+                      allowPrivilegeEscalation: false
+                      runAsUser: 1000
+                      runAsGroup: 1000
+                      privileged: false
+                  volumeMounts:
+                      - name: postgres-data
+                        mountPath: /var/lib/postgresql/data
+                  #command:
+                  #    - -c
+                  #    - synchronous_commit=off
+                  livenessProbe:
+                      exec:
+                          command:
+                              - pg_isready
+                              - -U
+                              - postgres
+                      initialDelaySeconds: 1
+                      periodSeconds: 10
+                      failureThreshold: 5
+                  readinessProbe:
+                      exec:
+                          command:
+                              - pg_isready
+                              - -U
+                              - postgres
+                      initialDelaySeconds: 1
+                      periodSeconds: 10
+                      failureThreshold: 5
+            volumes:
+                - name: postgres-data
+                  persistentVolumeClaim:
+                      claimName: postgres-pvc

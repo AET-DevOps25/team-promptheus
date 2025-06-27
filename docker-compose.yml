@@ -3,7 +3,7 @@ services:
     image: getmeili/meilisearch
     restart: unless-stopped
     ports:
-      - 7700:7700
+      - ${MEILISEARCH_PORT:-7700}:7700
     environment:
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
       MEILI_ENV: development
@@ -13,6 +13,55 @@ services:
       test: curl --silent http://localhost:7700/health
       retries: 5
       interval: 10s
+      start_period: 1s
+      start_interval: 100ms
+  meilisearch-setup:
+    image: ghcr.io/aet-devops25/promptheus-ms-init:main
+    environment:
+      - MEILISEARCH_URL=http://meilisearch:7700
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
+      - OLLAMA_BASE_URL=https://gpu.aet.cit.tum.de/ollama
+      - OLLAMA_EMBEDDING_MODEL=tinyllama:latest
+    env_file:
+      - ".env"
+    depends_on:
+      meilisearch:
+        condition: service_healthy
+    restart: on-failure:10  # Run once and exit, retry 10 times on failour
+  search:
+    image: ghcr.io/aet-devops25/promptheus-search:main
+    environment:
+      spring.datasource.url: jdbc:postgresql://db:5432/${POSTGRES_DB:-postgres}
+      spring.datasource.username: ${POSTGRES_USER:-postgres}
+      spring.datasource.password: ${POSTGRES_PASSWORD:-CHANGE_ME}
+      app.meiliMasterKey: ${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
+      app.meiliHost: http://meilisearch:${MEILISEARCH_PORT:-7700}
+      management.otlp.tracing.endpoint: http://monitoring:4318/v1/traces
+      management.otlp.metrics.export.url: http://monitoring:4318/v1/metrics
+      management.otlp.logging.endpoint: http://monitoring:4318/v1/logs
+    build:
+      context: search
+    restart: unless-stopped
+    ports:
+      - ${SEARCH_PORT:-8070}:8070
+    depends_on:
+      meilisearch:
+        condition: service_healthy
+      meilisearch-setup:
+        condition: service_completed_successfully
+    develop:
+      watch:
+        - action: rebuild
+          path: ./search/build.gradle
+        - action: rebuild
+          path: ./search/settings.gradle
+        - action: rebuild
+          path: ./search/src
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${SEARCH_PORT:-8070}/actuator/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
       start_period: 1s
       start_interval: 100ms
   db:
@@ -40,7 +89,7 @@ services:
       start_period: 1s
       start_interval: 100ms
   server:
-    image: ghcr.io/aet-devops25/promptheus-server:latest
+    image: ghcr.io/aet-devops25/promptheus-server:main
     environment:
       spring.datasource.url: jdbc:postgresql://db:5432/${POSTGRES_DB:-postgres}
       spring.datasource.username: ${POSTGRES_USER:-postgres}
@@ -57,8 +106,6 @@ services:
       - ${SERVER_PORT:-8080}:8080
     depends_on:
       db:
-        condition: service_healthy
-      meilisearch:
         condition: service_healthy
       genai:
         condition: service_started
@@ -78,7 +125,7 @@ services:
       start_period: 1s
       start_interval: 100ms
   genai:
-    image: ghcr.io/aet-devops25/promptheus-genai:latest
+    image: ghcr.io/aet-devops25/promptheus-genai:main
     build:
       context: ./genai
     ports:
@@ -87,6 +134,10 @@ services:
       - GENAI_PORT=${GENAI_PORT:-3003}
       - MEILISEARCH_URL=http://meilisearch:7700
       - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
+      - OLLAMA_API_KEY=${OLLAMA_API_KEY:-}
+      - LANGCHAIN_MODEL_NAME=llama3.3:latest
+      - OLLAMA_BASE_URL=https://gpu.aet.cit.tum.de/ollama
+      - OLLAMA_EMBEDDING_MODEL=tinyllama:latest
       - OTEL_EXPORTER_OTLP_ENDPOINT="http://monitoring:4317"
       - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT="http://monitoring:4317/v1/traces"
       - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT="http://monitoring:4317/v1/metrics"
@@ -99,9 +150,7 @@ services:
       - OTEL_LOGS_EXPORTER=otlp
       - OTEL_METRICS_EXEMPLAR_FILTER=always_on
       - OTEL_LOG_LEVEL="debug"
-    env_file:
-      - ./genai/.env
-    command: sh -c "python scripts/setup_meilisearch.py && uvicorn app:app --host 0.0.0.0 --port ${GENAI_PORT:-3003} --reload"
+    command: uvicorn app:app --host 0.0.0.0 --port ${GENAI_PORT:-3003} --reload
     develop:
       watch:
         - action: rebuild
@@ -126,8 +175,10 @@ services:
         condition: service_healthy
       meilisearch:
         condition: service_healthy
+      meilisearch-setup:
+        condition: service_completed_successfully
   contribution:
-    image: ghcr.io/aet-devops25/promptheus-contribution:latest
+    image: ghcr.io/aet-devops25/promptheus-contribution:main
     build:
       context: ./contribution
     ports:
@@ -139,6 +190,10 @@ services:
       spring.datasource.password: ${POSTGRES_PASSWORD:-CHANGE_ME}
       app.meiliMasterKey: ${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
       app.meiliHost: http://meilisearch:7700
+      # Updated to use containerized Ollama
+      app.ollamaBaseUrl: https://gpu.aet.cit.tum.de/
+      app.ollamaModel: tinyllama:latest
+      app.ollamaApiKey: ${OLLAMA_API_KEY:-not-required-for-local}
       management.otlp.tracing.endpoint: http://monitoring:4318/v1/traces
       management.otlp.metrics.export.url: http://monitoring:4318/v1/metrics
       management.otlp.logging.endpoint: http://monitoring:4318/v1/logs
@@ -154,11 +209,13 @@ services:
         condition: service_healthy
       meilisearch:
         condition: service_healthy
-
+      meilisearch-setup:
+        condition: service_completed_successfully
   client:
-    image: ghcr.io/aet-devops25/promptheus-client:latest
+    image: ghcr.io/aet-devops25/promptheus-client:main
     build:
-      context: client
+      context: ./client
+      dockerfile: ./Dockerfile
     ports:
       - 8081:${CLIENT_PORT:-8081}
     restart: unless-stopped
@@ -196,12 +253,9 @@ services:
     volumes:
       - grafana-data:/data/grafana
       - prometheus-data:/data/prometheus
-      - loki-data:/data/loki
-    environment:
-      GF_PATHS_DATA: /data/grafana
+
 volumes:
-  prometheus-data:
-  grafana-data:
-  loki-data:
-  postgres-data:
   meilisearch-data:
+  postgres-data:
+  grafana-data:
+  prometheus-data:

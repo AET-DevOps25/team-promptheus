@@ -48,7 +48,7 @@ from src.services import (
 APP_TITLE = "Prompteus GenAI Service"
 APP_DESCRIPTION = "AI-powered service for ingesting GitHub contributions and providing Q&A for user weekly summaries"
 APP_VERSION = "1.0.0"
-DEFAULT_MODEL_NAME = "gpt-3.5-turbo"
+DEFAULT_MODEL_NAME = "llama3.3:latest"
 
 # Service error messages
 SERVICE_NOT_INITIALIZED = "Service not initialized"

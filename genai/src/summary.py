@@ -5,7 +5,7 @@ import structlog
 
 # LangChain imports
 from langchain.schema import HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 from langchain.prompts import ChatPromptTemplate
 from langchain.output_parsers import PydanticOutputParser
 from langgraph.prebuilt import create_react_agent
@@ -63,11 +63,25 @@ class SummaryService:
         self.ingestion_service = ingestion_service
         self.summaries_store: Dict[str, SummaryResponse] = {}
 
-        # Initialize LangChain components
-        self.llm = ChatOpenAI(
-            model=os.getenv("LANGCHAIN_MODEL_NAME", "gpt-4-turbo"),
+        # Initialize LangChain components with Ollama
+        ollama_base_url = os.getenv(
+            "OLLAMA_BASE_URL", "https://gpu.aet.cit.tum.de/ollama"
+        )
+        ollama_api_key = os.getenv("OLLAMA_API_KEY")
+        model_name = os.getenv("LANGCHAIN_MODEL_NAME", "llama3.3:latest")
+
+        logger.error("Ollama base URL", ollama_base_url=ollama_base_url)
+        logger.error("Ollama API key", ollama_api_key=ollama_api_key)
+        logger.error("Model name", model_name=model_name)
+
+        self.llm = ChatOllama(
+            model=model_name,
+            base_url=ollama_base_url,
+            async_client_kwargs={
+                "headers": {"Authorization": f"Bearer {ollama_api_key}"}
+            },
             temperature=0.2,
-            max_tokens=1500,
+            num_predict=2500,  # Use num_predict instead of max_tokens for Ollama
         )
 
         # Create LangGraph agent for tool-enhanced summary generation
@@ -344,7 +358,7 @@ You have access to the following tools:
 
 You are generating a weekly progress report for developer \"{user}\".
 
-Create a brief, professional report similar to a weekly scrum update.
+Create a brief, professional, up-to one page report similar to a weekly scrum update.
 
 Focus on:
 - What was accomplished this week (brief, factual) - enhance with tool data when helpful

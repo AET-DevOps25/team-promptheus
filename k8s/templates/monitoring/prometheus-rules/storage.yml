@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+    name: storage-alerts
+    namespace: {{ $.Release.Namespace }}
+    labels:
+        app: prometheus
+        role: alert-rules
+spec:
+    groups:
+    - name: storage
+      rules:
+      - alert: PersistentVolumeUsageHigh
+        expr: (kubelet_volume_stats_used_bytes{namespace="team-promptheus"} / kubelet_volume_stats_capacity_bytes{namespace="team-promptheus"}) * 100 > 85
+        for: 5m
+        labels:
+            severity: warning
+        annotations:
+            summary: "Persistent volume {{`{{`}} $labels.persistentvolumeclaim {{`}}`}} usage is high"
+            description: "PVC {{`{{`}} $labels.persistentvolumeclaim {{`}}`}} usage is {{`{{`}} $value {{`}}`}}% for more than 5 minutes"
+
+      - alert: PersistentVolumeFull
+        expr: (kubelet_volume_stats_used_bytes{namespace="team-promptheus"} / kubelet_volume_stats_capacity_bytes{namespace="team-promptheus"}) * 100 > 95
+        for: 1m
+        labels:
+            severity: critical
+        annotations:
+            summary: "Persistent volume {{`{{`}} $labels.persistentvolumeclaim {{`}}`}} is nearly full"
+            description: "PVC {{`{{`}} $labels.persistentvolumeclaim {{`}}`}} usage is {{`{{`}} $value {{`}}`}}% - immediate action required"
