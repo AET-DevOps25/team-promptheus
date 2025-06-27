@@ -128,7 +128,7 @@ jobs:
                   echo "::group::fix formatting mistakes"
 
                   pip install pre-commit
-                  pre-commit run --all-files
+                  pre-commit run --all-files || true
 
                   echo "::endgroup::"
                   echo "::group::Commit OpenAPI changes"
