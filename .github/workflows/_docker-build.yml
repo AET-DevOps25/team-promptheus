@@ -92,7 +92,7 @@ jobs:
                   touch .env
                   docker compose up --detach --no-build ${{ inputs.image_suffix }}
                   docker compose down ${{ inputs.image_suffix }}
-                  docker run --rm -it --net=host ${{ steps.meta.outputs.tags }}
+                  docker run --rm --detach --net=host "${{ steps.meta.outputs.tags }}"
 
                   echo "::endgroup::"
                   echo "::group::Wait for ${{ inputs.image_suffix }} health"
