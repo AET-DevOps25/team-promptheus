@@ -15,6 +15,14 @@ on:
                 required: true
                 description: Dockerfile location (relative to context)
                 type: string
+            openapi_url:
+                required: false
+                description: URL for OpenAPI specification
+                type: string
+            healthcheck_url:
+                required: false
+                description: URL for healthcheck endpoint
+                type: string
 
 env:
     REGISTRY: ghcr.io
@@ -25,7 +33,7 @@ jobs:
         runs-on: ubuntu-latest
         permissions:
             id-token: write
-            contents: read
+            contents: write
             packages: write
             attestations: write
         outputs:
@@ -76,3 +84,50 @@ jobs:
                   subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
                   subject-digest: ${{ steps.push.outputs.digest }}
                   push-to-registry: true
+            - name: Update OpenAPI spec
+              if: github.ref != 'refs/heads/main' && (inputs.image_suffix == 'server')
+              run:  |
+                  echo "::group::Start services"
+
+                  touch .env
+                  docker compose up --detach --no-build ${{ inputs.image_suffix }}
+                  docker compose down ${{ inputs.image_suffix }}
+                  docker run --rm -it --net=host ${{ steps.meta.outputs.tags }}
+
+                  echo "::endgroup::"
+                  echo "::group::Wait for ${{ inputs.image_suffix }} health"
+
+                  echo "Waiting for services to be healthy..."
+                  timeout 120 bash -c 'while ! curl -f -s "${{ inputs.healthcheck_url }}" >/dev/null; do echo "Waiting for server..."; sleep 5; done'
+                  echo "${{ inputs.image_suffix }} is healthy!"
+
+                  echo "::endgroup::"
+                  echo "::group::Extract OpenAPI definition"
+
+                  curl -f -s "${{ inputs.openapi_url }}" | jq '.' > "${{ inputs.context }}/openapi.json"
+                  echo "OpenAPI definition extracted successfully"
+
+                  echo "::endgroup::"
+                  echo "::group::Contained Endpoints"
+
+                  jq '.paths | keys | length' ${{ inputs.context }}/openapi.json
+
+                  echo "::endgroup::"
+                  echo "::group::Contained Schemas"
+
+                  jq '.components.schemas | keys | length' ${{ inputs.context }}/openapi.json
+
+                  echo "::endgroup::"
+                  echo "::group::Commit OpenAPI changes"
+
+                  git config --local user.email "action@github.com"
+                  git config --local user.name "GitHub Action"
+                  git add ${{ inputs.context }}/openapi.json
+                  if ! git diff --staged --quiet; then
+                    git commit -m "chore: Update OpenAPI definition [skip ci]"
+                    git push
+                  else
+                    echo "No changes to OpenAPI definition"
+                  fi
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

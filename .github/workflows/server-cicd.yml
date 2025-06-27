@@ -49,48 +49,10 @@ jobs:
             image_suffix: server
             context: ./server
             dockerfile: Dockerfile
+            openapi_url: http://localhost:8080/openapi
+            healthcheck_url: http://localhost:8080/actuator/health
         permissions:
             id-token: write
-            contents: read
+            contents: write
             packages: write
             attestations: write
-    extract-server-openapi:
-        runs-on: ubuntu-latest
-        needs:
-            - docker-build
-        if: github.ref != 'refs/heads/main'
-        permissions:
-            contents: write
-        steps:
-            - name: Pull updates
-              run: docker compose pull server
-            - name: Start services
-              run:  |
-                  docker compose up --detach --no-build server
-                  docker compose down server
-                  docker run --rm -it -p 8080:8080 ${{ jobs.docker-build.outputs.tags }}
-            - name: Wait for server health
-              run: |
-                  echo "Waiting for services to be healthy..."
-                  timeout 120 bash -c 'while ! curl -f -s http://localhost:8080/actuator/health >/dev/null; do echo "Waiting for server..."; sleep 5; done'
-                  echo "Server is healthy!"
-            - uses: actions/checkout@v4
-            - name: Extract OpenAPI definition
-              run: |
-                  curl -f -s http://localhost:8080/openapi | jq '.' > server/openapi.json
-                  echo "OpenAPI definition extracted successfully"
-                  echo "Endpoints: $(jq '.paths | keys | length' server/openapi.json)"
-                  echo "Schemas: $(jq '.components.schemas | keys | length' server/openapi.json)"
-            - name: Commit OpenAPI changes
-              run: |
-                  git config --local user.email "action@github.com"
-                  git config --local user.name "GitHub Action"
-                  git add server/openapi.json
-                  if ! git diff --staged --quiet; then
-                    git commit -m "Update OpenAPI definition [skip ci]"
-                    git push
-                  else
-                    echo "No changes to OpenAPI definition"
-                  fi
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
