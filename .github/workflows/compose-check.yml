@@ -26,20 +26,18 @@ jobs:
 
             - name: Wait for services to initialize
               run: |
-                  timeout=300  # Maximum wait time in seconds
-                  interval=10  # Interval between health checks in seconds
                   elapsed=0
-                  while true do
+                  while true; do
                     unhealthy=$(docker ps --format '{{.Names}} {{.Status}}' | grep -v 'healthy' | grep 'health')
                     if [ -z "$unhealthy" ]; then
                       echo "All containers are healthy after $elapsed seconds."
                       exit 0
                     fi
-                    echo "[$elapsed / $timeout seconds elapsed] Waiting containers to become healthy: $unhealthy"
-                    sleep $interval
-                    elapsed=$((elapsed + interval))
+                    echo "[$elapsed / 300 seconds elapsed] Waiting containers to become healthy: $unhealthy"
+                    sleep 10
+                    elapsed=$((elapsed + 10))
 
-                    if [ $elapsed -ge $timeout ]; then
+                    if [ $elapsed -ge 300 ]; then
                       echo "Timeout reached. Some containers are not healthy:"
                       echo "$unhealthy"
                       exit 1
