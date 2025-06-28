@@ -13,7 +13,7 @@ import {
 	Plus,
 	Send,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,7 +37,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-	type ContributionDto,
 	useContributions,
 	useUpdateContributions,
 } from "@/lib/api/contributions";
@@ -82,7 +81,6 @@ const statusColors = {
 };
 
 export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
-	const [items, setItems] = useState<SummaryItem[]>([]);
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [filter, setFilter] = useState<
 		"all" | "done" | "in-progress" | "blocked"
@@ -107,32 +105,6 @@ export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
 
 	const updateContributions = useUpdateContributions();
 
-	// Map contributions to summary items when data changes
-	useEffect(() => {
-		if (contributionsData?.content) {
-			const mappedItems = contributionsData.content.map((contribution) => {
-				// Map contribution type to UI type
-				const type = mapContributionType(contribution.type);
-				// Map contribution status based on metadata
-				const status = "done";
-
-				return {
-					author: contribution.username,
-					date: contribution.createdAt || new Date().toISOString(),
-					description: contribution.summary,
-					id: contribution.id,
-					repository: `repo-${contribution.gitRepositoryId}`,
-					selected: contribution.isSelected,
-					status,
-					title: contribution.summary,
-					type,
-					url: "#",
-				};
-			});
-			setItems(mappedItems);
-		}
-	}, [contributionsData]);
-
 	// Helper functions for mapping types and statuses
 	const mapContributionType = (
 		type: string,
@@ -145,11 +117,6 @@ export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
 	};
 
 	const toggleItemSelection = (id: string) => {
-		const updatedItems = items.map((item) =>
-			item.id === id ? { ...item, selected: !item.selected } : item,
-		);
-		setItems(updatedItems);
-
 		// Update the contribution selection status via API
 		const contributionToUpdate = contributionsData?.content?.find(
 			(contribution) => contribution.id === id,
@@ -165,22 +132,14 @@ export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
 	};
 
 	const selectAllByStatus = (status: string) => {
-		const updatedItems = items.map((item) =>
-			item.status === status ? { ...item, selected: true } : item,
-		);
-		setItems(updatedItems);
-
-		// Update the contribution selection status via API for all items with the given status
-		const contributionsToUpdate = contributionsData?.content
-			?.filter((_, index) => {
-				// Find matching index in items array to get status
-				const correspondingItem = items[index];
-				return correspondingItem && correspondingItem.status === status;
-			})
-			.map((contribution) => ({
+		// All items are "done" status in current implementation
+		// Update the contribution selection status via API for all items
+		const contributionsToUpdate = contributionsData?.content?.map(
+			(contribution) => ({
 				...contribution,
 				isSelected: true,
-			}));
+			}),
+		);
 
 		if (contributionsToUpdate && contributionsToUpdate.length > 0) {
 			updateContributions.mutate(contributionsToUpdate);
@@ -188,9 +147,6 @@ export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
 	};
 
 	const clearAllSelections = () => {
-		const updatedItems = items.map((item) => ({ ...item, selected: false }));
-		setItems(updatedItems);
-
 		// Update the contribution selection status via API for all items
 		const contributionsToUpdate = contributionsData?.content?.map(
 			(contribution) => ({
@@ -207,7 +163,21 @@ export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
 	const generatePreview = async () => {
 		setIsGenerating(true);
 		try {
-			const selectedItems = items.filter((item) => item.selected);
+			const selectedItems =
+				contributionsData?.content
+					?.filter((contribution) => contribution.isSelected)
+					.map((contribution) => ({
+						author: contribution.username,
+						date: contribution.createdAt || new Date().toISOString(),
+						description: contribution.summary,
+						id: contribution.id,
+						repository: `repo-${contribution.gitRepositoryId}`,
+						selected: contribution.isSelected,
+						status: "done",
+						title: contribution.summary,
+						type: mapContributionType(contribution.type),
+						url: "#",
+					})) || [];
 			const response = await fetch("/api/weekly-summary/generate", {
 				body: JSON.stringify({
 					items: selectedItems,
@@ -233,7 +203,21 @@ export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
 
 	const publishSummary = async () => {
 		try {
-			const selectedItems = items.filter((item) => item.selected);
+			const selectedItems =
+				contributionsData?.content
+					?.filter((contribution) => contribution.isSelected)
+					.map((contribution) => ({
+						author: contribution.username,
+						date: contribution.createdAt || new Date().toISOString(),
+						description: contribution.summary,
+						id: contribution.id,
+						repository: `repo-${contribution.gitRepositoryId}`,
+						selected: contribution.isSelected,
+						status: "done",
+						title: contribution.summary,
+						type: mapContributionType(contribution.type),
+						url: "#",
+					})) || [];
 			const response = await fetch("/api/weekly-summary/publish", {
 				body: JSON.stringify({
 					items: selectedItems,
@@ -255,13 +239,30 @@ export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
 		}
 	};
 
-	const filteredItems = items.filter((item) => {
-		const statusMatch = filter === "all" || item.status === filter;
-		const typeMatch = typeFilter === "all" || item.type === typeFilter;
-		return statusMatch && typeMatch;
-	});
+	const filteredItems =
+		contributionsData?.content
+			?.map((contribution) => ({
+				author: contribution.username,
+				date: contribution.createdAt || new Date().toISOString(),
+				description: contribution.summary,
+				id: contribution.id,
+				repository: `repo-${contribution.gitRepositoryId}`,
+				selected: contribution.isSelected,
+				status: "done",
+				title: contribution.summary,
+				type: mapContributionType(contribution.type),
+				url: "#",
+			}))
+			.filter((item) => {
+				const statusMatch = filter === "all" || item.status === filter;
+				const typeMatch = typeFilter === "all" || item.type === typeFilter;
+				return statusMatch && typeMatch;
+			}) || [];
 
-	const selectedCount = items.filter((item) => item.selected).length;
+	const selectedCount =
+		contributionsData?.content?.filter(
+			(contribution) => contribution.isSelected,
+		).length || 0;
 	const getTypeIcon = (type: SummaryItem["type"]) => {
 		const Icon = typeIcons[type];
 		return <Icon className="h-4 w-4" />;
@@ -303,25 +304,31 @@ export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 						<div className="text-center p-3 bg-slate-50 rounded-lg">
 							<div className="text-2xl font-bold text-slate-900">
-								{items.length}
+								{contributionsData?.content?.length || 0}
 							</div>
 							<div className="text-xs text-slate-600">Total Items</div>
 						</div>
 						<div className="text-center p-3 bg-green-50 rounded-lg">
 							<div className="text-2xl font-bold text-green-700">
-								{items.filter((item) => item.status === "done").length}
+								{contributionsData?.content?.filter(
+									(item) => item.status === "done",
+								).length || 0}
 							</div>
 							<div className="text-xs text-green-600">Completed</div>
 						</div>
 						<div className="text-center p-3 bg-blue-50 rounded-lg">
 							<div className="text-2xl font-bold text-blue-700">
-								{items.filter((item) => item.status === "in-progress").length}
+								{contributionsData?.content?.filter(
+									(item) => item.status === "in-progress",
+								).length || 0}
 							</div>
 							<div className="text-xs text-blue-600">In Progress</div>
 						</div>
 						<div className="text-center p-3 bg-red-50 rounded-lg">
 							<div className="text-2xl font-bold text-red-700">
-								{items.filter((item) => item.status === "blocked").length}
+								{contributionsData?.content?.filter(
+									(item) => item.status === "blocked",
+								).length || 0}
 							</div>
 							<div className="text-xs text-red-600">Blocked</div>
 						</div>
