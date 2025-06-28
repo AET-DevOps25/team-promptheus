@@ -12,7 +12,6 @@ import {
 	MessageSquare,
 	Search,
 } from "lucide-react";
-import type React from "react";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,18 +33,38 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { useSearch } from "@/lib/api";
-import type {
-	SearchFilters,
-	SearchParams,
-	SearchResult,
-} from "@/lib/api/types";
+import type { SearchParams, useSearchParams } from "@/lib/api/search";
+import { useSearch } from "@/lib/api/search";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { SearchResultsLoading } from "./search-results-loading";
 
 interface SearchModalProps {
 	isOpen: boolean;
 	onCloseAction: () => void;
+	usercode: string;
+}
+
+interface SearchFilters {
+	authors: string[];
+	contributionTypes: string[];
+	dateFrom: Date | undefined;
+	dateTo: Date | undefined;
+	repositories: string[];
+}
+
+interface SearchResultItem {
+	id?: string;
+	type?: "commit" | "pr" | "issue" | "comment";
+	title?: string;
+	content?: string;
+	description?: string;
+	author?: string;
+	date?: string;
+	created_at_timestamp?: number;
+	url?: string;
+	repository?: string;
+	relevanceScore?: number;
+	[key: string]: unknown;
 }
 
 const contributionTypeIcons = {
@@ -69,7 +88,11 @@ const contributionTypeColors = {
 	pr: "bg-green-100 text-green-800",
 };
 
-export function SearchModal({ isOpen, onCloseAction }: SearchModalProps) {
+export function SearchModal({
+	isOpen,
+	onCloseAction,
+	usercode,
+}: SearchModalProps) {
 	const [query, setQuery] = useState("");
 	const [showFilters, setShowFilters] = useState(false);
 	const [filters, setFilters] = useState<SearchFilters>({
@@ -84,13 +107,25 @@ export function SearchModal({ isOpen, onCloseAction }: SearchModalProps) {
 	const debouncedQuery = useDebounce(query, 50);
 
 	// Create search params from debounced query and filters
-	const searchParams: SearchParams = {
-		authors: filters.authors,
-		dateFrom: filters.dateFrom?.toISOString(),
-		dateTo: filters.dateTo?.toISOString(),
-		filterContributionType: filters.contributionTypes,
+	const searchParams: useSearchParams = {
+		author: filters.authors.length > 0 ? filters.authors.join(",") : undefined,
+		contribution_type:
+			filters.contributionTypes.length > 0
+				? filters.contributionTypes.join(",")
+				: undefined,
+		created_at_timestamp:
+			filters.dateFrom && filters.dateTo
+				? `${Math.floor(filters.dateFrom.getTime() / 1000)} TO ${Math.floor(filters.dateTo.getTime() / 1000)}`
+				: filters.dateFrom
+					? `${Math.floor(filters.dateFrom.getTime() / 1000)} TO *`
+					: filters.dateTo
+						? `* TO ${Math.floor(filters.dateTo.getTime() / 1000)}`
+						: undefined,
 		query: debouncedQuery,
-		repositories: filters.repositories,
+		repository:
+			filters.repositories.length > 0
+				? filters.repositories.join(",")
+				: undefined,
 	};
 
 	// Use TanStack Query for search
@@ -99,9 +134,9 @@ export function SearchModal({ isOpen, onCloseAction }: SearchModalProps) {
 		isLoading,
 		error,
 		refetch,
-	} = useSearch(searchParams, !!debouncedQuery.trim());
+	} = useSearch(usercode, searchParams, !!debouncedQuery.trim());
 
-	const results = searchResponse?.results || [];
+	const results = searchResponse?.hits || [];
 
 	// Mock data for repositories and authors
 	const availableRepositories = [
@@ -171,9 +206,10 @@ export function SearchModal({ isOpen, onCloseAction }: SearchModalProps) {
 		// Search results will clear automatically when query is cleared
 	};
 
-	const getTypeIcon = (type: SearchResult["type"]) => {
-		const Icon = contributionTypeIcons[type];
-		return <Icon className="h-4 w-4" />;
+	const getTypeIcon = (type: string) => {
+		const Icon =
+			contributionTypeIcons[type as keyof typeof contributionTypeIcons];
+		return Icon ? <Icon className="h-4 w-4" /> : null;
 	};
 
 	// Reset state when modal closes
@@ -418,6 +454,11 @@ export function SearchModal({ isOpen, onCloseAction }: SearchModalProps) {
 									<p className="text-sm text-muted-foreground">
 										{results.length} result{results.length !== 1 ? "s" : ""}{" "}
 										found
+										{searchResponse?.processingTimeMs && (
+											<span className="ml-2">
+												({searchResponse.processingTimeMs}ms)
+											</span>
+										)}
 									</p>
 									<Button
 										className="text-xs"
@@ -428,50 +469,72 @@ export function SearchModal({ isOpen, onCloseAction }: SearchModalProps) {
 										Clear filters
 									</Button>
 								</div>
-								{results.map((result) => (
+								{results.map((result: SearchResultItem, index: number) => (
 									<Card
 										className="hover:bg-muted/50 transition-colors"
-										key={result.id}
+										key={result.id || index}
 									>
 										<CardContent className="p-4">
 											<div className="flex items-start justify-between gap-4">
 												<div className="flex-1 min-w-0">
 													<div className="flex items-center gap-2 mb-2">
-														<Badge
-															className={`text-xs ${contributionTypeColors[result.type]}`}
-														>
-															{getTypeIcon(result.type)}
-															<span className="ml-1">
-																{contributionTypeLabels[result.type]}
+														{result.type && (
+															<Badge
+																className={`text-xs ${contributionTypeColors[result.type] || "bg-gray-100 text-gray-800"}`}
+															>
+																{getTypeIcon(result.type)}
+																<span className="ml-1">
+																	{contributionTypeLabels[result.type] ||
+																		result.type}
+																</span>
+															</Badge>
+														)}
+														{result.repository && (
+															<Badge variant="outline">
+																{result.repository}
+															</Badge>
+														)}
+														{result.relevanceScore && (
+															<span className="text-xs text-muted-foreground">
+																{Math.round(result.relevanceScore * 100)}% match
 															</span>
-														</Badge>
-														<Badge variant="outline">{result.repository}</Badge>
-														<span className="text-xs text-muted-foreground">
-															{Math.round(result.relevanceScore * 100)}% match
-														</span>
+														)}
 													</div>
 													<h3 className="font-medium text-sm mb-1 line-clamp-2">
-														{result.title}
+														{result.title || result.content || "No title"}
 													</h3>
-													<p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-														{result.description}
-													</p>
+													{result.description && (
+														<p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+															{result.description}
+														</p>
+													)}
 													<div className="flex items-center gap-4 text-xs text-muted-foreground">
-														<span>by {result.author}</span>
-														<span>
-															{new Date(result.date).toLocaleDateString()}
-														</span>
+														{result.author && <span>by {result.author}</span>}
+														{result.date && (
+															<span>
+																{new Date(result.date).toLocaleDateString()}
+															</span>
+														)}
+														{result.created_at_timestamp && !result.date && (
+															<span>
+																{new Date(
+																	result.created_at_timestamp * 1000,
+																).toLocaleDateString()}
+															</span>
+														)}
 													</div>
 												</div>
-												<Button asChild size="sm" variant="ghost">
-													<a
-														href={result.url}
-														rel="noopener noreferrer"
-														target="_blank"
-													>
-														<ExternalLink className="h-4 w-4" />
-													</a>
-												</Button>
+												{result.url && (
+													<Button asChild size="sm" variant="ghost">
+														<a
+															href={result.url}
+															rel="noopener noreferrer"
+															target="_blank"
+														>
+															<ExternalLink className="h-4 w-4" />
+														</a>
+													</Button>
+												)}
 											</div>
 										</CardContent>
 									</Card>

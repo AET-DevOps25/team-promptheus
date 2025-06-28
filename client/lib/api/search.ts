@@ -22,12 +22,13 @@ const SEARCH_KEYS = {
 		[...SEARCH_KEYS.all, "sortable-attributes"] as const,
 };
 
+export type useSearchParams = Partial<SearchParams> & { query: string };
 /**
  * Hook to search repository content with filtering and sorting
  */
 export function useSearch(
 	usercode: string,
-	params: Partial<SearchParams> & { query: string },
+	params: useSearchParams,
 	enabled = true,
 ) {
 	return useQuery({

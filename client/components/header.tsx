@@ -3,7 +3,7 @@
 import { Search, Zap } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type React from "react";
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SearchModal } from "./search-modal";
@@ -11,6 +11,8 @@ import { SearchModal } from "./search-modal";
 export function Header() {
 	const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 	const pathname = usePathname();
+	// todo: get from local storage or context
+	const userId = "abc";
 
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
@@ -81,7 +83,8 @@ export function Header() {
 			</div>
 			<SearchModal
 				isOpen={isSearchModalOpen}
-				onClose={() => setIsSearchModalOpen(false)}
+				onCloseAction={() => setIsSearchModalOpen(false)}
+				usercode={userId}
 			/>
 		</header>
 	);
