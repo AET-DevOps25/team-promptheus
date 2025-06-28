@@ -7,12 +7,12 @@ import { apiClient } from "./client";
 
 import type { components, operations } from "./types/search";
 
-type SearchResult = components["schemas"]["SearchResult"];
-type SearchParams = operations["search"]["parameters"]["query"];
-type SearchPathParams = operations["search"]["parameters"]["path"];
+export type SearchResult = components["schemas"]["SearchResult"];
+export type SearchParams = operations["search"]["parameters"]["query"];
+export type SearchPathParams = operations["search"]["parameters"]["path"];
 
 // Query Keys
-const SEARCH_KEYS = {
+export const SEARCH_KEYS = {
 	all: ["search"] as const,
 	results: (usercode: string, params: useSearchParams) =>
 		[...SEARCH_KEYS.all, "results", usercode, params] as const,
@@ -80,7 +80,3 @@ export function useSearch(
 		staleTime: 2 * 60 * 1000, // 2 minutes - search results can be more dynamic
 	});
 }
-
-// Export query keys and types for external use
-export { SEARCH_KEYS };
-export type { SearchResult, SearchParams, SearchPathParams };

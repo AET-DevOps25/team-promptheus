@@ -22,15 +22,19 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useCreateFromPAT } from "@/lib/api/server";
 
 export default function HomePage() {
 	const [pat, setPat] = useState("");
-	const [isLoading, setIsLoading] = useState(false);
+	const [repoLink, setRepoLink] = useState("");
 	const [error, setError] = useState("");
 	const [links, setLinks] = useState<{
-		dashboard: string;
-		settings: string;
+		developerview: string;
+		stakeholderview: string;
 	} | null>(null);
+
+	const { mutate, isError, error: mutationError } = useCreateFromPAT();
+	const [isLoading, setIsLoading] = useState(false);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -38,38 +42,51 @@ export default function HomePage() {
 			setError("Please enter your GitHub Personal Access Token");
 			return;
 		}
-
-		setIsLoading(true);
+		if (!repoLink.trim()) {
+			setError("Please enter your GitHub Repository Link");
+			return;
+		}
 		setError("");
 
+		// Client-side PAT validation
 		try {
-			// Validate the GitHub PAT directly on the frontend
 			const response = await fetch("https://api.github.com/user", {
 				headers: {
 					Authorization: `token ${pat}`,
 					"User-Agent": "Prompteus-App",
 				},
 			});
-
 			if (!response.ok) {
 				throw new Error("Invalid GitHub Personal Access Token");
 			}
-
-			const userData = await response.json();
-			const userId = userData.login || "user";
-
-			// Set the links after successful validation
-			setLinks({
-				dashboard: `/dashboard/${userId}`,
-				settings: `/settings/${userId}`,
-			});
 		} catch (_) {
 			setError(
 				"Invalid token or API error. Please check your Personal Access Token.",
 			);
-		} finally {
-			setIsLoading(false);
+			return;
 		}
+
+		// If PAT is valid, call backend
+		mutate(
+			{ pat, repolink: repoLink },
+			{
+				onSuccess: (data) => {
+					setLinks({
+						developerview: data.developerview,
+						stakeholderview: data.stakeholderview,
+					});
+				},
+				onError: (err: unknown) => {
+					if (typeof err === "object" && err !== null && "message" in err) {
+						setError((err as { message: string }).message);
+					} else {
+						setError(
+							"Invalid token or API error. Please check your Personal Access Token and repository link.",
+						);
+					}
+				},
+			},
+		);
 	};
 
 	if (links) {
@@ -86,16 +103,16 @@ export default function HomePage() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<Link href={links.dashboard}>
+						<Link href={links.developerview}>
 							<Button className="w-full justify-between" size="lg">
 								<div className="flex items-center gap-2">
 									<BarChart3 className="h-4 w-4" />
-									Go to Dashboard
+									Developer View
 								</div>
 								<ExternalLink className="h-4 w-4" />
 							</Button>
 						</Link>
-						<Link href={links.settings}>
+						<Link href={links.stakeholderview}>
 							<Button
 								className="w-full justify-between"
 								size="lg"
@@ -103,7 +120,7 @@ export default function HomePage() {
 							>
 								<div className="flex items-center gap-2">
 									<Github className="h-4 w-4" />
-									Repository Settings
+									Stakeholder View
 								</div>
 								<ExternalLink className="h-4 w-4" />
 							</Button>
@@ -197,10 +214,27 @@ export default function HomePage() {
 											</a>
 										</p>
 									</div>
+									<div className="space-y-2">
+										<Label htmlFor="repoLink">GitHub Repository Link</Label>
+										<Input
+											disabled={isLoading}
+											id="repoLink"
+											onChange={(e) => setRepoLink(e.target.value)}
+											placeholder="https://github.com/organization/repository"
+											type="text"
+											value={repoLink}
+										/>
+									</div>
 
-									{error && (
+									{(error || isError || mutationError) && (
 										<Alert variant="destructive">
-											<AlertDescription>{error}</AlertDescription>
+											<AlertDescription>
+												{error ||
+													(mutationError &&
+														(typeof mutationError === "string"
+															? mutationError
+															: mutationError.message))}
+											</AlertDescription>
 										</Alert>
 									)}
 
