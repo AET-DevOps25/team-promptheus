@@ -35,7 +35,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import type { useSearchParams } from "@/lib/api/search";
 import { useSearch } from "@/lib/api/search";
-import { useDebounce } from "@/lib/hooks/use-debounce";
+import { useDebounce } from "@/hooks/use-debounce";
 import { SearchResultsLoading } from "./search-results-loading";
 
 interface SearchModalProps {
@@ -194,12 +194,11 @@ export function SearchModal({
 								autoFocus
 								className="pl-10"
 								onChange={(e) => setQuery(e.target.value)}
-								onKeyUp={handleKeyPress}
 								placeholder="Search commits, PRs, issues, comments..."
 								value={query}
 							/>
 						</div>
-						<Button disabled={isLoading} onClick={handleSearch}>
+						<Button disabled={isLoading}>
 							{isLoading ? (
 								<Loader2 className="h-4 w-4 animate-spin" />
 							) : (

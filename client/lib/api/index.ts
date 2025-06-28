@@ -15,23 +15,3 @@ export { ApiClient, ApiError, apiClient } from "./client";
 // Export service hooks
 export * from "./qa";
 export { SEARCH_KEYS, useSearch } from "./search";
-
-// Export types (with explicit exports to avoid conflicts)
-export type {
-	ApiErrorResponse,
-	ApiSuccessResponse,
-	CreateQARequest,
-	CreateQAResponse,
-	QAItem,
-	QAResponse,
-	SearchFilters,
-	SearchParams,
-	SearchResponse,
-	SearchResult,
-	StatusUpdateRequest,
-	VoteRequest,
-	VoteResponse,
-	WeeklySummariesResponse,
-	WeeklySummary,
-} from "./types";
-export { QueryKeys } from "./types";
