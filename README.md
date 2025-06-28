@@ -50,6 +50,31 @@ COMPOSE_BAKE=true docker compose up
 You can now head over to [`http://localhost:8081`](http://localhost:8081) to look at the website.
 The Backends API is documented at [`http://localhost:8080/docs`](http://localhost:8080/docs)
 
+### Running with Local LLM Models
+
+By default, the system uses remote Ollama services. If you want to run LLM models locally (requires NVIDIA GPU*), you can use the `llm-local` profile:
+
+```shell
+# Run with local Ollama service (requires NVIDIA GPU)
+COMPOSE_BAKE=true docker compose --profile llm-local up
+```
+
+**Requirements for local LLM:**
+- NVIDIA GPU with CUDA support (AMD apparently works as well, untested)
+- Docker with GPU support enabled
+- Sufficient GPU memory for the models (typically 4GB+ for small models)
+
+For more information, visit the [Ollama Information on Docker Hub](https://hub.docker.com/r/ollama/ollama).
+
+The local Ollama service will be available at `http://localhost:11434` and will automatically download the required models on first run.
+
+**Configuration for Local Ollama:**
+When using the `llm-local` profile, you may want to override the Ollama base URL to use your local instance. Copy the example environment file and modify it:
+
+```env
+OLLAMA_BASE_URL=http://ollama:11434
+```
+
 ## Contributing
 
 For contributing, we provide a [docker compose-watch](https://docs.docker.com/compose/how-tos/file-watch/) compatible setup.

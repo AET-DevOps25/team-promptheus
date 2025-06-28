@@ -27,7 +27,23 @@ services:
     depends_on:
       meilisearch:
         condition: service_healthy
-    restart: on-failure:10  # Run once and exit, retry 10 times on failour
+    restart: on-failure:10 # Run once and exit, retry 10 times on failour
+  ollama:
+    image: ollama/ollama
+    restart: unless-stopped
+    ports:
+      - 11434:11434
+    volumes:
+      - ollama-data:/root/.ollama
+    profiles:
+      - llm-local
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
   search:
     image: ghcr.io/aet-devops25/promptheus-search:main
     environment:
@@ -58,7 +74,14 @@ services:
         - action: rebuild
           path: ./search/src
     healthcheck:
-      test: ["CMD", "/bin/wget", "-qO-", "--tries=1", "http://localhost:8070/actuator/health"]
+      test:
+        [
+          "CMD",
+          "/bin/wget",
+          "-qO-",
+          "--tries=1",
+          "http://localhost:8070/actuator/health",
+        ]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -83,7 +106,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}" ]
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
       retries: 5
       interval: 10s
       start_period: 1s
@@ -118,7 +141,14 @@ services:
         - action: rebuild
           path: ./server/src
     healthcheck:
-      test: ["CMD", "/bin/wget", "-qO-", "--tries=1", "http://localhost:8080/actuator/health"]
+      test:
+        [
+          "CMD",
+          "/bin/wget",
+          "-qO-",
+          "--tries=1",
+          "http://localhost:8080/actuator/health",
+        ]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -198,7 +228,14 @@ services:
       management.otlp.metrics.export.url: http://monitoring:4318/v1/metrics
       management.otlp.logging.endpoint: http://monitoring:4318/v1/logs
     healthcheck:
-      test: ["CMD", "/bin/wget", "-qO-", "--tries=1", "http://localhost:8082/actuator/health"]
+      test:
+        [
+          "CMD",
+          "/bin/wget",
+          "-qO-",
+          "--tries=1",
+          "http://localhost:8082/actuator/health",
+        ]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -220,7 +257,13 @@ services:
       - ${CLIENT_PORT:-8081}:8081
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch(`http://localhost:8081/`).then(x=>x.status==200?process.exit(0):process.exit(1)).catch(()=>process.exit(1))"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch(`http://localhost:8081/`).then(x=>x.status==200?process.exit(0):process.exit(1)).catch(()=>process.exit(1))",
+        ]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -265,3 +308,4 @@ volumes:
   postgres-data:
   grafana-data:
   prometheus-data:
+  ollama-data:
