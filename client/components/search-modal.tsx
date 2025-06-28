@@ -12,13 +12,12 @@ import {
 	MessageSquare,
 	Search,
 } from "lucide-react";
-import type React from "react";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import {
 	Dialog,
 	DialogContent,
@@ -34,18 +33,40 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { useSearch } from "@/lib/api";
-import type {
-	SearchFilters,
-	SearchParams,
-	SearchResult,
-} from "@/lib/api/types";
+import type { useSearchParams } from "@/lib/api/search";
+import { useSearch } from "@/lib/api/search";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { SearchResultsLoading } from "./search-results-loading";
 
 interface SearchModalProps {
 	isOpen: boolean;
 	onCloseAction: () => void;
+	usercode: string;
+}
+
+interface SearchFilters {
+	author: string | undefined;
+	contributionType: string | undefined;
+	dateFrom: Date | undefined;
+	dateTo: Date | undefined;
+	repository: string | undefined;
+	week: string | undefined;
+	user: string | undefined;
+}
+
+interface SearchResultItem {
+	id?: string;
+	type?: "commit" | "pr" | "issue" | "comment";
+	title?: string;
+	content?: string;
+	description?: string;
+	author?: string;
+	date?: string;
+	created_at_timestamp?: number;
+	url?: string;
+	repository?: string;
+	relevanceScore?: number;
+	[key: string]: unknown;
 }
 
 const contributionTypeIcons = {
@@ -53,44 +74,58 @@ const contributionTypeIcons = {
 	commit: GitCommit,
 	issue: AlertCircle,
 	pr: GitPullRequest,
-};
+} as const;
 
 const contributionTypeLabels = {
 	comment: "Comments",
 	commit: "Commits",
 	issue: "Issues",
 	pr: "Pull Requests",
-};
+} as const;
 
 const contributionTypeColors = {
 	comment: "bg-purple-100 text-purple-800",
 	commit: "bg-blue-100 text-blue-800",
 	issue: "bg-red-100 text-red-800",
 	pr: "bg-green-100 text-green-800",
-};
+} as const;
 
-export function SearchModal({ isOpen, onCloseAction }: SearchModalProps) {
+export function SearchModal({
+	isOpen,
+	onCloseAction,
+	usercode,
+}: SearchModalProps) {
 	const [query, setQuery] = useState("");
 	const [showFilters, setShowFilters] = useState(false);
 	const [filters, setFilters] = useState<SearchFilters>({
-		authors: [],
-		contributionTypes: ["commit", "pr", "issue", "comment"],
+		author: undefined,
+		contributionType: undefined,
 		dateFrom: undefined,
 		dateTo: undefined,
-		repositories: [],
+		repository: undefined,
+		user: undefined,
+		week: undefined,
 	});
 
 	// Debounce the query to avoid excessive API calls
 	const debouncedQuery = useDebounce(query, 50);
 
 	// Create search params from debounced query and filters
-	const searchParams: SearchParams = {
-		authors: filters.authors,
-		dateFrom: filters.dateFrom?.toISOString(),
-		dateTo: filters.dateTo?.toISOString(),
-		filterContributionType: filters.contributionTypes,
+	const searchParams: useSearchParams = {
+		author: filters.author,
+		contribution_type: filters.contributionType,
+		created_at_timestamp:
+			filters.dateFrom && filters.dateTo
+				? `${Math.floor(filters.dateFrom.getTime() / 1000)} TO ${Math.floor(filters.dateTo.getTime() / 1000)}`
+				: filters.dateFrom
+					? `${Math.floor(filters.dateFrom.getTime() / 1000)} TO *`
+					: filters.dateTo
+						? `* TO ${Math.floor(filters.dateTo.getTime() / 1000)}`
+						: undefined,
 		query: debouncedQuery,
-		repositories: filters.repositories,
+		repository: filters.repository,
+		user: filters.user,
+		week: filters.week,
 	};
 
 	// Use TanStack Query for search
@@ -99,81 +134,37 @@ export function SearchModal({ isOpen, onCloseAction }: SearchModalProps) {
 		isLoading,
 		error,
 		refetch,
-	} = useSearch(searchParams, !!debouncedQuery.trim());
+	} = useSearch(usercode, searchParams, !!debouncedQuery.trim());
 
-	const results = searchResponse?.results || [];
+	const results = searchResponse?.hits || [];
 
-	// Mock data for repositories and authors
-	const availableRepositories = [
-		"auth-service",
-		"api-backend",
-		"job-processor",
-		"api-gateway",
-		"frontend-app",
-		"mobile-app",
-	];
-
-	const availableAuthors = [
-		"john.doe",
-		"jane.smith",
-		"mike.wilson",
-		"sarah.johnson",
-		"alex.brown",
-		"lisa.davis",
-	];
-
-	const handleSearch = () => {
-		// Search is now handled automatically via debounced query
-		// This function is kept for the Enter key handler
-	};
-
-	const handleKeyPress = (e: React.KeyboardEvent) => {
-		if (e.key === "Enter") {
-			handleSearch();
-		}
-	};
-
-	const toggleContributionType = (type: string) => {
+	const handleFilterChange = (
+		key: keyof SearchFilters,
+		value: string | undefined,
+	) => {
 		setFilters((prev) => ({
 			...prev,
-			contributionTypes: prev.contributionTypes.includes(type)
-				? prev.contributionTypes.filter((t) => t !== type)
-				: [...prev.contributionTypes, type],
-		}));
-	};
-
-	const toggleRepository = (repo: string) => {
-		setFilters((prev) => ({
-			...prev,
-			repositories: prev.repositories.includes(repo)
-				? prev.repositories.filter((r) => r !== repo)
-				: [...prev.repositories, repo],
-		}));
-	};
-
-	const toggleAuthor = (author: string) => {
-		setFilters((prev) => ({
-			...prev,
-			authors: prev.authors.includes(author)
-				? prev.authors.filter((a) => a !== author)
-				: [...prev.authors, author],
+			[key]: value,
 		}));
 	};
 
 	const clearFilters = () => {
 		setFilters({
-			authors: [],
-			contributionTypes: ["commit", "pr", "issue", "comment"],
+			author: undefined,
+			contributionType: undefined,
 			dateFrom: undefined,
 			dateTo: undefined,
-			repositories: [],
+			repository: undefined,
+			user: undefined,
+			week: undefined,
 		});
 		// Search results will clear automatically when query is cleared
 	};
 
-	const getTypeIcon = (type: SearchResult["type"]) => {
-		const Icon = contributionTypeIcons[type];
-		return <Icon className="h-4 w-4" />;
+	const getTypeIcon = (type: string) => {
+		const Icon =
+			contributionTypeIcons[type as keyof typeof contributionTypeIcons];
+		return Icon ? <Icon className="h-4 w-4" /> : null;
 	};
 
 	// Reset state when modal closes
@@ -203,7 +194,7 @@ export function SearchModal({ isOpen, onCloseAction }: SearchModalProps) {
 								autoFocus
 								className="pl-10"
 								onChange={(e) => setQuery(e.target.value)}
-								onKeyPress={handleKeyPress}
+								onKeyUp={handleKeyPress}
 								placeholder="Search commits, PRs, issues, comments..."
 								value={query}
 							/>
@@ -228,85 +219,76 @@ export function SearchModal({ isOpen, onCloseAction }: SearchModalProps) {
 					{showFilters && (
 						<Card className="mb-4">
 							<CardContent className="p-4">
-								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-									{/* Contribution Types */}
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+									{/* Basic Filters */}
 									<div>
 										<Label className="text-sm font-medium mb-2 block">
-											Contribution Types
+											Author
 										</Label>
-										<div className="space-y-2">
-											{Object.entries(contributionTypeLabels).map(
-												([type, label]) => (
-													<div
-														className="flex items-center space-x-2"
-														key={type}
-													>
-														<Checkbox
-															checked={filters.contributionTypes.includes(type)}
-															id={type}
-															onCheckedChange={() =>
-																toggleContributionType(type)
-															}
-														/>
-														<Label className="text-sm" htmlFor={type}>
-															{label}
-														</Label>
-													</div>
-												),
-											)}
-										</div>
-									</div>
+										<Input
+											className="mb-4"
+											onChange={(e) =>
+												handleFilterChange(
+													"author",
+													e.target.value || undefined,
+												)
+											}
+											placeholder="Filter by author"
+											value={filters.author || ""}
+										/>
 
-									{/* Repositories */}
-									<div>
 										<Label className="text-sm font-medium mb-2 block">
-											Repositories
+											Repository
 										</Label>
-										<ScrollArea className="h-32">
-											<div className="space-y-2">
-												{availableRepositories.map((repo) => (
-													<div
-														className="flex items-center space-x-2"
-														key={repo}
-													>
-														<Checkbox
-															checked={filters.repositories.includes(repo)}
-															id={repo}
-															onCheckedChange={() => toggleRepository(repo)}
-														/>
-														<Label className="text-sm" htmlFor={repo}>
-															{repo}
-														</Label>
-													</div>
-												))}
-											</div>
-										</ScrollArea>
-									</div>
+										<Input
+											className="mb-4"
+											onChange={(e) =>
+												handleFilterChange(
+													"repository",
+													e.target.value || undefined,
+												)
+											}
+											placeholder="Filter by repository"
+											value={filters.repository || ""}
+										/>
 
-									{/* Authors */}
-									<div>
 										<Label className="text-sm font-medium mb-2 block">
-											Authors
+											Contribution Type
 										</Label>
-										<ScrollArea className="h-32">
-											<div className="space-y-2">
-												{availableAuthors.map((author) => (
-													<div
-														className="flex items-center space-x-2"
-														key={author}
-													>
-														<Checkbox
-															checked={filters.authors.includes(author)}
-															id={author}
-															onCheckedChange={() => toggleAuthor(author)}
-														/>
-														<Label className="text-sm" htmlFor={author}>
-															{author}
-														</Label>
-													</div>
-												))}
-											</div>
-										</ScrollArea>
+										<Input
+											className="mb-4"
+											onChange={(e) =>
+												handleFilterChange(
+													"contributionType",
+													e.target.value || undefined,
+												)
+											}
+											placeholder="commit, pr, issue, comment"
+											value={filters.contributionType || ""}
+										/>
+
+										<Label className="text-sm font-medium mb-2 block">
+											Week
+										</Label>
+										<Input
+											className="mb-4"
+											onChange={(e) =>
+												handleFilterChange("week", e.target.value || undefined)
+											}
+											placeholder="Filter by week"
+											value={filters.week || ""}
+										/>
+
+										<Label className="text-sm font-medium mb-2 block">
+											User
+										</Label>
+										<Input
+											onChange={(e) =>
+												handleFilterChange("user", e.target.value || undefined)
+											}
+											placeholder="Filter by user"
+											value={filters.user || ""}
+										/>
 									</div>
 
 									{/* Date Range */}
@@ -355,7 +337,7 @@ export function SearchModal({ isOpen, onCloseAction }: SearchModalProps) {
 												</PopoverTrigger>
 												<PopoverContent className="w-auto p-0">
 													<Calendar
-														initialFocus
+														autoFocus
 														mode="single"
 														onSelect={(date) =>
 															setFilters((prev) => ({ ...prev, dateTo: date }))
@@ -371,17 +353,20 @@ export function SearchModal({ isOpen, onCloseAction }: SearchModalProps) {
 								<Separator className="my-4" />
 								<div className="flex justify-between items-center">
 									<div className="flex gap-2 flex-wrap">
-										{filters.repositories.length > 0 && (
-											<Badge variant="secondary">
-												{filters.repositories.length} repo
-												{filters.repositories.length > 1 ? "s" : ""}
-											</Badge>
+										{filters.repository && (
+											<Badge variant="secondary">Repository filtered</Badge>
 										)}
-										{filters.authors.length > 0 && (
-											<Badge variant="secondary">
-												{filters.authors.length} author
-												{filters.authors.length > 1 ? "s" : ""}
-											</Badge>
+										{filters.author && (
+											<Badge variant="secondary">Author filtered</Badge>
+										)}
+										{filters.contributionType && (
+											<Badge variant="secondary">Type filtered</Badge>
+										)}
+										{filters.week && (
+											<Badge variant="secondary">Week filtered</Badge>
+										)}
+										{filters.user && (
+											<Badge variant="secondary">User filtered</Badge>
 										)}
 										{(filters.dateFrom || filters.dateTo) && (
 											<Badge variant="secondary">Date filtered</Badge>
@@ -418,6 +403,11 @@ export function SearchModal({ isOpen, onCloseAction }: SearchModalProps) {
 									<p className="text-sm text-muted-foreground">
 										{results.length} result{results.length !== 1 ? "s" : ""}{" "}
 										found
+										{searchResponse?.processingTimeMs && (
+											<span className="ml-2">
+												({searchResponse.processingTimeMs}ms)
+											</span>
+										)}
 									</p>
 									<Button
 										className="text-xs"
@@ -428,50 +418,72 @@ export function SearchModal({ isOpen, onCloseAction }: SearchModalProps) {
 										Clear filters
 									</Button>
 								</div>
-								{results.map((result) => (
+								{results.map((result: SearchResultItem, index: number) => (
 									<Card
 										className="hover:bg-muted/50 transition-colors"
-										key={result.id}
+										key={result.id || index}
 									>
 										<CardContent className="p-4">
 											<div className="flex items-start justify-between gap-4">
 												<div className="flex-1 min-w-0">
 													<div className="flex items-center gap-2 mb-2">
-														<Badge
-															className={`text-xs ${contributionTypeColors[result.type]}`}
-														>
-															{getTypeIcon(result.type)}
-															<span className="ml-1">
-																{contributionTypeLabels[result.type]}
+														{result.type && (
+															<Badge
+																className={`text-xs ${contributionTypeColors[result.type] || "bg-gray-100 text-gray-800"}`}
+															>
+																{getTypeIcon(result.type)}
+																<span className="ml-1">
+																	{contributionTypeLabels[result.type] ||
+																		result.type}
+																</span>
+															</Badge>
+														)}
+														{result.repository && (
+															<Badge variant="outline">
+																{result.repository}
+															</Badge>
+														)}
+														{result.relevanceScore && (
+															<span className="text-xs text-muted-foreground">
+																{Math.round(result.relevanceScore * 100)}% match
 															</span>
-														</Badge>
-														<Badge variant="outline">{result.repository}</Badge>
-														<span className="text-xs text-muted-foreground">
-															{Math.round(result.relevanceScore * 100)}% match
-														</span>
+														)}
 													</div>
 													<h3 className="font-medium text-sm mb-1 line-clamp-2">
-														{result.title}
+														{result.title || result.content || "No title"}
 													</h3>
-													<p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-														{result.description}
-													</p>
+													{result.description && (
+														<p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+															{result.description}
+														</p>
+													)}
 													<div className="flex items-center gap-4 text-xs text-muted-foreground">
-														<span>by {result.author}</span>
-														<span>
-															{new Date(result.date).toLocaleDateString()}
-														</span>
+														{result.author && <span>by {result.author}</span>}
+														{result.date && (
+															<span>
+																{new Date(result.date).toLocaleDateString()}
+															</span>
+														)}
+														{result.created_at_timestamp && !result.date && (
+															<span>
+																{new Date(
+																	result.created_at_timestamp * 1000,
+																).toLocaleDateString()}
+															</span>
+														)}
 													</div>
 												</div>
-												<Button asChild size="sm" variant="ghost">
-													<a
-														href={result.url}
-														rel="noopener noreferrer"
-														target="_blank"
-													>
-														<ExternalLink className="h-4 w-4" />
-													</a>
-												</Button>
+												{result.url && (
+													<Button asChild size="sm" variant="ghost">
+														<a
+															href={result.url}
+															rel="noopener noreferrer"
+															target="_blank"
+														>
+															<ExternalLink className="h-4 w-4" />
+														</a>
+													</Button>
+												)}
 											</div>
 										</CardContent>
 									</Card>

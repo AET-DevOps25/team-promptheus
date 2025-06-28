@@ -11,7 +11,7 @@ import {
 	Users,
 } from "lucide-react";
 import Link from "next/link";
-import React, { Suspense, useState } from "react";
+import { Suspense, useState } from "react";
 import { SearchModal } from "@/components/search-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -123,6 +123,7 @@ export default function DashboardPage() {
 								<SearchModal
 									isOpen={isSearchModalOpen}
 									onCloseAction={() => setIsSearchModalOpen(false)}
+									usercode={userId}
 								/>
 							</CardContent>
 						</Card>
