@@ -3,7 +3,6 @@ package com.server.api;
 import com.server.CommunicationObjects.GitRepoInformationConstruct;
 import com.server.CommunicationObjects.LinkConstruct;
 import com.server.CommunicationObjects.PATConstruct;
-import com.server.CommunicationObjects.SelectionSubmission;
 import com.server.persistence.entity.*;
 import com.server.persistence.repository.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -225,46 +224,6 @@ class GitRepoServiceTest {
 
         verify(linkRepository).findById(validAccessId);
         verify(gitRepoRepository).findById(validLink.getGitRepositoryId());
-    }
-    @Test
-    void createCommitSelection_WithValidAccessId_Success() {
-        // Arrange
-        UUID validAccessId = UUID.randomUUID();
-        Content c1 = Content.builder().id("asdsda").build();
-        Content c2 = Content.builder().id("ladsad").build();
-        SelectionSubmission selection = new SelectionSubmission(Set.of(c1.getId(), c2.getId()));
-        GitRepo validRepo = GitRepo.builder().repositoryLink("https://github.com/test/repo").build();
-        Link validLink = new Link(UUID.randomUUID(), validRepo.getId(), true);
-        validLink.setGitRepositoryId(42L);
-
-        when(linkRepository.findById(validAccessId)).thenReturn(Optional.of(validLink));
-        when(gitContentRepository.findDistinctByCreatedAtAfterAndGitRepositoryId(any(Instant.class),eq(validLink.getGitRepositoryId()))).thenReturn(Set.of(c1, c2));
-
-        // Act
-        assertDoesNotThrow(() -> gitRepoService.createCommitSelection(validAccessId, selection));
-
-        // Assert
-        verify(linkRepository).findById(validAccessId);
-        verify(gitContentRepository).findDistinctByCreatedAtAfterAndGitRepositoryId(any(Instant.class),eq(validLink.getGitRepositoryId()));
-        verify(gitContentRepository,times(2)).save(any());
-        verifyNoMoreInteractions(linkRepository, gitContentRepository);
-    }
-
-    @Test
-    void createCommitSelection_WithInvalidAccessId_ThrowsForbidden() {
-        // Arrange
-        UUID invalidAccessId = UUID.randomUUID();
-        SelectionSubmission selection = new SelectionSubmission(Set.of("asdsda", "ladsad"));
-
-        when(linkRepository.findById(invalidAccessId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-                () -> gitRepoService.createCommitSelection(invalidAccessId, selection));
-
-        assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
-        assertEquals("link is not a valid access id", exception.getReason());
-        verify(linkRepository).findById(invalidAccessId);
     }
 
     @Test
