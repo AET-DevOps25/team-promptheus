@@ -11,23 +11,23 @@ const nextConfig = {
 				source: "/api/repositories/:path*",
 			},
 			{
-				destination: `${process.env.NEXT_PUBLIC_GENAI_API_URL || "://localhost:3003"}/api/genai/:path*`,
+				destination: `${process.env.NEXT_PUBLIC_GENAI_API_URL || "http://localhost:3003"}/api/genai/:path*`,
 				source: "/api/genai/:path*",
 			},
 			{
-				destination: `${process.env.NEXT_PUBLIC_SEARCH_API_URL || "://localhost:8070"}/api/search/:path*`,
+				destination: `${process.env.NEXT_PUBLIC_SEARCH_API_URL || "http://localhost:8070"}/api/search/:path*`,
 				source: "/api/search/:path*",
 			},
 			{
-				destination: `${process.env.NEXT_PUBLIC_SEARCH_API_URL || "://localhost:8070"}/api/search`,
+				destination: `${process.env.NEXT_PUBLIC_SEARCH_API_URL || "http://localhost:8070"}/api/search`,
 				source: "/api/search",
 			},
 			{
-				destination: `${process.env.NEXT_PUBLIC_CONTRIBUTIONS_API_URL || "://localhost:8082"}/api/contributions/:path*`,
+				destination: `${process.env.NEXT_PUBLIC_CONTRIBUTIONS_API_URL || "http://localhost:8082"}/api/contributions/:path*`,
 				source: "/api/contributions/:path*",
 			},
 			{
-				destination: `${process.env.NEXT_PUBLIC_CONTRIBUTIONS_API_URL || "://localhost:8082"}/api/contributions`,
+				destination: `${process.env.NEXT_PUBLIC_CONTRIBUTIONS_API_URL || "http://localhost:8082"}/api/contributions`,
 				source: "/api/contributions",
 			},
 		];

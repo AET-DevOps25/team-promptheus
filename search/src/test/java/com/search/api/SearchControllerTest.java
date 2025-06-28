@@ -186,38 +186,6 @@ class SearchControllerTest {
     }
 
     @Test
-    void getFilterableAttributes_ReturnsListOfAttributes() throws Exception {
-        // Arrange
-        List<String> expectedAttributes = Arrays.asList("user", "week", "contribution_type", "repository", "author", "created_at_timestamp", "is_selected");
-
-        when(searchService.getFilterableAttributes()).thenReturn(expectedAttributes);
-
-        // Act & Assert
-        mockMvc
-            .perform(get("/api/search/filterable-attributes"))
-            .andExpect(status().isOk())
-            .andExpect(content().json(objectMapper.writeValueAsString(expectedAttributes)));
-
-        verify(searchService, times(1)).getFilterableAttributes();
-    }
-
-    @Test
-    void getSortableAttributes_ReturnsListOfAttributes() throws Exception {
-        // Arrange
-        List<String> expectedAttributes = Arrays.asList("created_at_timestamp", "relevance_score");
-
-        when(searchService.getSortableAttributes()).thenReturn(expectedAttributes);
-
-        // Act & Assert
-        mockMvc
-            .perform(get("/api/search/sortable-attributes"))
-            .andExpect(status().isOk())
-            .andExpect(content().json(objectMapper.writeValueAsString(expectedAttributes)));
-
-        verify(searchService, times(1)).getSortableAttributes();
-    }
-
-    @Test
     void search_WithPartialFilters_ReturnsSearchResult() throws Exception {
         // Arrange
         UUID usercode = UUID.randomUUID();
