@@ -36,6 +36,11 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+	type ContributionDto,
+	useContributions,
+	useUpdateContributions,
+} from "@/lib/api/contributions";
 
 interface SummaryItem {
 	id: string;
@@ -78,7 +83,6 @@ const statusColors = {
 
 export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
 	const [items, setItems] = useState<SummaryItem[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [filter, setFilter] = useState<
 		"all" | "done" | "in-progress" | "blocked"
@@ -89,43 +93,115 @@ export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
 	const [previewContent, setPreviewContent] = useState("");
 	const [showPreview, setShowPreview] = useState(false);
 
-	useEffect(() => {
-		loadSummaryItems();
-	}, []);
+	// Use the contributions API hooks
+	const { data: contributionsData, isLoading } = useContributions(
+		{
+			pageable: {
+				page: 0,
+				size: 50,
+				sort: ["createdAt,desc"],
+			},
+		},
+		true,
+	);
 
-	const loadSummaryItems = async () => {
-		setIsLoading(true);
-		try {
-			const response = await fetch("/api/weekly-summary/items");
-			if (response.ok) {
-				const data = await response.json();
-				setItems(data.items || []);
-			}
-		} catch (error) {
-			console.error("Failed to load summary items:", error);
-		} finally {
-			setIsLoading(false);
+	const updateContributions = useUpdateContributions();
+
+	// Map contributions to summary items when data changes
+	useEffect(() => {
+		if (contributionsData?.content) {
+			const mappedItems = contributionsData.content.map((contribution) => {
+				// Map contribution type to UI type
+				const type = mapContributionType(contribution.type);
+				// Map contribution status based on metadata
+				const status = "done";
+
+				return {
+					author: contribution.username,
+					date: contribution.createdAt || new Date().toISOString(),
+					description: contribution.summary,
+					id: contribution.id,
+					repository: `repo-${contribution.gitRepositoryId}`,
+					selected: contribution.isSelected,
+					status,
+					title: contribution.summary,
+					type,
+					url: "#",
+				};
+			});
+			setItems(mappedItems);
 		}
+	}, [contributionsData]);
+
+	// Helper functions for mapping types and statuses
+	const mapContributionType = (
+		type: string,
+	): "commit" | "pr" | "issue" | "comment" | "qa" => {
+		if (type.includes("PullRequest")) return "pr";
+		if (type.includes("Issue")) return "issue";
+		if (type.includes("Commit")) return "commit";
+		if (type.includes("Comment")) return "comment";
+		return "commit";
 	};
 
 	const toggleItemSelection = (id: string) => {
-		setItems((prev) =>
-			prev.map((item) =>
-				item.id === id ? { ...item, selected: !item.selected } : item,
-			),
+		const updatedItems = items.map((item) =>
+			item.id === id ? { ...item, selected: !item.selected } : item,
 		);
+		setItems(updatedItems);
+
+		// Update the contribution selection status via API
+		const contributionToUpdate = contributionsData?.content?.find(
+			(contribution) => contribution.id === id,
+		);
+
+		if (contributionToUpdate) {
+			const updatedContribution = {
+				...contributionToUpdate,
+				isSelected: !contributionToUpdate.isSelected,
+			};
+			updateContributions.mutate([updatedContribution]);
+		}
 	};
 
 	const selectAllByStatus = (status: string) => {
-		setItems((prev) =>
-			prev.map((item) =>
-				item.status === status ? { ...item, selected: true } : item,
-			),
+		const updatedItems = items.map((item) =>
+			item.status === status ? { ...item, selected: true } : item,
 		);
+		setItems(updatedItems);
+
+		// Update the contribution selection status via API for all items with the given status
+		const contributionsToUpdate = contributionsData?.content
+			?.filter((_, index) => {
+				// Find matching index in items array to get status
+				const correspondingItem = items[index];
+				return correspondingItem && correspondingItem.status === status;
+			})
+			.map((contribution) => ({
+				...contribution,
+				isSelected: true,
+			}));
+
+		if (contributionsToUpdate && contributionsToUpdate.length > 0) {
+			updateContributions.mutate(contributionsToUpdate);
+		}
 	};
 
 	const clearAllSelections = () => {
-		setItems((prev) => prev.map((item) => ({ ...item, selected: false })));
+		const updatedItems = items.map((item) => ({ ...item, selected: false }));
+		setItems(updatedItems);
+
+		// Update the contribution selection status via API for all items
+		const contributionsToUpdate = contributionsData?.content?.map(
+			(contribution) => ({
+				...contribution,
+				isSelected: false,
+			}),
+		);
+
+		if (contributionsToUpdate && contributionsToUpdate.length > 0) {
+			updateContributions.mutate(contributionsToUpdate);
+		}
 	};
 
 	const generatePreview = async () => {
