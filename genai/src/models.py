@@ -417,6 +417,7 @@ class ContributionsIngestRequest(BaseModel):
     week: str  # ISO week format: 2024-W21
     repository: str  # Repository to fetch contributions from
     contributions: list[ContributionMetadata]
+    github_pat: str  # GitHub Personal Access Token for API authentication
 
     @field_validator("week")
     @classmethod
@@ -511,7 +512,9 @@ class QuestionRequest(BaseModel):
     """Request to ask a question about a user's week."""
 
     question: str
+    summary: str | None = None
     context: QuestionContext = Field(default_factory=QuestionContext)
+    github_pat: str  # GitHub Personal Access Token for API authentication
 
 
 class QuestionEvidence(BaseModel):
@@ -574,7 +577,6 @@ class SummaryMetadata(BaseModel):
     repositories: list[str]
     time_period: str
     generated_at: datetime
-    processing_time_ms: int
 
 
 class SummaryResponse(BaseModel):

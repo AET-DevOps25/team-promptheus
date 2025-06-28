@@ -1,7 +1,6 @@
 """Summary service for generating weekly progress reports."""
 
 import os
-from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
@@ -30,9 +29,7 @@ from .models import (
     IssueContribution,
     PullRequestContribution,
     ReleaseContribution,
-    SummaryChunk,
     SummaryMetadata,
-    SummaryRequest,
     SummaryResponse,
     generate_uuidv7,
 )
@@ -63,7 +60,6 @@ class SummaryService:
             ingestion_service: Service for ingesting and retrieving contributions.
         """
         self.ingestion_service = ingestion_service
-        self.summaries_store: dict[str, SummaryResponse] = {}
 
         # Initialize LangChain components with Ollama
         ollama_base_url = os.getenv("OLLAMA_BASE_URL", "https://gpu.aet.cit.tum.de/ollama")
@@ -86,7 +82,6 @@ class SummaryService:
         self,
         user: str,
         week: str,
-        request: SummaryRequest,
         summary_id: str | None = None,
     ) -> SummaryResponse:
         """Generate a weekly progress report."""
@@ -116,13 +111,10 @@ class SummaryService:
                 return self._create_empty_summary(summary_id, user, week, start_time)
 
             # Generate the progress report using AI
-            progress_report = await self._generate_progress_report(user, week, contributions, request)
-
-            # Calculate timing metrics
-            processing_time_ms = int((datetime.now(UTC) - start_time).total_seconds() * 1000)
+            progress_report = await self._generate_progress_report(user, week, contributions)
 
             # Generate metadata
-            metadata = self._generate_metadata(contributions, week, start_time, processing_time_ms)
+            metadata = self._generate_metadata(contributions, week)
 
             # Create final summary response
             summary = SummaryResponse(
@@ -149,9 +141,6 @@ class SummaryService:
                 generated_at=datetime.now(UTC),
             )
 
-            # Store the summary
-            self.summaries_store[summary_id] = summary
-
             record_request_metrics(
                 summary_generation_requests,
                 {"repository": "unknown", "username": user},
@@ -164,7 +153,6 @@ class SummaryService:
                 week=week,
                 summary_id=summary_id,
                 contributions_count=len(contributions),
-                processing_time_ms=processing_time_ms,
             )
 
             return summary
@@ -184,128 +172,11 @@ class SummaryService:
             )
             raise
 
-    async def generate_summary_stream(
-        self, user: str, week: str, request: SummaryRequest
-    ) -> AsyncGenerator[SummaryChunk, None]:
-        """Generate a streaming weekly progress report."""
-        start_time = datetime.now(UTC)
-        summary_id = generate_uuidv7()
-
-        try:
-            logger.info(
-                "Starting streaming weekly progress report",
-                user=user,
-                week=week,
-                summary_id=summary_id,
-            )
-
-            # Get all contributions for the user's week
-            contributions = self.ingestion_service.get_user_week_contributions(user, week)
-
-            if not contributions:
-                yield SummaryChunk(
-                    chunk_type="content",
-                    section="overview",
-                    content=f"No contributions found for {user} in week {week}.",
-                )
-                yield SummaryChunk(
-                    chunk_type="complete",
-                    content="",
-                    metadata={"total_contributions": 0, "summary_id": summary_id},
-                )
-                return
-
-            # Generate metadata first
-            metadata = self._generate_metadata(contributions, week, start_time, 0)
-            yield SummaryChunk(chunk_type="metadata", content="", metadata=metadata.model_dump())
-
-            # Generate progress report
-            yield SummaryChunk(
-                chunk_type="section",
-                section="progress",
-                content="# Weekly Progress Report\n\n",
-            )
-
-            progress_report = await self._generate_progress_report(user, week, contributions, request)
-
-            # Stream the summary
-            yield SummaryChunk(
-                chunk_type="content",
-                section="summary",
-                content=f"## Summary\n{progress_report.summary}\n\n",
-            )
-
-            # Stream accomplishments
-            if progress_report.key_accomplishments:
-                accomplishments_text = "\n".join([f"- {item}" for item in progress_report.key_accomplishments])
-                yield SummaryChunk(
-                    chunk_type="content",
-                    section="accomplishments",
-                    content=f"## Key Accomplishments\n{accomplishments_text}\n\n",
-                )
-
-            # Stream impediments
-            if progress_report.impediments:
-                impediments_text = "\n".join([f"- {item}" for item in progress_report.impediments])
-                yield SummaryChunk(
-                    chunk_type="content",
-                    section="impediments",
-                    content=f"## Impediments\n{impediments_text}\n\n",
-                )
-            else:
-                yield SummaryChunk(
-                    chunk_type="content",
-                    section="impediments",
-                    content="## Impediments\n*No impediments reported*\n\n",
-                )
-
-            # Stream next steps
-            if progress_report.next_steps:
-                next_steps_text = "\n".join([f"- {item}" for item in progress_report.next_steps])
-                yield SummaryChunk(
-                    chunk_type="content",
-                    section="next_steps",
-                    content=f"## Next Steps\n{next_steps_text}\n\n",
-                )
-            else:
-                yield SummaryChunk(
-                    chunk_type="content",
-                    section="next_steps",
-                    content="## Next Steps\n*No remaining tasks assigned*\n\n",
-                )
-
-            # Final completion with timing metrics
-            processing_time_ms = int((datetime.now(UTC) - start_time).total_seconds() * 1000)
-            yield SummaryChunk(
-                chunk_type="complete",
-                content="",
-                metadata={
-                    "summary_id": summary_id,
-                    "processing_time_ms": processing_time_ms,
-                    "total_contributions": len(contributions),
-                    "status": "success",
-                },
-            )
-
-        except Exception as e:
-            logger.exception(
-                "Streaming weekly progress report failed",
-                user=user,
-                week=week,
-                error=str(e),
-            )
-            yield SummaryChunk(
-                chunk_type="error",
-                content=f"Error generating progress report: {e!s}",
-                metadata={"status": "error", "error_type": type(e).__name__},
-            )
-
     async def _generate_progress_report(
         self,
         user: str,
         week: str,
         contributions: list[GitHubContribution],
-        _request: SummaryRequest,
     ) -> WeeklyProgressOutput:
         """Generate structured progress report using AI."""
         contributions_summary = self._format_contributions_for_prompt(contributions)
@@ -387,8 +258,6 @@ Consider using available tools to provide richer context where appropriate."""
         self,
         contributions: list[GitHubContribution],
         week: str,
-        start_time: datetime,  # noqa: ARG002
-        processing_time_ms: int,
     ) -> SummaryMetadata:
         """Generate metadata about the contributions."""
         commits_count = 0
@@ -418,13 +287,10 @@ Consider using available tools to provide richer context where appropriate."""
             repositories=list(repositories),
             time_period=week,
             generated_at=datetime.now(UTC),
-            processing_time_ms=processing_time_ms,
         )
 
-    def _create_empty_summary(self, summary_id: str, user: str, week: str, start_time: datetime) -> SummaryResponse:
+    def _create_empty_summary(self, summary_id: str, user: str, week: str) -> SummaryResponse:
         """Create summary when no contributions are found."""
-        processing_time_ms = int((datetime.now(UTC) - start_time).total_seconds() * 1000)
-
         metadata = SummaryMetadata(
             total_contributions=0,
             commits_count=0,
@@ -434,7 +300,6 @@ Consider using available tools to provide richer context where appropriate."""
             repositories=[],
             time_period=week,
             generated_at=datetime.now(UTC),
-            processing_time_ms=processing_time_ms,
         )
 
         return SummaryResponse(
@@ -452,7 +317,3 @@ Consider using available tools to provide richer context where appropriate."""
             metadata=metadata,
             generated_at=datetime.now(UTC),
         )
-
-    def get_summary(self, summary_id: str) -> SummaryResponse | None:
-        """Retrieve a previously generated summary."""
-        return self.summaries_store.get(summary_id)

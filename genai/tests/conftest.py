@@ -27,6 +27,7 @@ from src.models import (
 # Import our application and services
 from src.services import (
     ContributionsIngestionService,
+    GitHubContentService,
     QuestionAnsweringService,
     SummaryService,
 )
@@ -61,12 +62,14 @@ async def meilisearch_service():
 def test_services(meilisearch_service):
     """Initialize test services with real Meilisearch."""
     ingestion_service = ContributionsIngestionService(meilisearch_service)
-    qa_service = QuestionAnsweringService(ingestion_service)
+    github_content_service = GitHubContentService()  # Use test PAT if needed
+    qa_service = QuestionAnsweringService(github_content_service, meilisearch_service)
     summary_service = SummaryService(ingestion_service)
 
     return {
         "meilisearch": meilisearch_service,
         "ingestion": ingestion_service,
+        "github_content": github_content_service,
         "qa": qa_service,
         "summary": summary_service,
     }
@@ -114,8 +117,6 @@ async def clean_services(test_services):
     # Clear any stored data
     test_services["ingestion"].contributions_store.clear()
     test_services["ingestion"].embedding_jobs.clear()
-    test_services["qa"].questions_store.clear()
-    test_services["summary"].summaries_store.clear()
 
     # Clear Meilisearch test data
     try:
@@ -516,7 +517,7 @@ def auto_mock_github():
 def mock_summary_for_api():
     """Automatically mock summary service to prevent OpenAI API calls during tests."""
 
-    async def mock_generate_summary(self, user, week, request, summary_id=None):
+    async def mock_generate_summary(self, user, week, summary_id=None):
         """Mock summary generation to return test data quickly."""
         if summary_id is None:
             summary_id = generate_uuidv7()
@@ -550,7 +551,7 @@ def mock_summary_for_api():
         )
 
         # Create mock summary response
-        summary = SummaryResponse(
+        return SummaryResponse(
             summary_id=summary_id,
             user=user,
             week=week,
@@ -565,11 +566,6 @@ def mock_summary_for_api():
             metadata=metadata,
             generated_at=datetime.now(UTC),
         )
-
-        # Store the summary in the service's store
-        self.summaries_store[summary_id] = summary
-
-        return summary
 
     # Patch the SummaryService.generate_summary method
     with patch("src.summary.SummaryService.generate_summary", mock_generate_summary):

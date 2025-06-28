@@ -15,7 +15,7 @@ export type paths = {
 		readonly put?: never;
 		/**
 		 * Start Contributions Ingestion Task
-		 * @description Start an asynchronous ingestion task for GitHub contributions
+		 * @description Start an asynchronous ingestion task for GitHub contributions.
 		 */
 		readonly post: operations["start_contributions_ingestion_task_contributions_post"];
 		readonly delete?: never;
@@ -33,29 +33,9 @@ export type paths = {
 		};
 		/**
 		 * Get Ingestion Task Status
-		 * @description Get the status of a contributions ingestion task
+		 * @description Get the status of a contributions ingestion task.
 		 */
 		readonly get: operations["get_ingestion_task_status_ingest__task_id__get"];
-		readonly put?: never;
-		readonly post?: never;
-		readonly delete?: never;
-		readonly options?: never;
-		readonly head?: never;
-		readonly patch?: never;
-		readonly trace?: never;
-	};
-	readonly "/users/{username}/weeks/{week_id}/contributions/status": {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		/**
-		 * Get User Week Contributions Status
-		 * @description Get the status of contributions for a specific user and week
-		 */
-		readonly get: operations["get_user_week_contributions_status_users__username__weeks__week_id__contributions_status_get"];
 		readonly put?: never;
 		readonly post?: never;
 		readonly delete?: never;
@@ -75,129 +55,9 @@ export type paths = {
 		readonly put?: never;
 		/**
 		 * Ask Question About User Contributions
-		 * @description Ask a question about a user's contributions for a specific week
+		 * @description Ask a question about a user's contributions for a specific week.
 		 */
 		readonly post: operations["ask_question_about_user_contributions_users__username__weeks__week_id__questions_post"];
-		readonly delete?: never;
-		readonly options?: never;
-		readonly head?: never;
-		readonly patch?: never;
-		readonly trace?: never;
-	};
-	readonly "/users/{username}/weeks/{week_id}/questions/{question_id}": {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		/**
-		 * Get Question By Id
-		 * @description Retrieve a previously asked question and its answer by ID
-		 */
-		readonly get: operations["get_question_by_id_users__username__weeks__week_id__questions__question_id__get"];
-		readonly put?: never;
-		readonly post?: never;
-		readonly delete?: never;
-		readonly options?: never;
-		readonly head?: never;
-		readonly patch?: never;
-		readonly trace?: never;
-	};
-	readonly "/users/{username}/weeks/{week_id}/conversations/history": {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		/**
-		 * Get User Week Conversation History
-		 * @description Get conversation history for a user's week (LangChain messages)
-		 */
-		readonly get: operations["get_user_week_conversation_history_users__username__weeks__week_id__conversations_history_get"];
-		readonly put?: never;
-		readonly post?: never;
-		readonly delete?: never;
-		readonly options?: never;
-		readonly head?: never;
-		readonly patch?: never;
-		readonly trace?: never;
-	};
-	readonly "/users/{username}/weeks/{week_id}/conversations": {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		readonly get?: never;
-		readonly put?: never;
-		readonly post?: never;
-		/**
-		 * Clear User Week Conversation
-		 * @description Clear conversation history for a user's week
-		 */
-		readonly delete: operations["clear_user_week_conversation_users__username__weeks__week_id__conversations_delete"];
-		readonly options?: never;
-		readonly head?: never;
-		readonly patch?: never;
-		readonly trace?: never;
-	};
-	readonly "/users/{username}/weeks/{week_id}/summary": {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		readonly get?: never;
-		readonly put?: never;
-		/**
-		 * Generate User Week Summary
-		 * @description Generate a comprehensive summary of a user's contributions for a specific week
-		 */
-		readonly post: operations["generate_user_week_summary_users__username__weeks__week_id__summary_post"];
-		readonly delete?: never;
-		readonly options?: never;
-		readonly head?: never;
-		readonly patch?: never;
-		readonly trace?: never;
-	};
-	readonly "/users/{username}/weeks/{week_id}/summary/stream": {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		readonly get?: never;
-		readonly put?: never;
-		/**
-		 * Generate User Week Summary Stream
-		 * @description Generate a streaming summary of a user's contributions using Server-Sent Events
-		 */
-		readonly post: operations["generate_user_week_summary_stream_users__username__weeks__week_id__summary_stream_post"];
-		readonly delete?: never;
-		readonly options?: never;
-		readonly head?: never;
-		readonly patch?: never;
-		readonly trace?: never;
-	};
-	readonly "/users/{username}/weeks/{week_id}/summaries/{summary_id}": {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		/**
-		 * Get Summary By Id
-		 * @description Retrieve a previously generated summary by ID
-		 */
-		readonly get: operations["get_summary_by_id_users__username__weeks__week_id__summaries__summary_id__get"];
-		readonly put?: never;
-		readonly post?: never;
 		readonly delete?: never;
 		readonly options?: never;
 		readonly head?: never;
@@ -210,7 +70,7 @@ export type components = {
 	schemas: {
 		/**
 		 * ContributionMetadata
-		 * @description Metadata about a contribution to be fetched
+		 * @description Metadata about a contribution to be fetched.
 		 */
 		readonly ContributionMetadata: {
 			readonly type: components["schemas"]["ContributionType"];
@@ -221,13 +81,13 @@ export type components = {
 		};
 		/**
 		 * ContributionType
-		 * @description Types of GitHub contributions supported by the system
+		 * @description Types of GitHub contributions supported by the system.
 		 * @enum {string}
 		 */
 		readonly ContributionType: "commit" | "pull_request" | "issue" | "release";
 		/**
 		 * ContributionsIngestRequest
-		 * @description Request to ingest contributions for a user's week (metadata only)
+		 * @description Request to ingest contributions for a user's week (metadata only).
 		 */
 		readonly ContributionsIngestRequest: {
 			/** User */
@@ -238,36 +98,9 @@ export type components = {
 			readonly repository: string;
 			/** Contributions */
 			readonly contributions: readonly components["schemas"]["ContributionMetadata"][];
+			/** Github Pat */
+			readonly github_pat: string;
 		};
-		/**
-		 * ContributionsStatusResponse
-		 * @description Response for contributions status inquiry
-		 */
-		readonly ContributionsStatusResponse: {
-			/** User */
-			readonly user: string;
-			/** Week */
-			readonly week: string;
-			/** Total Contributions */
-			readonly total_contributions: number;
-			/** Embedded Contributions */
-			readonly embedded_contributions: number;
-			/** Pending Embeddings */
-			readonly pending_embeddings: number;
-			/**
-			 * Last Updated
-			 * Format: date-time
-			 */
-			readonly last_updated: string;
-			/** Meilisearch Status */
-			readonly meilisearch_status: string;
-		};
-		/**
-		 * DetailLevel
-		 * @description Detail levels for summary generation
-		 * @enum {string}
-		 */
-		readonly DetailLevel: "brief" | "standard" | "comprehensive";
 		/** HTTPValidationError */
 		readonly HTTPValidationError: {
 			/** Detail */
@@ -275,7 +108,7 @@ export type components = {
 		};
 		/**
 		 * IngestTaskResponse
-		 * @description Response from starting a contributions ingestion task
+		 * @description Response from starting a contributions ingestion task.
 		 */
 		readonly IngestTaskResponse: {
 			/** Task Id */
@@ -300,7 +133,7 @@ export type components = {
 		};
 		/**
 		 * IngestTaskStatus
-		 * @description Status of a contributions ingestion task
+		 * @description Status of a contributions ingestion task.
 		 */
 		readonly IngestTaskStatus: {
 			/** Task Id */
@@ -337,7 +170,7 @@ export type components = {
 		};
 		/**
 		 * QuestionContext
-		 * @description Context configuration for question answering
+		 * @description Context configuration for question answering.
 		 */
 		readonly QuestionContext: {
 			/** Focus Areas */
@@ -357,7 +190,7 @@ export type components = {
 		};
 		/**
 		 * QuestionEvidence
-		 * @description Evidence supporting a question answer
+		 * @description Evidence supporting a question answer.
 		 */
 		readonly QuestionEvidence: {
 			/** Title */
@@ -377,16 +210,20 @@ export type components = {
 		};
 		/**
 		 * QuestionRequest
-		 * @description Request to ask a question about a user's week
+		 * @description Request to ask a question about a user's week.
 		 */
 		readonly QuestionRequest: {
 			/** Question */
 			readonly question: string;
+			/** Summary */
+			readonly summary?: string | null;
 			readonly context?: components["schemas"]["QuestionContext"];
+			/** Github Pat */
+			readonly github_pat: string;
 		};
 		/**
 		 * QuestionResponse
-		 * @description Response to a question about a user's week
+		 * @description Response to a question about a user's week.
 		 */
 		readonly QuestionResponse: {
 			/** Question Id */
@@ -419,13 +256,13 @@ export type components = {
 		};
 		/**
 		 * ReasoningDepth
-		 * @description Depth levels for question answering reasoning
+		 * @description Depth levels for question answering reasoning.
 		 * @enum {string}
 		 */
 		readonly ReasoningDepth: "quick" | "detailed" | "deep";
 		/**
 		 * SummaryMetadata
-		 * @description Metadata about a generated summary
+		 * @description Metadata about a generated summary.
 		 */
 		readonly SummaryMetadata: {
 			/** Total Contributions */
@@ -447,39 +284,10 @@ export type components = {
 			 * Format: date-time
 			 */
 			readonly generated_at: string;
-			/** Processing Time Ms */
-			readonly processing_time_ms: number;
-		};
-		/**
-		 * SummaryRequest
-		 * @description Request to generate a summary for a user's week
-		 */
-		readonly SummaryRequest: {
-			/** User */
-			readonly user: string;
-			/** Week */
-			readonly week: string;
-			/**
-			 * Include Code Changes
-			 * @default true
-			 */
-			readonly include_code_changes: boolean;
-			/**
-			 * Include Pr Reviews
-			 * @default true
-			 */
-			readonly include_pr_reviews: boolean;
-			/**
-			 * Include Issue Discussions
-			 * @default true
-			 */
-			readonly include_issue_discussions: boolean;
-			/** @default comprehensive */
-			readonly max_detail_level: components["schemas"]["DetailLevel"];
 		};
 		/**
 		 * SummaryResponse
-		 * @description Complete summary response (non-streaming)
+		 * @description Complete summary response (non-streaming).
 		 */
 		readonly SummaryResponse: {
 			/** Summary Id */
@@ -513,7 +321,7 @@ export type components = {
 		};
 		/**
 		 * TaskStatus
-		 * @description Status values for asynchronous tasks
+		 * @description Status values for asynchronous tasks.
 		 * @enum {string}
 		 */
 		readonly TaskStatus:
@@ -605,40 +413,6 @@ export interface operations {
 			};
 		};
 	};
-	readonly get_user_week_contributions_status_users__username__weeks__week_id__contributions_status_get: {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path: {
-				/** @description GitHub username */
-				readonly username: string;
-				/** @description ISO week format: 2024-W21 */
-				readonly week_id: string;
-			};
-			readonly cookie?: never;
-		};
-		readonly requestBody?: never;
-		readonly responses: {
-			/** @description Successful Response */
-			readonly 200: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": components["schemas"]["ContributionsStatusResponse"];
-				};
-			};
-			/** @description Validation Error */
-			readonly 422: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": components["schemas"]["HTTPValidationError"];
-				};
-			};
-		};
-	};
 	readonly ask_question_about_user_contributions_users__username__weeks__week_id__questions_post: {
 		readonly parameters: {
 			readonly query?: never;
@@ -664,222 +438,6 @@ export interface operations {
 				};
 				content: {
 					readonly "application/json": components["schemas"]["QuestionResponse"];
-				};
-			};
-			/** @description Validation Error */
-			readonly 422: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": components["schemas"]["HTTPValidationError"];
-				};
-			};
-		};
-	};
-	readonly get_question_by_id_users__username__weeks__week_id__questions__question_id__get: {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path: {
-				/** @description GitHub username */
-				readonly username: string;
-				/** @description ISO week format: 2024-W21 */
-				readonly week_id: string;
-				/** @description UUIDv7 question identifier */
-				readonly question_id: string;
-			};
-			readonly cookie?: never;
-		};
-		readonly requestBody?: never;
-		readonly responses: {
-			/** @description Successful Response */
-			readonly 200: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": components["schemas"]["QuestionResponse"];
-				};
-			};
-			/** @description Validation Error */
-			readonly 422: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": components["schemas"]["HTTPValidationError"];
-				};
-			};
-		};
-	};
-	readonly get_user_week_conversation_history_users__username__weeks__week_id__conversations_history_get: {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path: {
-				/** @description GitHub username */
-				readonly username: string;
-				/** @description ISO week format: 2024-W21 */
-				readonly week_id: string;
-			};
-			readonly cookie?: never;
-		};
-		readonly requestBody?: never;
-		readonly responses: {
-			/** @description Successful Response */
-			readonly 200: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": unknown;
-				};
-			};
-			/** @description Validation Error */
-			readonly 422: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": components["schemas"]["HTTPValidationError"];
-				};
-			};
-		};
-	};
-	readonly clear_user_week_conversation_users__username__weeks__week_id__conversations_delete: {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path: {
-				/** @description GitHub username */
-				readonly username: string;
-				/** @description ISO week format: 2024-W21 */
-				readonly week_id: string;
-			};
-			readonly cookie?: never;
-		};
-		readonly requestBody?: never;
-		readonly responses: {
-			/** @description Successful Response */
-			readonly 200: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": unknown;
-				};
-			};
-			/** @description Validation Error */
-			readonly 422: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": components["schemas"]["HTTPValidationError"];
-				};
-			};
-		};
-	};
-	readonly generate_user_week_summary_users__username__weeks__week_id__summary_post: {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path: {
-				/** @description GitHub username */
-				readonly username: string;
-				/** @description ISO week format: 2024-W21 */
-				readonly week_id: string;
-			};
-			readonly cookie?: never;
-		};
-		readonly requestBody: {
-			readonly content: {
-				readonly "application/json": components["schemas"]["SummaryRequest"];
-			};
-		};
-		readonly responses: {
-			/** @description Successful Response */
-			readonly 200: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": components["schemas"]["SummaryResponse"];
-				};
-			};
-			/** @description Validation Error */
-			readonly 422: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": components["schemas"]["HTTPValidationError"];
-				};
-			};
-		};
-	};
-	readonly generate_user_week_summary_stream_users__username__weeks__week_id__summary_stream_post: {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path: {
-				/** @description GitHub username */
-				readonly username: string;
-				/** @description ISO week format: 2024-W21 */
-				readonly week_id: string;
-			};
-			readonly cookie?: never;
-		};
-		readonly requestBody: {
-			readonly content: {
-				readonly "application/json": components["schemas"]["SummaryRequest"];
-			};
-		};
-		readonly responses: {
-			/** @description Successful Response */
-			readonly 200: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": unknown;
-				};
-			};
-			/** @description Validation Error */
-			readonly 422: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": components["schemas"]["HTTPValidationError"];
-				};
-			};
-		};
-	};
-	readonly get_summary_by_id_users__username__weeks__week_id__summaries__summary_id__get: {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path: {
-				/** @description GitHub username */
-				readonly username: string;
-				/** @description ISO week format: 2024-W21 */
-				readonly week_id: string;
-				/** @description UUIDv7 summary identifier */
-				readonly summary_id: string;
-			};
-			readonly cookie?: never;
-		};
-		readonly requestBody?: never;
-		readonly responses: {
-			/** @description Successful Response */
-			readonly 200: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": components["schemas"]["SummaryResponse"];
 				};
 			};
 			/** @description Validation Error */

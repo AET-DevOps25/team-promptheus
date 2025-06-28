@@ -163,6 +163,7 @@ def get_test_contributions_metadata_request(
     repository: str = "test/repo",
     contribution_types: list[str] | None = None,
     selected: bool = True,
+    github_pat: str = "fake_test_pat_123",
 ) -> dict[str, Any]:
     """Get a complete contributions request with metadata-only format (NEW API)."""
     if contribution_types is None:
@@ -187,6 +188,7 @@ def get_test_contributions_metadata_request(
         "week": week,
         "repository": repository,
         "contributions": contributions,
+        "github_pat": github_pat,
     }
 
 

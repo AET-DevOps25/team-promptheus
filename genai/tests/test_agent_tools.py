@@ -3,16 +3,16 @@
 import pytest
 
 from src.agent_tools import (
-    get_commit_details,
-    get_github_file_content,
-    get_issue_details,
-    get_pull_request_details,
-    search_github_code,
-    search_github_issues,
-    search_github_pull_requests,
+    create_agent_tools,
 )
 
-## TODO: Make this not basically testing the mocks only
+search_github_code = create_agent_tools()[0]
+search_github_issues = create_agent_tools()[1]
+search_github_pull_requests = create_agent_tools()[2]
+get_github_file_content = create_agent_tools()[3]
+get_commit_details = create_agent_tools()[4]
+get_issue_details = create_agent_tools()[5]
+get_pull_request_details = create_agent_tools()[6]
 
 
 @pytest.mark.asyncio
