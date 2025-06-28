@@ -1,6 +1,5 @@
 """Question answering service using LangGraph agents with automatic tool usage."""
 
-import os
 from datetime import UTC, datetime
 from typing import Any
 
@@ -10,7 +9,6 @@ import structlog
 from langchain.schema import HumanMessage, SystemMessage
 from langchain_core.messages import BaseMessage
 from langchain_core.runnables.config import RunnableConfig
-from langchain_ollama import ChatOllama
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 from pydantic import BaseModel as PydanticBaseModel
@@ -18,6 +16,7 @@ from pydantic import Field
 
 from .agent_tools import create_agent_tools, get_tool_descriptions
 from .contributions import GitHubContentService
+from .llm_service import LLMService
 from .meilisearch import MeilisearchService
 from .metrics import (
     question_answering_duration,
@@ -73,20 +72,10 @@ class QuestionAnsweringService:
         self.content_service = content_service
         self.meilisearch_service = meilisearch_service
 
-        # Initialize LangChain components with Ollama
-        ollama_base_url = os.getenv("OLLAMA_BASE_URL")
-        ollama_api_key = os.getenv("OLLAMA_API_KEY")
-        model_name = os.getenv("LANGCHAIN_MODEL_NAME", "llama3.3:latest")
-
-        self.llm = ChatOllama(
-            model=model_name,
-            base_url=ollama_base_url,
-            client_kwargs={
-                "headers": {"Authorization": f"Bearer {ollama_api_key}"},
-                "timeout": 60.0,
-            },
+        # Initialize LLM using centralized service
+        self.llm = LLMService.create_llm(
             temperature=0.2,
-            num_predict=-1,
+            timeout=60.0,
         )
 
         # Create checkpointer for agent sessions
@@ -131,13 +120,17 @@ information than the static evidence alone."""
 
             evidence = []
             for contrib in relevant_contributions:
+                # Ensure relevance_score is a float, default to 0.0 if None
+                relevance_score_raw = contrib.get("relevance_score", 0.0)
+                relevance_score_value: float = float(relevance_score_raw) if relevance_score_raw is not None else 0.0
+
                 evidence.append(
                     QuestionEvidence(
                         title=contrib.get("title", ""),
                         contribution_id=contrib.get("contribution_id", ""),
                         contribution_type=contrib.get("contribution_type", "commit"),
                         excerpt=contrib.get("content", ""),  # Limit excerpt length
-                        relevance_score=contrib.get("relevance_score"),
+                        relevance_score=relevance_score_value,
                         timestamp=datetime.fromisoformat(contrib.get("created_at", datetime.now(UTC).isoformat())),
                     )
                 )

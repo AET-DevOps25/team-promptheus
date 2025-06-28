@@ -1,6 +1,5 @@
 """Summary service for generating weekly progress reports."""
 
-import os
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
@@ -10,13 +9,13 @@ from langchain.prompts import ChatPromptTemplate
 
 # LangChain imports
 from langchain.schema import HumanMessage, SystemMessage
-from langchain_ollama import ChatOllama
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 from pydantic import BaseModel as PydanticBaseModel
 from pydantic import Field
 
 from .agent_tools import all_tools, get_tool_descriptions
+from .llm_service import LLMService
 from .metrics import (
     record_request_metrics,
     summary_generation_duration,
@@ -61,17 +60,10 @@ class SummaryService:
         """
         self.ingestion_service = ingestion_service
 
-        # Initialize LangChain components with Ollama
-        ollama_base_url = os.getenv("OLLAMA_BASE_URL", "https://gpu.aet.cit.tum.de/ollama")
-        ollama_api_key = os.getenv("OLLAMA_API_KEY")
-        model_name = os.getenv("LANGCHAIN_MODEL_NAME", "llama3.3:latest")
-
-        self.llm = ChatOllama(
-            model=model_name,
-            base_url=ollama_base_url,
-            client_kwargs={"headers": {"Authorization": f"Bearer {ollama_api_key}"}},
+        # Initialize LLM using centralized service
+        self.llm = LLMService.create_llm(
             temperature=0.2,
-            num_predict=2500,  # Use num_predict instead of max_tokens for Ollama
+            max_tokens=2500,
         )
 
         # Create LangGraph agent for tool-enhanced summary generation
@@ -85,7 +77,7 @@ class SummaryService:
         summary_id: str | None = None,
     ) -> SummaryResponse:
         """Generate a weekly progress report."""
-        start_time = datetime.now(UTC)
+        datetime.now(UTC)
         if summary_id is None:
             summary_id = generate_uuidv7()
 
@@ -108,7 +100,7 @@ class SummaryService:
 
             if not contributions:
                 logger.warning("No contributions found for summary", user=user, week=week)
-                return self._create_empty_summary(summary_id, user, week, start_time)
+                return self._create_empty_summary(summary_id, user, week)
 
             # Generate the progress report using AI
             progress_report = await self._generate_progress_report(user, week, contributions)

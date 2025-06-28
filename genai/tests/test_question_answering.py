@@ -4,7 +4,7 @@ import pytest
 import pytest_asyncio
 
 from src.meilisearch import MeilisearchService
-from src.models import QuestionContext, QuestionRequest, QuestionResponse
+from src.models import QuestionContext, QuestionRequest, QuestionResponse, ReasoningDepth
 from src.services import GitHubContentService, QuestionAnsweringService
 
 
@@ -27,13 +27,13 @@ class TestQuestionAnsweringService:
         context = QuestionContext(
             focus_areas=["features", "bugs", "performance"],
             include_evidence=True,
-            reasoning_depth="detailed",
+            reasoning_depth=ReasoningDepth.DETAILED,
             max_evidence_items=5,
         )
 
         assert context.focus_areas == ["features", "bugs", "performance"]
         assert context.include_evidence is True
-        assert context.reasoning_depth == "detailed"
+        assert context.reasoning_depth == ReasoningDepth.DETAILED
         assert context.max_evidence_items == 5
 
     async def test_question_request_validation(self) -> None:
@@ -44,7 +44,7 @@ class TestQuestionAnsweringService:
             context=QuestionContext(
                 focus_areas=["features", "bugs", "performance"],
                 include_evidence=True,
-                reasoning_depth="detailed",
+                reasoning_depth=ReasoningDepth.DETAILED,
                 max_evidence_items=5,
             ),
         )
@@ -61,7 +61,7 @@ class TestQuestionAnsweringService:
             context=QuestionContext(
                 focus_areas=["features", "bugs", "performance"],
                 include_evidence=True,
-                reasoning_depth="detailed",
+                reasoning_depth=ReasoningDepth.DETAILED,
             ),
         )
 
@@ -121,7 +121,7 @@ class TestQuestionAnsweringService:
             context=QuestionContext(
                 focus_areas=["features", "bugs", "performance"],
                 include_evidence=True,
-                reasoning_depth="detailed",
+                reasoning_depth=ReasoningDepth.DETAILED,
                 max_evidence_items=5,
             ),
         )
@@ -148,7 +148,9 @@ class TestQuestionAnsweringService:
         week = "2024-W21"
 
         # First question
-        request1 = QuestionRequest(question="What commits were made?", context=QuestionContext())
+        request1 = QuestionRequest(
+            question="What commits were made?", github_pat="fake_pat_for_testing", context=QuestionContext()
+        )
 
         response1 = await qa_service.answer_question(user, week, request1)
         conversation_id = response1.conversation_id
@@ -157,7 +159,9 @@ class TestQuestionAnsweringService:
         assert conversation_id == f"{user}:{week}"
 
         # Second question in same conversation
-        request2 = QuestionRequest(question="Tell me more about those commits", context=QuestionContext())
+        request2 = QuestionRequest(
+            question="Tell me more about those commits", github_pat="fake_pat_for_testing", context=QuestionContext()
+        )
 
         response2 = await qa_service.answer_question(user, week, request2)
 
@@ -179,7 +183,9 @@ class TestQuestionAnsweringService:
         assert len(history) == 0
 
         # Ask a question to create history
-        request = QuestionRequest(question="What was done?", context=QuestionContext())
+        request = QuestionRequest(
+            question="What was done?", github_pat="fake_pat_for_testing", context=QuestionContext()
+        )
 
         await qa_service.answer_question(user, week, request)
 
@@ -198,7 +204,9 @@ class TestQuestionAnsweringService:
     async def test_separate_conversation_sessions(self, qa_service) -> None:
         """Test that different user/week combinations have separate conversations."""
         # Ask questions for different user/week combinations
-        request = QuestionRequest(question="What was done?", context=QuestionContext())
+        request = QuestionRequest(
+            question="What was done?", github_pat="fake_pat_for_testing", context=QuestionContext()
+        )
 
         response1 = await qa_service.answer_question("user1", "2024-W21", request)
         response2 = await qa_service.answer_question("user2", "2024-W21", request)

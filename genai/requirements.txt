@@ -4,6 +4,7 @@ langchain>=0.3.26
 langchain-ollama>=0.3.3
 langchain-community>=0.0.29
 langgraph>=0.5.0
+langchain-openai>=0.3.27
 python-dotenv>=1.0
 pydantic>=2.0
 pytest>=8.1
