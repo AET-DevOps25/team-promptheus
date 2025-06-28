@@ -1,14 +1,8 @@
 package com.server.api;
 
-
 import com.server.CommunicationObjects.*;
 import com.server.persistence.entity.*;
 import com.server.persistence.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -19,9 +13,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class GitRepoService {
+
     private final GitRepoRepository gitRepoRepository;
     private final LinkRepository linkRepository;
     private final PersonalAccessTokenRepository patRepository;
@@ -30,7 +29,14 @@ public class GitRepoService {
     private final GitContentRepository gitContentRepository;
 
     @Autowired
-    public GitRepoService(GitRepoRepository gitRepoRepository, LinkRepository linkRepository, PersonalAccessTokenRepository patRepository, PersonalAccessToken2GitRepoRepository pat2gitRepository, QuestionRepository questionRepository, GitContentRepository gitContentRepository) {
+    public GitRepoService(
+        GitRepoRepository gitRepoRepository,
+        LinkRepository linkRepository,
+        PersonalAccessTokenRepository patRepository,
+        PersonalAccessToken2GitRepoRepository pat2gitRepository,
+        QuestionRepository questionRepository,
+        GitContentRepository gitContentRepository
+    ) {
         this.gitRepoRepository = gitRepoRepository;
         this.linkRepository = linkRepository;
         this.patRepository = patRepository;
@@ -82,7 +88,14 @@ public class GitRepoService {
         List<QuestionConstruct> questions = repoEntity.get().getQuestions().stream().map(QuestionConstruct::from).toList();
         List<SummaryConstruct> summaries = repoEntity.get().getSummaries().stream().map(SummaryConstruct::from).toList();
         List<ContentConstruct> contents = repoEntity.get().getContents().stream().map(ContentConstruct::from).toList();
-        return GitRepoInformationCosummariesnstruct.builder().repoLink(repoEntity.get().getRepositoryLink()).isMaintainer(repoLinkEntity.get().getIsMaintainer()).createdAt(repoEntity.get().getCreatedAt()).questions(questions).summaries(summaries).contents(contents).build();
+        return GitRepoInformationConstruct.builder()
+            .repoLink(repoEntity.get().getRepositoryLink())
+            .isMaintainer(repoLinkEntity.get().getIsMaintainer())
+            .createdAt(repoEntity.get().getCreatedAt())
+            .questions(questions)
+            .summaries(summaries)
+            .contents(contents)
+            .build();
     }
 
     public void createQuestion(UUID usercode, String question) {
