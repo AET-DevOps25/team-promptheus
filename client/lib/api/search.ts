@@ -4,9 +4,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "./client";
+
 import type { components, operations } from "./types/search";
 
-// Extract types from OpenAPI schema
 type SearchResult = components["schemas"]["SearchResult"];
 type SearchParams = operations["search"]["parameters"]["query"];
 type SearchPathParams = operations["search"]["parameters"]["path"];
@@ -14,12 +14,8 @@ type SearchPathParams = operations["search"]["parameters"]["path"];
 // Query Keys
 const SEARCH_KEYS = {
 	all: ["search"] as const,
-	filterableAttributes: () =>
-		[...SEARCH_KEYS.all, "filterable-attributes"] as const,
-	results: (usercode: string, params: Partial<SearchParams>) =>
+	results: (usercode: string, params: useSearchParams) =>
 		[...SEARCH_KEYS.all, "results", usercode, params] as const,
-	sortableAttributes: () =>
-		[...SEARCH_KEYS.all, "sortable-attributes"] as const,
 };
 
 export type useSearchParams = Partial<SearchParams> & { query: string };
@@ -82,38 +78,6 @@ export function useSearch(
 		},
 		queryKey: SEARCH_KEYS.results(usercode, params),
 		staleTime: 2 * 60 * 1000, // 2 minutes - search results can be more dynamic
-	});
-}
-
-/**
- * Hook to get available sortable attributes
- */
-export function useSortableAttributes() {
-	return useQuery({
-		queryFn: async () => {
-			const response = await apiClient.get<unknown>(
-				"/search/sortable-attributes",
-			);
-			return response.data;
-		},
-		queryKey: SEARCH_KEYS.sortableAttributes(),
-		staleTime: 30 * 60 * 1000, // 30 minutes - metadata is relatively static
-	});
-}
-
-/**
- * Hook to get available filterable attributes
- */
-export function useFilterableAttributes() {
-	return useQuery({
-		queryFn: async () => {
-			const response = await apiClient.get<unknown>(
-				"/search/filterable-attributes",
-			);
-			return response.data;
-		},
-		queryKey: SEARCH_KEYS.filterableAttributes(),
-		staleTime: 30 * 60 * 1000, // 30 minutes - metadata is relatively static
 	});
 }
 
