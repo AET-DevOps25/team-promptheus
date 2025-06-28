@@ -21,40 +21,6 @@ export type paths = {
 		readonly patch?: never;
 		readonly trace?: never;
 	};
-	readonly "/api/search/sortable-attributes": {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		/** Get available sortable attributes */
-		readonly get: operations["getSortableAttributes"];
-		readonly put?: never;
-		readonly post?: never;
-		readonly delete?: never;
-		readonly options?: never;
-		readonly head?: never;
-		readonly patch?: never;
-		readonly trace?: never;
-	};
-	readonly "/api/search/filterable-attributes": {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		/** Get available filterable attributes */
-		readonly get: operations["getFilterableAttributes"];
-		readonly put?: never;
-		readonly post?: never;
-		readonly delete?: never;
-		readonly options?: never;
-		readonly head?: never;
-		readonly patch?: never;
-		readonly trace?: never;
-	};
 };
 export type webhooks = Record<string, never>;
 export type components = {
@@ -129,46 +95,6 @@ export interface operations {
 				};
 				content: {
 					readonly "text/plain": string;
-				};
-			};
-		};
-	};
-	readonly getSortableAttributes: {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		readonly requestBody?: never;
-		readonly responses: {
-			/** @description List of sortable attributes */
-			readonly 200: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": unknown;
-				};
-			};
-		};
-	};
-	readonly getFilterableAttributes: {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		readonly requestBody?: never;
-		readonly responses: {
-			/** @description List of filterable attributes */
-			readonly 200: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "application/json": unknown;
 				};
 			};
 		};
