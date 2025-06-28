@@ -28,6 +28,13 @@ services:
       meilisearch:
         condition: service_healthy
     restart: on-failure:10  # Run once and exit, retry 10 times on failour
+  ollama:
+    image: ollama/ollama
+    restart: unless-stopped
+    ports:
+      - 11434:11434
+    volumes:
+      - ollama-data:/root/.ollama
   search:
     image: ghcr.io/aet-devops25/promptheus-search:main
     environment:
@@ -265,3 +272,4 @@ volumes:
   postgres-data:
   grafana-data:
   prometheus-data:
+  ollama-data:
