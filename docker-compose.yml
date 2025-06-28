@@ -226,6 +226,12 @@ services:
       retries: 5
       start_period: 1s
       start_interval: 100ms
+    environment:
+      # this allows calling just the client and having it "just work"
+      NEXT_PUBLIC_SERVER_API_URL: http://server:8080
+      NEXT_PUBLIC_GENAI_API_URL: http://genai:3003
+      NEXT_PUBLIC_SEARCH_API_URL: http://search:8070
+      NEXT_PUBLIC_CONTRIBUTIONS_API_URL: http://collector:8082
     develop:
       watch:
         - action: rebuild
