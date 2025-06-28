@@ -71,7 +71,7 @@ Before you begin, ensure you have the following installed:
    ```
 
 4. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+   Navigate to [http://localhost:8081](http://localhost:8081)
 
 ## 🎯 Usage
 
@@ -157,7 +157,7 @@ We use a design system based on Radix UI primitives. All components are:
 docker build -t client .
 
 # Run the container
-docker run -p 3000:3000 client
+docker run -p 8081:8081 client
 ```
 
 ### Manual Deployment

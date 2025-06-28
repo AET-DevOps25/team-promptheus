@@ -18,7 +18,7 @@ spec:
                   imagePullPolicy: Always
                   image: ghcr.io/aet-devops25/promptheus-client:main
                   ports:
-                      - containerPort: 3000
+                      - containerPort: 8081
                   env:
                       - name: NEXT_PUBLIC_SERVER_API_URL
                         value: http://server-service:8080
@@ -38,7 +38,7 @@ spec:
                   livenessProbe:
                       httpGet:
                           path: /
-                          port: 3000
+                          port: 8081
                       initialDelaySeconds: 1
                       periodSeconds: 10
                       timeoutSeconds: 3
@@ -47,7 +47,7 @@ spec:
                   readinessProbe:
                       httpGet:
                           path: /
-                          port: 3000
+                          port: 8081
                       initialDelaySeconds: 1
                       periodSeconds: 10
                       timeoutSeconds: 3
