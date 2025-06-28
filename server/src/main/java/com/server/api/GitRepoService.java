@@ -82,7 +82,7 @@ public class GitRepoService {
         List<QuestionConstruct> questions = repoEntity.get().getQuestions().stream().map(QuestionConstruct::from).toList();
         List<SummaryConstruct> summaries = repoEntity.get().getSummaries().stream().map(SummaryConstruct::from).toList();
         List<ContentConstruct> contents = repoEntity.get().getContents().stream().map(ContentConstruct::from).toList();
-        return GitRepoInformationCosummariesnstruct.builder().repoLink(repoEntity.get().getRepositoryLink()).isMaintainer(repoLinkEntity.get().getIsMaintainer()).createdAt(repoEntity.get().getCreatedAt()).questions(questions).summaries(summaries).contents(contents).build();
+        return GitRepoInformationConstruct.builder().repoLink(repoEntity.get().getRepositoryLink()).isMaintainer(repoLinkEntity.get().getIsMaintainer()).createdAt(repoEntity.get().getCreatedAt()).questions(questions).summaries(summaries).contents(contents).build();
     }
 
     public void createQuestion(UUID usercode, String question) {
