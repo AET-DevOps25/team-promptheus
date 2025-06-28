@@ -35,7 +35,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import type { useSearchParams } from "@/lib/api/search";
 import { useSearch } from "@/lib/api/search";
-import { useDebounce } from "@/lib/hooks/use-debounce";
+import { useDebounce } from "@/hooks/use-debounce";
 import { SearchResultsLoading } from "./search-results-loading";
 
 interface SearchModalProps {
