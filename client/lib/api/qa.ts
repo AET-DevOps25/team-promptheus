@@ -16,7 +16,7 @@ import type {
 } from "./types";
 
 // Query Keys
-const QA_KEYS = {
+export const QA_KEYS = {
 	all: ["qa"] as const,
 	item: (id: string) => [...QA_KEYS.all, "item", id] as const,
 	items: () => [...QA_KEYS.all, "items"] as const,
@@ -142,6 +142,3 @@ export function useQAItem(id: string) {
 		staleTime: 5 * 60 * 1000, // 5 minutes
 	});
 }
-
-// Export query keys for external use
-export { QA_KEYS };
