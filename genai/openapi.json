@@ -14,7 +14,7 @@
     "/contributions": {
       "post": {
         "summary": "Start Contributions Ingestion Task",
-        "description": "Start an asynchronous ingestion task for GitHub contributions",
+        "description": "Start an asynchronous ingestion task for GitHub contributions.",
         "operationId": "start_contributions_ingestion_task_contributions_post",
         "requestBody": {
           "content": {
@@ -53,7 +53,7 @@
     "/ingest/{task_id}": {
       "get": {
         "summary": "Get Ingestion Task Status",
-        "description": "Get the status of a contributions ingestion task",
+        "description": "Get the status of a contributions ingestion task.",
         "operationId": "get_ingestion_task_status_ingest__task_id__get",
         "parameters": [
           {
@@ -92,63 +92,10 @@
         }
       }
     },
-    "/users/{username}/weeks/{week_id}/contributions/status": {
-      "get": {
-        "summary": "Get User Week Contributions Status",
-        "description": "Get the status of contributions for a specific user and week",
-        "operationId": "get_user_week_contributions_status_users__username__weeks__week_id__contributions_status_get",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "GitHub username",
-              "title": "Username"
-            },
-            "description": "GitHub username"
-          },
-          {
-            "name": "week_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "ISO week format: 2024-W21",
-              "title": "Week Id"
-            },
-            "description": "ISO week format: 2024-W21"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContributionsStatusResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/users/{username}/weeks/{week_id}/questions": {
       "post": {
         "summary": "Ask Question About User Contributions",
-        "description": "Ask a question about a user's contributions for a specific week",
+        "description": "Ask a question about a user's contributions for a specific week.",
         "operationId": "ask_question_about_user_contributions_users__username__weeks__week_id__questions_post",
         "parameters": [
           {
@@ -207,360 +154,6 @@
           }
         }
       }
-    },
-    "/users/{username}/weeks/{week_id}/questions/{question_id}": {
-      "get": {
-        "summary": "Get Question By Id",
-        "description": "Retrieve a previously asked question and its answer by ID",
-        "operationId": "get_question_by_id_users__username__weeks__week_id__questions__question_id__get",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "GitHub username",
-              "title": "Username"
-            },
-            "description": "GitHub username"
-          },
-          {
-            "name": "week_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "ISO week format: 2024-W21",
-              "title": "Week Id"
-            },
-            "description": "ISO week format: 2024-W21"
-          },
-          {
-            "name": "question_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "UUIDv7 question identifier",
-              "title": "Question Id"
-            },
-            "description": "UUIDv7 question identifier"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/QuestionResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/users/{username}/weeks/{week_id}/conversations/history": {
-      "get": {
-        "summary": "Get User Week Conversation History",
-        "description": "Get conversation history for a user's week (LangChain messages)",
-        "operationId": "get_user_week_conversation_history_users__username__weeks__week_id__conversations_history_get",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "GitHub username",
-              "title": "Username"
-            },
-            "description": "GitHub username"
-          },
-          {
-            "name": "week_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "ISO week format: 2024-W21",
-              "title": "Week Id"
-            },
-            "description": "ISO week format: 2024-W21"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/users/{username}/weeks/{week_id}/conversations": {
-      "delete": {
-        "summary": "Clear User Week Conversation",
-        "description": "Clear conversation history for a user's week",
-        "operationId": "clear_user_week_conversation_users__username__weeks__week_id__conversations_delete",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "GitHub username",
-              "title": "Username"
-            },
-            "description": "GitHub username"
-          },
-          {
-            "name": "week_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "ISO week format: 2024-W21",
-              "title": "Week Id"
-            },
-            "description": "ISO week format: 2024-W21"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/users/{username}/weeks/{week_id}/summary": {
-      "post": {
-        "summary": "Generate User Week Summary",
-        "description": "Generate a comprehensive summary of a user's contributions for a specific week",
-        "operationId": "generate_user_week_summary_users__username__weeks__week_id__summary_post",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "GitHub username",
-              "title": "Username"
-            },
-            "description": "GitHub username"
-          },
-          {
-            "name": "week_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "ISO week format: 2024-W21",
-              "title": "Week Id"
-            },
-            "description": "ISO week format: 2024-W21"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SummaryRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SummaryResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/users/{username}/weeks/{week_id}/summary/stream": {
-      "post": {
-        "summary": "Generate User Week Summary Stream",
-        "description": "Generate a streaming summary of a user's contributions using Server-Sent Events",
-        "operationId": "generate_user_week_summary_stream_users__username__weeks__week_id__summary_stream_post",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "GitHub username",
-              "title": "Username"
-            },
-            "description": "GitHub username"
-          },
-          {
-            "name": "week_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "ISO week format: 2024-W21",
-              "title": "Week Id"
-            },
-            "description": "ISO week format: 2024-W21"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SummaryRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/users/{username}/weeks/{week_id}/summaries/{summary_id}": {
-      "get": {
-        "summary": "Get Summary By Id",
-        "description": "Retrieve a previously generated summary by ID",
-        "operationId": "get_summary_by_id_users__username__weeks__week_id__summaries__summary_id__get",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "GitHub username",
-              "title": "Username"
-            },
-            "description": "GitHub username"
-          },
-          {
-            "name": "week_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "ISO week format: 2024-W21",
-              "title": "Week Id"
-            },
-            "description": "ISO week format: 2024-W21"
-          },
-          {
-            "name": "summary_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "UUIDv7 summary identifier",
-              "title": "Summary Id"
-            },
-            "description": "UUIDv7 summary identifier"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SummaryResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
     }
   },
   "components": {
@@ -586,7 +179,7 @@
           "selected"
         ],
         "title": "ContributionMetadata",
-        "description": "Metadata about a contribution to be fetched"
+        "description": "Metadata about a contribution to be fetched."
       },
       "ContributionType": {
         "type": "string",
@@ -597,7 +190,7 @@
           "release"
         ],
         "title": "ContributionType",
-        "description": "Types of GitHub contributions supported by the system"
+        "description": "Types of GitHub contributions supported by the system."
       },
       "ContributionsIngestRequest": {
         "properties": {
@@ -619,6 +212,10 @@
             },
             "type": "array",
             "title": "Contributions"
+          },
+          "github_pat": {
+            "type": "string",
+            "title": "Github Pat"
           }
         },
         "type": "object",
@@ -626,65 +223,11 @@
           "user",
           "week",
           "repository",
-          "contributions"
+          "contributions",
+          "github_pat"
         ],
         "title": "ContributionsIngestRequest",
-        "description": "Request to ingest contributions for a user's week (metadata only)"
-      },
-      "ContributionsStatusResponse": {
-        "properties": {
-          "user": {
-            "type": "string",
-            "title": "User"
-          },
-          "week": {
-            "type": "string",
-            "title": "Week"
-          },
-          "total_contributions": {
-            "type": "integer",
-            "title": "Total Contributions"
-          },
-          "embedded_contributions": {
-            "type": "integer",
-            "title": "Embedded Contributions"
-          },
-          "pending_embeddings": {
-            "type": "integer",
-            "title": "Pending Embeddings"
-          },
-          "last_updated": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Last Updated"
-          },
-          "meilisearch_status": {
-            "type": "string",
-            "title": "Meilisearch Status"
-          }
-        },
-        "type": "object",
-        "required": [
-          "user",
-          "week",
-          "total_contributions",
-          "embedded_contributions",
-          "pending_embeddings",
-          "last_updated",
-          "meilisearch_status"
-        ],
-        "title": "ContributionsStatusResponse",
-        "description": "Response for contributions status inquiry"
-      },
-      "DetailLevel": {
-        "type": "string",
-        "enum": [
-          "brief",
-          "standard",
-          "comprehensive"
-        ],
-        "title": "DetailLevel",
-        "description": "Detail levels for summary generation"
+        "description": "Request to ingest contributions for a user's week (metadata only)."
       },
       "HTTPValidationError": {
         "properties": {
@@ -752,7 +295,7 @@
           "created_at"
         ],
         "title": "IngestTaskResponse",
-        "description": "Response from starting a contributions ingestion task"
+        "description": "Response from starting a contributions ingestion task."
       },
       "IngestTaskStatus": {
         "properties": {
@@ -873,7 +416,7 @@
           "created_at"
         ],
         "title": "IngestTaskStatus",
-        "description": "Status of a contributions ingestion task"
+        "description": "Status of a contributions ingestion task."
       },
       "QuestionContext": {
         "properties": {
@@ -901,7 +444,7 @@
         },
         "type": "object",
         "title": "QuestionContext",
-        "description": "Context configuration for question answering"
+        "description": "Context configuration for question answering."
       },
       "QuestionEvidence": {
         "properties": {
@@ -942,7 +485,7 @@
           "timestamp"
         ],
         "title": "QuestionEvidence",
-        "description": "Evidence supporting a question answer"
+        "description": "Evidence supporting a question answer."
       },
       "QuestionRequest": {
         "properties": {
@@ -950,16 +493,32 @@
             "type": "string",
             "title": "Question"
           },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
           "context": {
             "$ref": "#/components/schemas/QuestionContext"
+          },
+          "github_pat": {
+            "type": "string",
+            "title": "Github Pat"
           }
         },
         "type": "object",
         "required": [
-          "question"
+          "question",
+          "github_pat"
         ],
         "title": "QuestionRequest",
-        "description": "Request to ask a question about a user's week"
+        "description": "Request to ask a question about a user's week."
       },
       "QuestionResponse": {
         "properties": {
@@ -1043,7 +602,7 @@
           "response_time_ms"
         ],
         "title": "QuestionResponse",
-        "description": "Response to a question about a user's week"
+        "description": "Response to a question about a user's week."
       },
       "ReasoningDepth": {
         "type": "string",
@@ -1053,7 +612,7 @@
           "deep"
         ],
         "title": "ReasoningDepth",
-        "description": "Depth levels for question answering reasoning"
+        "description": "Depth levels for question answering reasoning."
       },
       "SummaryMetadata": {
         "properties": {
@@ -1092,10 +651,6 @@
             "type": "string",
             "format": "date-time",
             "title": "Generated At"
-          },
-          "processing_time_ms": {
-            "type": "integer",
-            "title": "Processing Time Ms"
           }
         },
         "type": "object",
@@ -1107,49 +662,10 @@
           "releases_count",
           "repositories",
           "time_period",
-          "generated_at",
-          "processing_time_ms"
+          "generated_at"
         ],
         "title": "SummaryMetadata",
-        "description": "Metadata about a generated summary"
-      },
-      "SummaryRequest": {
-        "properties": {
-          "user": {
-            "type": "string",
-            "title": "User"
-          },
-          "week": {
-            "type": "string",
-            "title": "Week"
-          },
-          "include_code_changes": {
-            "type": "boolean",
-            "title": "Include Code Changes",
-            "default": true
-          },
-          "include_pr_reviews": {
-            "type": "boolean",
-            "title": "Include Pr Reviews",
-            "default": true
-          },
-          "include_issue_discussions": {
-            "type": "boolean",
-            "title": "Include Issue Discussions",
-            "default": true
-          },
-          "max_detail_level": {
-            "$ref": "#/components/schemas/DetailLevel",
-            "default": "comprehensive"
-          }
-        },
-        "type": "object",
-        "required": [
-          "user",
-          "week"
-        ],
-        "title": "SummaryRequest",
-        "description": "Request to generate a summary for a user's week"
+        "description": "Metadata about a generated summary."
       },
       "SummaryResponse": {
         "properties": {
@@ -1229,7 +745,7 @@
           "generated_at"
         ],
         "title": "SummaryResponse",
-        "description": "Complete summary response (non-streaming)"
+        "description": "Complete summary response (non-streaming)."
       },
       "TaskStatus": {
         "type": "string",
@@ -1241,7 +757,7 @@
           "failed"
         ],
         "title": "TaskStatus",
-        "description": "Status values for asynchronous tasks"
+        "description": "Status values for asynchronous tasks."
       },
       "ValidationError": {
         "properties": {
