@@ -214,6 +214,10 @@ def create_application() -> FastAPI:
         version=APP_VERSION,
         lifespan=application_lifespan,
         root_path="/api/genai",
+        license_info={
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT",
+        },
     )
 
     # Configure CORS middleware
