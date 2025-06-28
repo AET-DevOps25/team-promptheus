@@ -1,0 +1,24 @@
+name: OpenAPI Lint
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  lint-openapi:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        openapi_file:
+          - contribution/openapi.json
+          - genai/openapi.json
+          - search/openapi.json
+          - server/openapi.json
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint OpenAPI files (matrix)
+        run: npx @redocly/cli lint ${{ matrix.openapi_file }}
