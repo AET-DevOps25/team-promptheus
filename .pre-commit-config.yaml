@@ -8,7 +8,7 @@ repos:
           - id: end-of-file-fixer
           - id: check-yaml
             args: [--allow-multiple-documents]
-            exclude: '^k8s/.+$'
+            exclude: "^k8s/.+$"
           - id: check-json
           - id: check-toml
           - id: check-added-large-files
@@ -19,12 +19,18 @@ repos:
       rev: "v2.0.6"
       hooks:
           - id: biome-format
-            additional_dependencies: ["@biomejs/biome@2.0.4"]
-          # - id: biome-lint
-          #   additional_dependencies: ["@biomejs/biome@2.0.4"]
+            additional_dependencies: ["@biomejs/biome@2.0.6"]
+          - id: biome-lint
+            name: biome lint
+            entry: biome check --formatter-enabled=false --linter-enabled=false --write --files-ignore-unknown=true --no-errors-on-unmatched
+            language: node
+            types: [text]
+            files: "\\.(jsx?|tsx?|c(js|ts)|m(js|ts)|d\\.(ts|cts|mts)|jsonc?|css|svelte|vue|astro|graphql|gql)$"
+            require_serial: true
+            additional_dependencies: ["@biomejs/biome@2.0.6"]
     - repo: https://github.com/astral-sh/ruff-pre-commit
       rev: v0.12.1
       hooks:
-        - id: ruff
-          args: [--fix]
-        - id: ruff-format
+          - id: ruff
+            args: [--fix]
+          - id: ruff-format

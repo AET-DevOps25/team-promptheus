@@ -1,58 +1,58 @@
 name: Server CI/CD
 
 on:
-    pull_request:
-        branches: [main]
-        types: [opened, reopened, synchronize]
-    push:
-        branches: [main]
-    workflow_dispatch:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-    server-checks:
-        runs-on: ubuntu-latest
-        services:
-            db:
-                image: postgres:17
-                env:
-                    TZ: Europe/Berlin
-                    PGDATA: /var/lib/postgresql/data/pgdata
-                    POSTGRES_PASSWORD: CHANGE_ME
-                    POSTGRES_USER: postgres
-                    POSTGRES_DB: postgres
-                ports:
-                    - 5432:5432
-        strategy:
-            matrix:
-                gradleCommand: [test, bootJar]
-        steps:
-            - uses: actions/checkout@v4
-            - name: Setup Java
-              uses: actions/setup-java@v4
-              with:
-                  distribution: "temurin"
-                  java-version: 21
-            - name: Setup Gradle
-              uses: gradle/actions/setup-gradle@v4
-            - name: ${{ matrix.gradleCommand }} with Gradle
-              run: gradle ${{ matrix.gradleCommand }}
-              working-directory: server
-              env:
-                  spring.datasource.url: jdbc:postgresql://db:5432/postgres
-                  spring.datasource.username: postgres
-                  spring.datasource.password: CHANGE_ME
-    docker-build:
-        uses: ./.github/workflows/_docker-build.yml
-        needs:
-            - server-checks
+  server-checks:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:17
+        env:
+          TZ: Europe/Berlin
+          PGDATA: /var/lib/postgresql/data/pgdata
+          POSTGRES_PASSWORD: CHANGE_ME
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+    strategy:
+      matrix:
+        gradleCommand: [test, bootJar]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-            image_suffix: server
-            context: ./server
-            dockerfile: Dockerfile
-            openapi_url: http://localhost:8080/openapi
-            healthcheck_url: http://localhost:8080/actuator/health
-        permissions:
-            id-token: write
-            contents: write
-            packages: write
-            attestations: write
+          distribution: "temurin"
+          java-version: 21
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: ${{ matrix.gradleCommand }} with Gradle
+        run: gradle ${{ matrix.gradleCommand }}
+        working-directory: server
+        env:
+          spring.datasource.url: jdbc:postgresql://db:5432/postgres
+          spring.datasource.username: postgres
+          spring.datasource.password: CHANGE_ME
+  docker-build:
+    uses: ./.github/workflows/_docker-build.yml
+    needs:
+      - server-checks
+    with:
+      image_suffix: server
+      context: ./server
+      dockerfile: Dockerfile
+      openapi_url: http://localhost:8080/openapi
+      healthcheck_url: http://localhost:8080/actuator/health
+    permissions:
+      id-token: write
+      contents: write
+      packages: write
+      attestations: write

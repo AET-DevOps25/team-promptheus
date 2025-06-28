@@ -1,45 +1,45 @@
 name: Docker Compose Healthcheck
 
 on:
-    push:
-        branches:
-            - "**"
+  push:
+    branches:
+      - "**"
 
 jobs:
-    docker-compose-check:
-        runs-on: ubuntu-latest
+  docker-compose-check:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-            - name: Build services
-              run: |
-                  touch .env
-                  docker compose build
+      - name: Build services
+        run: |
+          touch .env
+          docker compose build
 
-            - name: Start services in detached mode
-              run: docker compose up -d
+      - name: Start services in detached mode
+        run: docker compose up -d
 
-            - name: Wait for services to initialize
-              run: |
-                  elapsed=0
-                  while true; do
-                    unhealthy=$(docker ps --format '{{.Names}} {{.Status}}' | grep -v 'healthy' | grep 'health')
-                    if [ -z "$unhealthy" ]; then
-                      echo "All containers are healthy after $elapsed seconds."
-                      exit 0
-                    fi
-                    echo "[$elapsed / 300 seconds elapsed] Waiting containers to become healthy: $unhealthy"
-                    sleep 10
-                    elapsed=$((elapsed + 10))
+      - name: Wait for services to initialize
+        run: |
+          elapsed=0
+          while true; do
+            unhealthy=$(docker ps --format '{{.Names}} {{.Status}}' | grep -v 'healthy' | grep 'health')
+            if [ -z "$unhealthy" ]; then
+              echo "All containers are healthy after $elapsed seconds."
+              exit 0
+            fi
+            echo "[$elapsed / 300 seconds elapsed] Waiting containers to become healthy: $unhealthy"
+            sleep 10
+            elapsed=$((elapsed + 10))
 
-                    if [ $elapsed -ge 300 ]; then
-                      echo "Timeout reached. Some containers are not healthy:"
-                      echo "$unhealthy"
-                      exit 1
-                    fi
-                  done
+            if [ $elapsed -ge 300 ]; then
+              echo "Timeout reached. Some containers are not healthy:"
+              echo "$unhealthy"
+              exit 1
+            fi
+          done
