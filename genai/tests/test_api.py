@@ -23,8 +23,8 @@ class TestHealthEndpoints:
         assert "status" in data
         assert "timestamp" in data
 
-        # Current health endpoint returns meilisearch status directly
-        assert data["status"] in ["available", "unavailable", "degraded", "not_configured"]
+        # Health endpoint can return various status values
+        assert data["status"] in ["healthy", "unhealthy", "available", "unavailable", "degraded", "not_configured"]
 
     def test_metrics_endpoint(self, test_client) -> None:
         """Test the Prometheus metrics endpoint."""

@@ -8,6 +8,7 @@ import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from typing import Any
 
 import structlog
 from dotenv import load_dotenv
@@ -21,6 +22,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
 
+from src.llm_service import LLMService
 from src.meilisearch import MeilisearchService
 from src.metrics import initialize_service_info
 from src.models import (
@@ -60,6 +62,7 @@ class ServiceContainer:
         self.meilisearch_service: MeilisearchService | None = None
         self.ingestion_service: ContributionsIngestionService | None = None
         self.summary_service: SummaryService | None = None
+        self.qa_service: QuestionAnsweringService | None = None
         # Telemetry components
         self.span_processor: BatchSpanProcessor | None = None
         self.otlp_exporter: OTLPSpanExporter | None = None
@@ -88,7 +91,7 @@ class ServiceContainer:
         self.ingestion_service.summary_service = self.summary_service
 
         # Initialize metrics
-        model_name = os.getenv("LANGCHAIN_MODEL_NAME", DEFAULT_MODEL_NAME)
+        model_name = LLMService.get_current_model_name()
         initialize_service_info(APP_VERSION, model_name)
 
         logger.info("GenAI services initialized successfully")
@@ -262,6 +265,33 @@ async def health_check() -> HealthResponse:
         status=meilisearch_status,
         timestamp=datetime.now(UTC),
     )
+
+
+@app.get("/llm-info", include_in_schema=False)
+async def get_llm_info() -> dict[str, Any]:
+    """Get current LLM provider configuration and required environment variables."""
+    provider_info = LLMService.get_provider_info()
+    return {
+        "current_provider": provider_info,
+        "all_supported_providers": {
+            "openai": {
+                "required_env_vars": ["OPENAI_API_KEY"],
+                "optional_env_vars": ["OPENAI_MODEL_NAME"],
+                "default_model": "gpt-4o-mini",
+            },
+            "anthropic": {
+                "required_env_vars": ["ANTHROPIC_API_KEY"],
+                "optional_env_vars": ["ANTHROPIC_MODEL_NAME"],
+                "default_model": "claude-3-5-sonnet-20241022",
+            },
+            "ollama": {
+                "required_env_vars": ["OLLAMA_API_KEY", "OLLAMA_BASE_URL"],
+                "optional_env_vars": ["LANGCHAIN_MODEL_NAME"],
+                "default_model": "llama3.3:latest",
+                "default_base_url": "https://gpu.aet.cit.tum.de/ollama",
+            },
+        },
+    }
 
 
 @app.get("/metrics", include_in_schema=False)
