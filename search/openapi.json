@@ -1,69 +1,225 @@
 {
-	"components": {
-		"schemas": {
-			"SearchResult": {
-				"properties": {
-					"estimatedTotalHits": { "format": "int32", "type": "integer" },
-					"facetDistribution": {},
-					"facetStats": {
-						"additionalProperties": {
-							"$ref": "#/components/schemas/FacetRating"
-						},
-						"type": "object"
-					},
-					"hits": {
-						"items": { "additionalProperties": {}, "type": "object" },
-						"type": "array"
-					},
-					"limit": { "format": "int32", "type": "integer" },
-					"offset": { "format": "int32", "type": "integer" },
-					"processingTimeMs": { "format": "int32", "type": "integer" },
-					"query": { "type": "string" }
-				},
-				"type": "object"
-			}
-		}
-	},
-	"info": { "title": "OpenAPI definition", "version": "v0" },
-	"openapi": "3.1.0",
-	"paths": {
-		"/api/search/{usercode}": {
-			"get": {
-				"operationId": "search",
-				"parameters": [
-					{
-						"in": "path",
-						"name": "usercode",
-						"required": true,
-						"schema": { "format": "uuid", "type": "string" }
-					},
-					{
-						"in": "query",
-						"name": "query",
-						"required": true,
-						"schema": { "minLength": 1, "type": "string" }
-					}
-				],
-				"responses": {
-					"200": {
-						"content": {
-							"application/json": {
-								"schema": { "$ref": "#/components/schemas/SearchResult" }
-							}
-						},
-						"description": "searched repository-content"
-					},
-					"403": {
-						"content": { "text/plain": { "schema": { "type": "string" } } },
-						"description": "Forbidden - Requested code does not exist"
-					}
-				},
-				"summary": "allows searching the repository's content",
-				"tags": ["git-repo-controller"]
-			}
-		}
-	},
-	"servers": [
-		{ "description": "Generated server url", "url": "http://localhost:8080" }
-	]
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OpenAPI definition",
+    "version": "v0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8070",
+      "description": "Generated server url"
+    }
+  ],
+  "paths": {
+    "/api/search/{usercode}": {
+      "get": {
+        "tags": [
+          "search-controller"
+        ],
+        "summary": "Search repository content with filtering and sorting",
+        "operationId": "search",
+        "parameters": [
+          {
+            "name": "usercode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "user",
+            "in": "query",
+            "description": "Filter by user",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "week",
+            "in": "query",
+            "description": "Filter by week",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "contribution_type",
+            "in": "query",
+            "description": "Filter by contribution type",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "repository",
+            "in": "query",
+            "description": "Filter by repository",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "author",
+            "in": "query",
+            "description": "Filter by author",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "created_at_timestamp",
+            "in": "query",
+            "description": "Filter by timestamp (exact or range like '1640995200 TO 1672531200')",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "is_selected",
+            "in": "query",
+            "description": "Filter by selection status",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort fields (comma-separated, prefix with - for descending, e.g., '-created_at_timestamp,relevance_score')",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of Search responses",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Offset of Search responses",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Requested code does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/search/sortable-attributes": {
+      "get": {
+        "tags": [
+          "search-controller"
+        ],
+        "summary": "Get available sortable attributes",
+        "operationId": "getSortableAttributes",
+        "responses": {
+          "200": {
+            "description": "List of sortable attributes",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/search/filterable-attributes": {
+      "get": {
+        "tags": [
+          "search-controller"
+        ],
+        "summary": "Get available filterable attributes",
+        "operationId": "getFilterableAttributes",
+        "responses": {
+          "200": {
+            "description": "List of filterable attributes",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SearchResult": {
+        "type": "object",
+        "properties": {
+          "hits": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {}
+            }
+          },
+          "processingTimeMs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "query": {
+            "type": "string"
+          },
+          "facetHits": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {}
+            }
+          },
+          "facetQuery": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
 }

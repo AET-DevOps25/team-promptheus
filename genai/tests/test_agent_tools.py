@@ -1,4 +1,5 @@
 """Tests for agent tools functionality."""
+
 import pytest
 
 from src.agent_tools import (

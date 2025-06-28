@@ -221,8 +221,7 @@ class TestSummaryService:
 
         # Generate streaming summary
         chunks = [
-            chunk
-            async for chunk in summary_service.generate_summary_stream("testuser", "2024-W21", summary_request)
+            chunk async for chunk in summary_service.generate_summary_stream("testuser", "2024-W21", summary_request)
         ]
 
         # Verify we got chunks
@@ -271,8 +270,7 @@ class TestSummaryService:
 
         # Generate streaming summary
         chunks = [
-            chunk
-            async for chunk in summary_service.generate_summary_stream("testuser", "2024-W21", summary_request)
+            chunk async for chunk in summary_service.generate_summary_stream("testuser", "2024-W21", summary_request)
         ]
 
         # Verify we got chunks

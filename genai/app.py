@@ -294,7 +294,7 @@ def create_service_status_report() -> dict[str, str]:
 
 
 # Health and monitoring endpoints
-@app.get("/health", response_model=HealthResponse)
+@app.get("/health", response_model=HealthResponse, include_in_schema=False)
 async def health_check() -> HealthResponse:
     """Enhanced health check endpoint with comprehensive service status."""
     meilisearch_status = await assess_meilisearch_health()
@@ -311,7 +311,7 @@ async def health_check() -> HealthResponse:
     )
 
 
-@app.get("/metrics")
+@app.get("/metrics", include_in_schema=False)
 async def get_prometheus_metrics() -> Response:
     """Prometheus metrics endpoint for monitoring."""
     data = generate_latest(REGISTRY).decode("utf-8")

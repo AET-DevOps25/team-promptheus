@@ -15,6 +15,14 @@ on:
                 required: true
                 description: Dockerfile location (relative to context)
                 type: string
+            openapi_url:
+                required: false
+                description: URL for OpenAPI specification
+                type: string
+            healthcheck_url:
+                required: false
+                description: URL for healthcheck endpoint
+                type: string
 
 env:
     REGISTRY: ghcr.io
@@ -25,13 +33,15 @@ jobs:
         runs-on: ubuntu-latest
         permissions:
             id-token: write
-            contents: read
+            contents: write
             packages: write
             attestations: write
         outputs:
             tags: ${{ steps.meta.outputs.tags }}
         steps:
             - uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.head_ref }} # otherwise commit-backs to the branch don't work
             - name: Log in to the Container registry
               uses: docker/login-action@v3
               with:
@@ -76,3 +86,63 @@ jobs:
                   subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
                   subject-digest: ${{ steps.push.outputs.digest }}
                   push-to-registry: true
+            - name: Update OpenAPI spec
+              if: github.ref != 'refs/heads/main' && (inputs.image_suffix == 'server' || inputs.image_suffix == 'contribution' || inputs.image_suffix == 'search' || inputs.image_suffix == 'genai')
+              run:  |
+                  echo "::group::Start services"
+
+                  touch .env
+                  docker compose up --detach --no-build ${{ inputs.image_suffix }}
+                  docker compose down ${{ inputs.image_suffix }}
+                  docker run --rm --detach --net=host "${{ steps.meta.outputs.tags }}"
+
+                  echo "::endgroup::"
+                  echo "::group::Wait for ${{ inputs.image_suffix }} health"
+
+                  echo "Waiting for services to be healthy..."
+                  timeout 120 bash -c 'while ! curl -f -s "${{ inputs.healthcheck_url }}" >/dev/null; do echo "Waiting for server..."; sleep 5; done'
+                  echo "${{ inputs.image_suffix }} is healthy!"
+
+                  echo "::endgroup::"
+                  echo "::group::Extract OpenAPI definition"
+
+                  curl -f -s "${{ inputs.openapi_url }}" | jq '.' > "${{ inputs.context }}/openapi.json"
+                  echo "OpenAPI definition extracted successfully"
+
+                  echo "::endgroup::"
+                  echo "::group::Contained $(jq '.paths | keys | length' ${{ inputs.context }}/openapi.json) Endpoints"
+
+                  jq '.paths | keys' ${{ inputs.context }}/openapi.json
+
+                  echo "::endgroup::"
+                  echo "::group::Contained $(jq '.components.schemas | keys | length' ${{ inputs.context }}/openapi.json) Schemas"
+
+                  jq '.components.schemas | keys' ${{ inputs.context }}/openapi.json
+
+                  echo "::endgroup::"
+                  echo "::group::writing to client/lib/api/types/${{ inputs.image_suffix }}.ts"
+
+                  npx openapi-typescript ${{ inputs.context }}/openapi.json --output client/lib/api/types/${{ inputs.image_suffix }}.ts --export-type --immutable --array-length
+
+                  echo "::endgroup::"
+                  echo "::group::fix formatting mistakes"
+
+                  pip install pre-commit
+                  pre-commit run --all-files || true
+
+                  echo "::endgroup::"
+                  echo "::group::Commit OpenAPI changes"
+
+                  git config --local user.email "action@github.com"
+                  git config --local user.name "GitHub Action"
+                  git add ${{ inputs.context }}/openapi.json
+                  git add client/lib/api/types/${{ inputs.image_suffix }}.ts
+                  if ! git diff --staged --quiet; then
+                    git commit -m "chore(${{ inputs.image_suffix }}): Update OpenAPI definition [skip ci]"
+                    git pull --rebase
+                    git push
+                  else
+                    echo "No changes to OpenAPI definition"
+                  fi
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
