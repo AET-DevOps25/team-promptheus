@@ -85,24 +85,6 @@ public class GitRepoService {
         return GitRepoInformationConstruct.builder().repoLink(repoEntity.get().getRepositoryLink()).isMaintainer(repoLinkEntity.get().getIsMaintainer()).createdAt(repoEntity.get().getCreatedAt()).questions(questions).summaries(summaries).contents(contents).build();
     }
 
-    public void createCommitSelection(UUID accessID, SelectionSubmission selection) {
-        Optional<Link> repoLinkEntity = linkRepository.findById(accessID);
-        if (repoLinkEntity.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "link is not a valid access id");
-        }
-        Instant weekStart = Instant.now().atZone(ZoneId.systemDefault()).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).truncatedTo(ChronoUnit.DAYS).toInstant();
-        Set<Content> validContent = gitContentRepository.findDistinctByCreatedAtAfterAndGitRepositoryId(weekStart, repoLinkEntity.get().getGitRepositoryId());
-        if (!validContent.stream().map(Content::getId).collect(Collectors.toSet()).containsAll(selection.selection()))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please make sure that all selected content exists for the current week");
-
-        // below would be the SQL below, but JPA is being stubborn
-        // UPDATE Content SET is_selected = CASE WHEN id IN (:ids) THEN true ELSE false END WHERE createdAt >= date_trunc('week', now())
-        for (Content c : validContent) {
-            c.setIsSelected(selection.selection().contains(c.getId()));
-            gitContentRepository.save(c);
-        }
-    }
-
     public void createQuestion(UUID usercode, String question) {
         Optional<Link> repoLinkEntity = linkRepository.findById(usercode);
         if (repoLinkEntity.isEmpty()) {

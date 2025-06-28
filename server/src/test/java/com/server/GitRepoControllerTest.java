@@ -95,40 +95,6 @@ class GitRepoControllerTest {
     }
 
     @Test
-    void createCommitSelectionForSummary_ValidRequest_ReturnsSuccess() throws Exception {
-        // Arrange
-        UUID usercode = UUID.randomUUID();
-        ContentConstruct c1 = ContentConstruct.builder().id("asdsda").build();
-        ContentConstruct c2 = ContentConstruct.builder().id("ladsad").build();
-        SelectionSubmission selection = new SelectionSubmission(Set.of(c1.id(), c2.id()));
-
-        // Act & Assert
-        mockMvc.perform(post("/api/repositories/{usercode}/selection", usercode)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(selection)))
-                .andExpect(status().isOk());
-        verify(gitRepoService,times(1)).createCommitSelection(usercode, selection);
-        verifyNoMoreInteractions(gitRepoService);
-    }
-
-    @Test
-    void createCommitSelectionForSummary_ValidRequest_AssertsValidContent() throws Exception {
-        // Arrange
-        UUID usercode = UUID.randomUUID();
-        SelectionSubmission selection = new SelectionSubmission(Set.of("does_not_exist"));
-        doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "please make sure that all selected content exists for the current week"))
-                .when(gitRepoService)
-                        .createCommitSelection(usercode, selection);
-        // Act & Assert
-        mockMvc.perform(post("/api/repositories/{usercode}/selection", usercode)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(selection)))
-                .andExpect(status().isBadRequest());
-        verify(gitRepoService, only()).createCommitSelection(usercode, selection);
-        verifyNoMoreInteractions(gitRepoService);
-    }
-
-    @Test
     void createQuestion_ValidRequest_ReturnsSuccess() throws Exception {
         // Arrange
         UUID usercode = UUID.randomUUID();

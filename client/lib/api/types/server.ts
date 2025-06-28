@@ -4,23 +4,6 @@
  */
 
 export type paths = {
-	readonly "/api/repositories/{usercode}/selection": {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		readonly get?: never;
-		readonly put?: never;
-		/** tell the AI service which items should be included into the summary */
-		readonly post: operations["createCommitSelectionForSummary"];
-		readonly delete?: never;
-		readonly options?: never;
-		readonly head?: never;
-		readonly patch?: never;
-		readonly trace?: never;
-	};
 	readonly "/api/repositories/{usercode}/question": {
 		readonly parameters: {
 			readonly query?: never;
@@ -79,9 +62,6 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
 	schemas: {
-		readonly SelectionSubmission: {
-			readonly selection?: readonly string[];
-		};
 		readonly QuestionSubmission: {
 			readonly question?: string;
 		};
@@ -137,50 +117,6 @@ export type components = {
 };
 export type $defs = Record<string, never>;
 export interface operations {
-	readonly createCommitSelectionForSummary: {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path: {
-				readonly usercode: string;
-			};
-			readonly cookie?: never;
-		};
-		readonly requestBody: {
-			readonly content: {
-				readonly "application/json": components["schemas"]["SelectionSubmission"];
-			};
-		};
-		readonly responses: {
-			/** @description Items were included in the summary */
-			readonly 200: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "text/plain": string;
-				};
-			};
-			/** @description Invalid input provided - please make sure that all selected content exists */
-			readonly 400: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "text/plain": string;
-				};
-			};
-			/** @description Forbidden - Requested code does not exist */
-			readonly 403: {
-				headers: {
-					readonly [name: string]: unknown;
-				};
-				content: {
-					readonly "text/plain": string;
-				};
-			};
-		};
-	};
 	readonly createQuestion: {
 		readonly parameters: {
 			readonly query?: never;

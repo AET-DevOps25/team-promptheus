@@ -56,23 +56,6 @@ public class GitRepoController {
         return ResponseEntity.ok(gitRepository);
     }
 
-    @Operation(summary = "tell the AI service which items should be included into the summary")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Items were included in the summary",
-                    content = {@Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))}),
-            @ApiResponse(responseCode = "400", description = "Invalid input provided - please make sure that all selected content exists",
-                    content = {@Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))}),
-            @ApiResponse(responseCode = "403", description = "Forbidden - Requested code does not exist",
-                    content = {@Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))}),
-
-    })
-    @PostMapping("/{usercode}/selection")
-    public ResponseEntity<String> createCommitSelectionForSummary(@PathVariable @NotNull UUID usercode, @RequestBody SelectionSubmission selection) {
-        gitRepoService.createCommitSelection(usercode, selection);
-
-        return ResponseEntity.ok("Created Successfully");
-    }
-
 
     @Operation(summary = "create a question to be answered asynchronously by the ai service")
     @ApiResponses(value = {
