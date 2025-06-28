@@ -153,40 +153,6 @@
           }
         }
       }
-    },
-    "/api/search/sortable-attributes": {
-      "get": {
-        "tags": [
-          "search-controller"
-        ],
-        "summary": "Get available sortable attributes",
-        "operationId": "getSortableAttributes",
-        "responses": {
-          "200": {
-            "description": "List of sortable attributes",
-            "content": {
-              "application/json": {}
-            }
-          }
-        }
-      }
-    },
-    "/api/search/filterable-attributes": {
-      "get": {
-        "tags": [
-          "search-controller"
-        ],
-        "summary": "Get available filterable attributes",
-        "operationId": "getFilterableAttributes",
-        "responses": {
-          "200": {
-            "description": "List of filterable attributes",
-            "content": {
-              "application/json": {}
-            }
-          }
-        }
-      }
     }
   },
   "components": {
