@@ -196,8 +196,12 @@
     }
   },
   "info": {
-    "title": "OpenAPI definition",
-    "version": "v0"
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "title": "Prompteus Server",
+    "version": "1.0.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -230,12 +234,13 @@
                   "isMaintainer": true,
                   "questions": [
                     {
-                      "answer": {
-                        "answer": "The system uses OAuth2 with JWT tokens",
-                        "createdAt": "2023-01-16T09:15:30.456Z"
-                      },
+                      "answers": [
+                        {
+                          "answer": "The system uses OAuth2 with JWT tokens",
+                          "createdAt": "2023-01-16T09:15:30.456Z"
+                        }
+                      ],
                       "createdAt": "2023-01-15T16:45:22.789Z",
-                      "id": "550e8400-e29b-41d4-a716-446655440000",
                       "question": "How does the authentication system work?"
                     }
                   ],
@@ -254,9 +259,7 @@
           "403": {
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Invalid access token"
-                },
+                "example": "Invalid access token",
                 "schema": {
                   "description": "Error message",
                   "type": "string"
@@ -306,9 +309,7 @@
           "200": {
             "content": {
               "application/json": {
-                "example": {
-                  "message": "Created Successfully"
-                },
+                "example": "Created Successfull",
                 "schema": {
                   "description": "Success confirmation message",
                   "example": "Created Successfully",
@@ -321,9 +322,7 @@
           "403": {
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Invalid access token"
-                },
+                "example": "Invalid access token",
                 "schema": {
                   "description": "Error message",
                   "type": "string"
@@ -344,8 +343,8 @@
           "content": {
             "application/json": {
               "example": {
-                "personalAccessToken": "ghp_1234567890abcdefghijklmnopqrstuvwxyz",
-                "repoLink": "https://github.com/organization/repository"
+                "pat": "ghp_1234567890abcdefghijklmnopqrstuvwxyz",
+                "repolink": "https://github.com/organization/repository"
               },
               "schema": {
                 "$ref": "#/components/schemas/PATConstruct"
@@ -375,9 +374,7 @@
           "403": {
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Invalid personal access token"
-                },
+                "example": "Invalid personal access token",
                 "schema": {
                   "description": "Error message",
                   "type": "string"
@@ -394,8 +391,8 @@
   },
   "servers": [
     {
-      "description": "Generated server url",
-      "url": "http://localhost:8080"
+      "description": "Production server",
+      "url": "https://prompteus.ai"
     }
   ]
 }
