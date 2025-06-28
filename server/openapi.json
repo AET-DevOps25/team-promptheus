@@ -11,68 +11,6 @@
     }
   ],
   "paths": {
-    "/api/repositories/{usercode}/selection": {
-      "post": {
-        "tags": [
-          "git-repo-controller"
-        ],
-        "summary": "tell the AI service which items should be included into the summary",
-        "operationId": "createCommitSelectionForSummary",
-        "parameters": [
-          {
-            "name": "usercode",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SelectionSubmission"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Items were included in the summary",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input provided - please make sure that all selected content exists",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden - Requested code does not exist",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/repositories/{usercode}/question": {
       "post": {
         "tags": [
@@ -216,18 +154,6 @@
   },
   "components": {
     "schemas": {
-      "SelectionSubmission": {
-        "type": "object",
-        "properties": {
-          "selection": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "uniqueItems": true
-          }
-        }
-      },
       "QuestionSubmission": {
         "type": "object",
         "properties": {
