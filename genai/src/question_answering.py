@@ -1,8 +1,8 @@
 """Question answering service using LangGraph agents with automatic tool usage."""
 
-import asyncio
 import os
 from datetime import UTC, datetime
+from typing import Any
 
 import structlog
 
@@ -16,8 +16,9 @@ from langgraph.prebuilt import create_react_agent
 from pydantic import BaseModel as PydanticBaseModel
 from pydantic import Field
 
-from .agent_tools import all_tools, get_tool_descriptions
-from .ingest import ContributionsIngestionService
+from .agent_tools import create_agent_tools, get_tool_descriptions
+from .contributions import GitHubContentService
+from .meilisearch import MeilisearchService
 from .metrics import (
     question_answering_duration,
     question_answering_errors,
@@ -28,8 +29,6 @@ from .metrics import (
     time_operation,
 )
 from .models import (
-    ContributionType,
-    GitHubContribution,
     QuestionEvidence,
     QuestionRequest,
     QuestionResponse,
@@ -64,14 +63,15 @@ class ConversationState(PydanticBaseModel):
 class QuestionAnsweringService:
     """Service for answering questions using LangGraph agents with automatic tool usage."""
 
-    def __init__(self, ingestion_service: ContributionsIngestionService) -> None:
+    def __init__(self, content_service: GitHubContentService, meilisearch_service: MeilisearchService) -> None:
         """Initialize the question answering service.
 
         Args:
-            ingestion_service: Service for ingesting and retrieving contributions.
+            content_service: Service for fetching contributions.
+            meilisearch_service: Service for semantic search.
         """
-        self.ingestion_service = ingestion_service
-        self.questions_store: dict[str, QuestionResponse] = {}
+        self.content_service = content_service
+        self.meilisearch_service = meilisearch_service
 
         # Initialize LangChain components with Ollama
         ollama_base_url = os.getenv("OLLAMA_BASE_URL")
@@ -89,13 +89,14 @@ class QuestionAnsweringService:
             num_predict=-1,
         )
 
-        # Create LangGraph agent with automatic tool usage
+        # Create checkpointer for agent sessions
         self.checkpointer = MemorySaver()
-        self.agent = create_react_agent(model=self.llm, tools=all_tools, checkpointer=self.checkpointer)
 
-    def _create_context_message(self, user: str, week: str, evidence_context: str, focus_context: str = "") -> str:
+    def _create_context_message(
+        self, user: str, week: str, evidence: list[QuestionEvidence], tools: list[Any] | None = None
+    ) -> str:
         """Create a context message for the agent."""
-        tool_descriptions = get_tool_descriptions(all_tools)
+        tool_descriptions = get_tool_descriptions(tools) if tools else ""
         return f"""You are analyzing contributions for developer \"{user}\" during week \"{week}\".
 
 You have access to the following tools:
@@ -109,9 +110,7 @@ Your task is to answer questions about their work by:
 4. Suggesting actionable next steps when appropriate
 
 Evidence from {user}'s contributions in week {week}:
-{evidence_context}
-
-{focus_context}
+{self._format_evidence_as_xml(evidence) if evidence else "<evidence>No evidence available</evidence>"}
 
 Use the available GitHub API tools whenever they can provide better or more current
 information than the static evidence alone."""
@@ -128,29 +127,32 @@ information than the static evidence alone."""
         try:
             record_request_metrics(question_answering_requests, {"user": user, "week": week}, "started")
 
-            # 1. Retrieve relevant contributions for this user's week
             relevant_contributions = await self._retrieve_relevant_contributions(user, week, request)
 
-            # 2. Prepare evidence context
-            evidence, evidence_context = self._prepare_evidence_context(relevant_contributions)
-
-            # 3. Prepare focus areas context
-            focus_context = ""
-            if request.context.focus_areas:
-                focus_context = (
-                    f"\nPay special attention to these focus areas: {', '.join(request.context.focus_areas)}"
+            evidence = []
+            for contrib in relevant_contributions:
+                evidence.append(
+                    QuestionEvidence(
+                        title=contrib.get("title", ""),
+                        contribution_id=contrib.get("contribution_id", ""),
+                        contribution_type=contrib.get("contribution_type", "commit"),
+                        excerpt=contrib.get("content", ""),  # Limit excerpt length
+                        relevance_score=contrib.get("relevance_score"),
+                        timestamp=datetime.fromisoformat(contrib.get("created_at", datetime.now(UTC).isoformat())),
+                    )
                 )
 
-            # 4. Create context message for the agent
-            context_message = self._create_context_message(user, week, evidence_context, focus_context)
+            tools = create_agent_tools(request.github_pat)
 
-            # 5. Prepare messages for the agent
+            context_message = self._create_context_message(user, week, evidence, tools)
+
+            agent = create_react_agent(model=self.llm, tools=tools, checkpointer=self.checkpointer)
+
             messages = [
                 SystemMessage(content=context_message),
                 HumanMessage(content=request.question),
             ]
 
-            # 6. Configure the agent
             config = RunnableConfig(configurable={"thread_id": session_id})
 
             logger.info(
@@ -162,38 +164,8 @@ information than the static evidence alone."""
                 evidence_count=len(evidence),
             )
 
-            # 7. Invoke the agent (it will automatically use tools as needed)
-            try:
-                agent_response = await self.agent.ainvoke({"messages": messages}, config=config)
-            except RuntimeError as e:
-                if "Event loop is closed" in str(e):
-                    logger.exception(
-                        "Event loop closed during agent invocation - this indicates async resource cleanup issue",
-                        user=user,
-                        week=week,
-                        session_id=session_id,
-                        error=str(e),
-                    )
-                    # Return a fallback response instead of crashing
-                    response = QuestionResponse(
-                        question_id=question_id,
-                        user=user,
-                        week=week,
-                        question=request.question,
-                        answer="I apologize, but I encountered a technical issue while processing your question. Please try again.",
-                        confidence=0.0,
-                        evidence=evidence,
-                        reasoning_steps=["Technical error occurred during processing"],
-                        suggested_actions=["Please try asking your question again"],
-                        asked_at=datetime.now(UTC),
-                        response_time_ms=int((datetime.now(UTC) - start_time).total_seconds() * 1000),
-                        conversation_id=session_id,
-                    )
-
-                    # Store the question for retrieval
-                    self.questions_store[question_id] = response
-                    return response
-                raise
+            # 9. Invoke the agent (it will automatically use tools as needed)
+            agent_response = await agent.ainvoke({"messages": messages}, config=config)
 
             # 8. Extract the final answer from agent response
             final_message = agent_response["messages"][-1]
@@ -235,9 +207,6 @@ information than the static evidence alone."""
                 conversation_id=session_id,
             )
 
-            # Store the question for retrieval
-            self.questions_store[question_id] = response
-
             # Record metrics
             question_confidence_score.labels(user=user, week=week).observe(confidence)
 
@@ -276,66 +245,17 @@ information than the static evidence alone."""
 
     async def _retrieve_relevant_contributions(
         self, user: str, week: str, request: QuestionRequest
-    ) -> list[GitHubContribution]:
+    ) -> list[dict[str, Any]]:
         """Retrieve relevant contributions using semantic search with Meilisearch."""
         try:
-            if self.ingestion_service.meilisearch_service:
-                # Use Meilisearch for semantic search
-                search_results = await self.ingestion_service.meilisearch_service.search_contributions(
-                    user,
-                    week,
-                    request.question,
-                    limit=request.context.max_evidence_items,
-                )
-
-                # Convert search results back to contributions
-                relevant_contributions = []
-                all_contributions = self.ingestion_service.get_user_week_contributions(user, week)
-
-                # Create a lookup map for contributions
-                contrib_map = {contrib.id: contrib for contrib in all_contributions}
-
-                for result in search_results:
-                    contribution_id = result.get("contribution_id")
-                    if contribution_id in contrib_map:
-                        relevant_contributions.append(contrib_map[contribution_id])
-
-                logger.info(
-                    "Retrieved contributions using Meilisearch",
-                    user=user,
-                    week=week,
-                    query=request.question,
-                    results_count=len(relevant_contributions),
-                )
-
-                return relevant_contributions
-            # Fallback: simple keyword matching
-            await asyncio.sleep(0.1)  # Simulate search time
-
-            all_contributions = self.ingestion_service.get_user_week_contributions(user, week)
-            question_words = set(request.question.lower().split())
-            relevant_contributions = []
-
-            for contribution in all_contributions:
-                text_content = self.ingestion_service._extract_text_content(contribution)
-                content_words = set(text_content.lower().split())
-
-                # Calculate simple relevance score
-                intersection = question_words.intersection(content_words)
-                if intersection:
-                    relevance_score = len(intersection) / len(question_words)
-                    if relevance_score > MIN_RELEVANCE_THRESHOLD:  # Minimum relevance threshold
-                        relevant_contributions.append(contribution)
-
-            logger.info(
-                "Retrieved contributions using fallback search",
-                user=user,
-                week=week,
-                query=request.question,
-                results_count=len(relevant_contributions),
+            search_results = await self.meilisearch_service.search_contributions(
+                user,
+                week,
+                request.question,
+                limit=request.context.max_evidence_items,
             )
 
-            return relevant_contributions[: request.context.max_evidence_items]
+            return search_results[: request.context.max_evidence_items]
 
         except Exception as e:
             logger.exception(
@@ -347,75 +267,6 @@ information than the static evidence alone."""
             )
             # Return empty list on error
             return []
-
-    def _prepare_evidence_context(self, contributions: list[GitHubContribution]) -> tuple[list[QuestionEvidence], str]:
-        """Prepare evidence objects and formatted context for LLM."""
-        evidence = []
-        evidence_context = []
-
-        for i, contrib in enumerate(contributions):
-            title = self._extract_contribution_title(contrib)
-            text_content = self.ingestion_service._extract_text_content(contrib)
-
-            evidence.append(
-                QuestionEvidence(
-                    contribution_id=contrib.id,
-                    contribution_type=contrib.type,
-                    title=title,
-                    excerpt=text_content,
-                    relevance_score=max(0.9 - (i * 0.1), 0.1),  # Decreasing relevance
-                    timestamp=contrib.created_at,
-                )
-            )
-
-            # Format for LLM context
-            evidence_context.append(
-                f"Evidence {i + 1} ({contrib.type.value}):\n"
-                f"Title: {title}\n"
-                f"Repository: {getattr(contrib, 'repository', 'unknown')}\n"
-                f"Content: {text_content}\n"
-                f"Timestamp: {contrib.created_at}\n"
-            )
-
-        return evidence, "\n".join(evidence_context)
-
-    def _extract_contribution_title(self, contrib: GitHubContribution) -> str:
-        """Extract a meaningful title from a contribution."""
-        title_map = {
-            ContributionType.COMMIT: self._get_commit_title,
-            ContributionType.PULL_REQUEST: self._get_pr_title,
-            ContributionType.ISSUE: self._get_issue_title,
-            ContributionType.RELEASE: self._get_release_title,
-        }
-        return title_map.get(contrib.type, lambda _: "Unknown contribution type")(contrib)
-
-    def _get_commit_title(self, contrib: GitHubContribution) -> str:
-        """Get title for commit contribution."""
-        if hasattr(contrib, "message"):
-            return contrib.message[:100] if contrib.message else "Untitled commit"
-        return "Untitled commit"
-
-    def _get_pr_title(self, contrib: GitHubContribution) -> str:
-        """Get title for pull request contribution."""
-        if hasattr(contrib, "title"):
-            return contrib.title or "Untitled pull request"
-        return "Untitled pull request"
-
-    def _get_issue_title(self, contrib: GitHubContribution) -> str:
-        """Get title for issue contribution."""
-        if hasattr(contrib, "title"):
-            return contrib.title or "Untitled issue"
-        return "Untitled issue"
-
-    def _get_release_title(self, contrib: GitHubContribution) -> str:
-        """Get title for release contribution."""
-        if hasattr(contrib, "name"):
-            return contrib.name or f"Release {contrib.tag_name}" if hasattr(contrib, "tag_name") else "Untitled release"
-        return "Untitled release"
-
-    def get_question(self, question_id: str) -> QuestionResponse | None:
-        """Retrieve a previously asked question."""
-        return self.questions_store.get(question_id)
 
     def get_conversation_history(self, user: str, week: str) -> list[BaseMessage]:
         """Get conversation history for a user/week from LangGraph checkpointer."""
@@ -483,3 +334,35 @@ information than the static evidence alone."""
                 await self.llm._client.aclose()
         except Exception as e:
             logger.warning("Error during LLM cleanup", error=str(e))
+
+    def _format_evidence_as_xml(self, evidence: list[QuestionEvidence]) -> str:
+        """Format evidence as XML."""
+        if not evidence:
+            return "<evidence>No evidence available</evidence>"
+
+        xml_parts = ["<evidence>"]
+
+        for item in evidence:
+            xml_parts.append("  <item>")
+            xml_parts.append(f"    <title>{self._escape_xml(item.title)}</title>")
+            xml_parts.append(f"    <contribution_id>{self._escape_xml(item.contribution_id)}</contribution_id>")
+            xml_parts.append(f"    <contribution_type>{item.contribution_type.value}</contribution_type>")
+            xml_parts.append(f"    <excerpt>{self._escape_xml(item.excerpt)}</excerpt>")
+            xml_parts.append(f"    <relevance_score>{item.relevance_score:.3f}</relevance_score>")
+            xml_parts.append(f"    <timestamp>{item.timestamp.isoformat()}</timestamp>")
+            xml_parts.append("  </item>")
+
+        xml_parts.append("</evidence>")
+        return "\n".join(xml_parts)
+
+    def _escape_xml(self, text: str) -> str:
+        """Escape special XML characters."""
+        if not text:
+            return ""
+        return (
+            text.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+            .replace("'", "&apos;")
+        )

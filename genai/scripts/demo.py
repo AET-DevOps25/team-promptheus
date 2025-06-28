@@ -601,8 +601,9 @@ class ContributionSummaryPrinter:
 class PrompteusAPIClient(HTTPClientMixin):
     """Client for interacting with the Prompteus GenAI service."""
 
-    def __init__(self, base_url: str = DEFAULT_GENAI_URL) -> None:
+    def __init__(self, base_url: str = DEFAULT_GENAI_URL, github_token: str | None = None) -> None:
         super().__init__(base_url)
+        self.github_token = github_token
 
     def health_check(self) -> bool:
         """Check if the GenAI service is running and healthy."""
@@ -620,6 +621,10 @@ class PrompteusAPIClient(HTTPClientMixin):
         contributions_metadata: list[dict[str, Any]],
     ) -> dict[str, Any]:
         """Ingest contributions using the simplified API - returns summary when complete."""
+        if not self.github_token:
+            msg = "GitHub token is required for API calls"
+            raise ValueError(msg)
+
         payload = {
             "user": user,
             "week": week,
@@ -632,6 +637,7 @@ class PrompteusAPIClient(HTTPClientMixin):
                 }
                 for contrib in contributions_metadata
             ],
+            "github_pat": self.github_token,
         }
 
         # Start the ingestion task
@@ -723,13 +729,13 @@ class PrompteusAPIClient(HTTPClientMixin):
 
     def ask_question(self, user: str, week: str, question: str) -> dict[str, Any]:
         """Ask a question about the user's contributions."""
+        if not self.github_token:
+            msg = "GitHub token is required for API calls"
+            raise ValueError(msg)
+
         payload = {
             "question": question,
-            "context": {
-                "focus_areas": ["features", "bugs", "performance"],
-                "include_evidence": True,
-                "reasoning_depth": "detailed",
-            },
+            "github_pat": self.github_token,
         }
 
         response = self.session.post(f"{self.base_url}/users/{user}/weeks/{week}/questions", json=payload)
@@ -922,6 +928,8 @@ class InteractiveQASession:
         console.print(f"   {answer}")
         console.print(f"   [dim]Confidence: {confidence:.2f}[/]")
 
+        console.print(response)
+
         # Show evidence if available
         if response.get("evidence"):
             self._display_evidence(response["evidence"])
@@ -932,14 +940,17 @@ class InteractiveQASession:
 
     def _display_evidence(self, evidence: list[dict[str, Any]]) -> None:
         """Display supporting evidence for the answer."""
-        for _i, item in enumerate(evidence[:3], 1):
-            item.get("title", "No title available")
-            item.get("excerpt", "No excerpt available")
+        console.print("   [bold]Evidence:[/]")
+        for item in evidence:
+            console.print(f"   {item.get('title', 'No title available')}")
+            console.print(f"   {item.get('contribution_id', 'No contribution ID available')}")
+            console.print(f"   {item.get('contribution_type', 'No contribution type available')}")
 
     def _display_reasoning(self, reasoning_steps: list[str]) -> None:
         """Display reasoning steps for transparent AI decision making."""
-        for _i, _step in enumerate(reasoning_steps[:3], 1):
-            pass
+        console.print("   [bold]Reasoning:[/]")
+        for _i, _step in enumerate(reasoning_steps):
+            console.print(f"   {_step}")
 
 
 class ArgumentParser:
@@ -996,8 +1007,12 @@ class DemoRunner:
     def run(self) -> None:
         """Execute the complete demo workflow."""
         self._print_welcome_banner()
-        self._initialize_services()
-        self._authenticate_github()
+
+        # Get GitHub token first
+        github_token = GitHubTokenManager.get_token(self.args)
+
+        self._initialize_services(github_token)
+        self._authenticate_github(github_token)
 
         user, repo, week = UserInputManager.get_user_parameters(self.args)
 
@@ -1020,15 +1035,13 @@ class DemoRunner:
         )
         console.print(welcome_panel)
 
-    def _initialize_services(self) -> None:
+    def _initialize_services(self, github_token: str) -> None:
         """Initialize and health check all required services."""
         ServiceHealthChecker.check_genai_service(self.args.genai_url)
-        self.prompteus_client = PrompteusAPIClient(self.args.genai_url)
+        self.prompteus_client = PrompteusAPIClient(self.args.genai_url, github_token)
 
-    def _authenticate_github(self) -> None:
-        """Get GitHub token and initialize authenticated client."""
-        github_token = GitHubTokenManager.get_token(self.args)
-
+    def _authenticate_github(self, github_token: str) -> None:
+        """Initialize authenticated GitHub client with the provided token."""
         self.github_client = GitHubAPIClient(github_token)
         if not self.github_client.test_authentication():
             sys.exit(1)
@@ -1059,7 +1072,9 @@ class DemoRunner:
             if not self.prompteus_client:
                 msg = "Prompteus client not initialized"
                 raise RuntimeError(msg)
-            result = self.prompteus_client.ingest_contributions(user, week, repo, selected_contributions)
+            result = self.prompteus_client.ingest_contributions(
+                user=user, week=week, repo=repo, contributions_metadata=selected_contributions
+            )
             console.print("\n✅ Task completed successfully!", style="green bold")
             console.print(f"   [green]Ingested:[/] {result.get('ingested_count', 0)} contributions")
             console.print(f"   [red]Failed:[/] {result.get('failed_count', 0)} contributions")

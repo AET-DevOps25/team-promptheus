@@ -48,8 +48,13 @@ RETRY_STATUS_CODES = [429, 500, 502, 503, 504]
 class GitHubContentService:
     """Service for fetching GitHub contribution content from GitHub API."""
 
-    def __init__(self, github_token: str | None = None) -> None:
-        self.github_token = github_token or os.getenv("GITHUB_TOKEN") or os.getenv("GH_PAT")
+    def __init__(self, github_pat: str | None = None) -> None:
+        """Initialize the GitHub content service.
+
+        Args:
+            github_pat: Personal Access Token for GitHub API authentication.
+        """
+        self.github_token = github_pat or os.getenv("GITHUB_TOKEN") or os.getenv("GH_PAT")
 
         if not self.github_token:
             logger.warning("No GitHub token provided - API requests will be rate limited")

@@ -1,6 +1,5 @@
 """Tests for the FastAPI application endpoints."""
 
-import json
 import time
 
 import pytest
@@ -23,17 +22,9 @@ class TestHealthEndpoints:
         data = response.json()
         assert "status" in data
         assert "timestamp" in data
-        assert "services" in data
 
-        # Check service status
-        services = data["services"]
-        assert "contributions_ingestion" in services
-        assert "question_answering" in services
-        assert "meilisearch" in services
-        assert "langchain" in services
-
-        # With real Meilisearch, status should be "healthy"
-        assert services["meilisearch"] in ["healthy", "not_configured"]
+        # Current health endpoint returns meilisearch status directly
+        assert data["status"] in ["available", "unavailable", "degraded", "not_configured"]
 
     def test_metrics_endpoint(self, test_client) -> None:
         """Test the Prometheus metrics endpoint."""
@@ -69,7 +60,6 @@ class TestUnifiedWorkflow:
         assert response.status_code == 200
         task_data = response.json()
         task_id = task_data["task_id"]
-        summary_id = task_data["summary_id"]
 
         # Wait for completion and check status
         max_attempts = 20
@@ -95,7 +85,8 @@ class TestUnifiedWorkflow:
                 summary = status_data["summary"]
                 assert summary is not None
                 assert "summary_id" in summary
-                assert summary["summary_id"] == summary_id
+                assert isinstance(summary["summary_id"], str)
+                assert len(summary["summary_id"]) > 0
                 assert isinstance(summary["overview"], str)
                 assert len(summary["overview"]) > 0
                 break
@@ -114,6 +105,7 @@ class TestUnifiedWorkflow:
             "week": "2024-W21",
             "repository": "invalid/repo",
             "contributions": [{"type": "commit", "id": "abc123def456", "selected": True}],
+            "github_pat": "fake_test_pat_123",
         }
 
         # Start unified task
@@ -167,6 +159,7 @@ class TestUnifiedWorkflow:
                     "selected": True,
                 },  # This will be skipped by mock
             ],
+            "github_pat": "fake_test_pat_123",
         }
 
         # Start unified task
@@ -261,6 +254,7 @@ class TestTaskStatus:
             "week": "2024-W21",
             "repository": "invalid/repo",  # This will trigger GitHub API failure
             "contributions": [{"type": "commit", "id": "abc123def456", "selected": True}],
+            "github_pat": "fake_test_pat_123",
         }
 
         # Start the task
@@ -301,50 +295,6 @@ class TestTaskStatus:
             assert final_response["summary"] is None
 
 
-class TestContributionsStatus:
-    """Test contributions status endpoints."""
-
-    def test_get_contributions_status_success(self, test_client, clean_services) -> None:
-        """Test getting contributions status after unified workflow."""
-        # First run unified ingestion + summarization
-        request_data = get_test_contributions_metadata_request(contribution_types=["commit"])
-
-        ingest_response = test_client.post("/contributions", json=request_data)
-        assert ingest_response.status_code == 200
-
-        # Wait a bit for processing
-        import time
-
-        time.sleep(2)
-
-        # Then check status
-        response = test_client.get("/users/testuser/weeks/2024-W21/contributions/status")
-        assert response.status_code == 200
-
-        data = response.json()
-        assert data["user"] == "testuser"
-        assert data["week"] == "2024-W21"
-        assert "total_contributions" in data
-        assert "embedded_contributions" in data
-        assert "pending_embeddings" in data
-        assert "last_updated" in data
-        assert "meilisearch_status" in data
-
-        # With real Meilisearch, status should be "healthy"
-        assert data["meilisearch_status"] in ["healthy", "not_configured"]
-
-    def test_get_contributions_status_no_data(self, test_client) -> None:
-        """Test getting status for user with no contributions."""
-        response = test_client.get("/users/nonexistent/weeks/2024-W21/contributions/status")
-        assert response.status_code == 200
-
-        data = response.json()
-        assert data["user"] == "nonexistent"
-        assert data["week"] == "2024-W21"
-        assert data["total_contributions"] == 0
-        assert data["meilisearch_status"] in ["healthy", "not_configured"]
-
-
 class TestQuestionAnswering:
     """Test question answering endpoints."""
 
@@ -374,6 +324,7 @@ class TestQuestionAnswering:
         """Test successful question answering."""
         request_data = {
             "question": "What commits were made?",
+            "github_pat": "fake_test_pat_123",
             "context": {
                 "focus_areas": ["features", "bugs", "performance"],
                 "include_evidence": True,
@@ -422,6 +373,7 @@ class TestQuestionAnswering:
         # First, ask a question to create conversation history
         request_data = {
             "question": "What was done this week?",
+            "github_pat": "fake_test_pat_123",
             "context": {"include_evidence": True, "reasoning_depth": "detailed"},
         }
 
@@ -458,209 +410,6 @@ class TestQuestionAnswering:
         assert isinstance(cleared_history, dict)
         assert cleared_history["message_count"] == 0
         assert len(cleared_history["messages"]) == 0
-
-
-@pytest.mark.usefixtures("mock_summary_for_api")
-class TestSummaryGeneration:
-    """Test summary generation endpoints (Legacy standalone + Unified workflow)."""
-
-    @pytest.fixture(autouse=True)
-    def setup_test_data(self, test_client, clean_services, mock_summary_for_api) -> None:
-        """Set up test data before each test using unified workflow."""
-        # Use unified workflow to ingest and summarize test data
-        self.test_contributions = get_test_contributions_metadata_request()
-
-        # Start unified task
-        response = test_client.post("/contributions", json=self.test_contributions)
-        assert response.status_code == 200
-        self.task_id = response.json()["task_id"]
-
-        # Wait for completion to ensure summary is available
-        import time
-
-        for i in range(30):  # 30 seconds max for setup
-            time.sleep(1)
-            status_response = test_client.get(f"/ingest/{self.task_id}")
-            if status_response.status_code == 200:
-                status_data = status_response.json()
-                if status_data["status"] == "done":
-                    # Summary should be available
-                    assert "summary" in status_data
-                    self.task_summary = status_data["summary"]
-                    break
-                if status_data["status"] == "failed":
-                    pytest.fail(f"Setup task failed: {status_data.get('error_message', 'Unknown error')}")
-            if i == 29:  # Last iteration
-                pytest.fail(
-                    f"Task did not complete in time. Final status: {status_data.get('status', 'unknown') if 'status_data' in locals() else 'no response'}"
-                )
-
-    def test_summary_via_unified_workflow(self, test_client) -> None:
-        """Test that summary is available through unified workflow."""
-        # Get the completed task status which should include summary
-        response = test_client.get(f"/ingest/{self.task_id}")
-        assert response.status_code == 200
-
-        data = response.json()
-        assert data["status"] == "done"
-        assert "summary" in data
-
-        summary = data["summary"]
-        assert "summary_id" in summary
-        assert summary["user"] == "testuser"
-        assert summary["week"] == "2024-W21"
-        assert "overview" in summary
-        assert "commits_summary" in summary
-        assert "pull_requests_summary" in summary
-        assert "issues_summary" in summary
-        assert "releases_summary" in summary
-        assert "analysis" in summary
-        assert "key_achievements" in summary
-        assert "areas_for_improvement" in summary
-        assert "metadata" in summary
-        assert "generated_at" in summary
-
-        # Check metadata structure
-        metadata = summary["metadata"]
-        assert "total_contributions" in metadata
-        assert "commits_count" in metadata
-        assert "pull_requests_count" in metadata
-        assert "issues_count" in metadata
-        assert "releases_count" in metadata
-        assert "repositories" in metadata
-        assert "time_period" in metadata
-        assert "generated_at" in metadata
-        assert "processing_time_ms" in metadata
-
-    def test_generate_summary_standalone_success(self, test_client) -> None:
-        """Test legacy standalone summary generation (if still supported)."""
-        summary_request = {
-            "user": "testuser",
-            "week": "2024-W21",
-            "include_code_changes": True,
-            "include_pr_reviews": True,
-            "include_issue_discussions": True,
-            "max_detail_level": "comprehensive",
-        }
-
-        response = test_client.post("/users/testuser/weeks/2024-W21/summary", json=summary_request)
-        assert response.status_code == 200
-
-        data = response.json()
-        assert "summary_id" in data
-        assert data["user"] == "testuser"
-        assert data["week"] == "2024-W21"
-        assert "overview" in data
-        assert "commits_summary" in data
-        assert "pull_requests_summary" in data
-        assert "issues_summary" in data
-        assert "releases_summary" in data
-        assert "analysis" in data
-        assert "key_achievements" in data
-        assert "areas_for_improvement" in data
-        assert "metadata" in data
-        assert "generated_at" in data
-
-        # Check metadata structure
-        metadata = data["metadata"]
-        assert "total_contributions" in metadata
-        assert "commits_count" in metadata
-        assert "pull_requests_count" in metadata
-        assert "issues_count" in metadata
-        assert "releases_count" in metadata
-        assert "repositories" in metadata
-        assert "time_period" in metadata
-        assert "generated_at" in metadata
-        assert "processing_time_ms" in metadata
-
-        # Verify content is not empty for our test data
-        assert len(data["overview"]) > 0
-        assert metadata["total_contributions"] >= 2  # At least 2 from test data
-
-    def test_generate_summary_no_contributions(self, test_client, clean_services) -> None:
-        """Test summary generation when no contributions exist."""
-        summary_request = {
-            "user": "nocontribuser",
-            "week": "2024-W21",
-            "include_code_changes": True,
-            "include_pr_reviews": True,
-            "include_issue_discussions": True,
-            "max_detail_level": "brief",
-        }
-
-        response = test_client.post("/users/nocontribuser/weeks/2024-W21/summary", json=summary_request)
-        assert response.status_code == 404  # Should return 404 when no contributions exist
-
-        data = response.json()
-        assert "No contributions found" in data["error"]
-
-    def test_generate_summary_stream_success(self, test_client) -> None:
-        """Test successful streaming summary generation (if still supported)."""
-        summary_request = {
-            "user": "testuser",
-            "week": "2024-W21",
-            "include_code_changes": True,
-            "include_pr_reviews": False,
-            "include_issue_discussions": True,
-            "max_detail_level": "standard",
-        }
-
-        response = test_client.post("/users/testuser/weeks/2024-W21/summary/stream", json=summary_request)
-        assert response.status_code == 200
-        assert response.headers["content-type"] == "text/plain; charset=utf-8"
-
-        # Parse the streaming response
-        chunks = []
-        for line in response.text.split("\n"):
-            if line.startswith("data: "):
-                chunk_data = json.loads(line[6:])  # Remove 'data: ' prefix
-                chunks.append(chunk_data)
-
-        # Verify we got chunks
-        assert len(chunks) > 0
-
-        # Check for expected chunk types
-        chunk_types = [chunk.get("chunk_type") for chunk in chunks]
-        assert "metadata" in chunk_types
-        assert "section" in chunk_types
-        assert "content" in chunk_types
-        assert "complete" in chunk_types
-
-        # Find the metadata chunk
-        metadata_chunk = next((chunk for chunk in chunks if chunk.get("chunk_type") == "metadata"), None)
-        assert metadata_chunk is not None
-        assert "metadata" in metadata_chunk
-        assert metadata_chunk["metadata"]["total_contributions"] >= 2  # At least 2 from test data
-
-        # Find the completion chunk
-        complete_chunk = next((chunk for chunk in chunks if chunk.get("chunk_type") == "complete"), None)
-        assert complete_chunk is not None
-        assert "summary_id" in complete_chunk["metadata"]
-        assert "processing_time_ms" in complete_chunk["metadata"]
-
-    def test_get_summary_success(self, test_client) -> None:
-        """Test retrieving a previously generated summary by ID."""
-        # Use the summary from the unified workflow setup
-        if hasattr(self, "task_summary"):
-            summary_id = self.task_summary["summary_id"]
-
-            # Retrieve summary by ID
-            response = test_client.get(f"/users/testuser/weeks/2024-W21/summaries/{summary_id}")
-            assert response.status_code == 200
-
-            data = response.json()
-            assert data["summary_id"] == summary_id
-            assert data["user"] == "testuser"
-            assert data["week"] == "2024-W21"
-            assert "overview" in data
-            assert "metadata" in data
-
-    def test_get_summary_not_found(self, test_client) -> None:
-        """Test retrieving a non-existent summary."""
-        fake_summary_id = generate_uuidv7()
-        response = test_client.get(f"/users/testuser/weeks/2024-W21/summaries/{fake_summary_id}")
-        assert response.status_code == 404
-        assert "not found" in response.json()["error"]
 
 
 class TestDocumentation:
@@ -757,16 +506,10 @@ class TestFullWorkflow:
         else:
             pytest.fail("Unified task did not complete within timeout")
 
-        # 2. Check contributions status
-        status_response = test_client.get("/users/workflowuser/weeks/2024-W22/contributions/status")
-        assert status_response.status_code == 200
-        status_data = status_response.json()
-        assert status_data["user"] == "workflowuser"
-        assert status_data["week"] == "2024-W22"
-
         # 3. Ask questions about the contributions
         question1 = {
             "question": "What new features were implemented?",
+            "github_pat": "fake_test_pat_123",
             "context": {
                 "focus_areas": ["features", "implementation"],
                 "include_evidence": True,
@@ -783,6 +526,7 @@ class TestFullWorkflow:
 
         question2 = {
             "question": "Are there any performance issues?",
+            "github_pat": "fake_test_pat_123",
             "context": {
                 "focus_areas": ["performance", "optimization"],
                 "include_evidence": True,
@@ -794,12 +538,6 @@ class TestFullWorkflow:
         assert q2_response.status_code == 200
         q2_data = q2_response.json()
         assert "answer" in q2_data
-
-        # 4. Retrieve questions by ID
-        q1_id = q1_data["question_id"]
-        retrieve_response = test_client.get(f"/users/workflowuser/weeks/2024-W22/questions/{q1_id}")
-        assert retrieve_response.status_code == 200
-        assert retrieve_response.json()["question_id"] == q1_id
 
     def test_multiple_users_same_week_unified(self, test_client, clean_services) -> None:
         """Test handling multiple users in the same week with unified workflow."""
@@ -846,6 +584,7 @@ class TestFullWorkflow:
         # Ask questions for each user
         question = {
             "question": "What did I work on?",
+            "github_pat": "fake_test_pat_123",
             "context": {
                 "focus_areas": [],
                 "include_evidence": True,

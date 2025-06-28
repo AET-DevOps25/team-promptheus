@@ -18,11 +18,9 @@ from .models import (
     ContributionsIngestResponse,
     ContributionsStatusResponse,
     ContributionType,
-    DetailLevel,
     GitHubContribution,
     IngestTaskResponse,
     IngestTaskStatus,
-    SummaryRequest,
     TaskStatus,
     generate_uuidv7,
 )
@@ -37,7 +35,6 @@ class ContributionsIngestionService:
     def __init__(
         self,
         meilisearch_service: MeilisearchService | None = None,
-        github_token: str | None = None,
         summary_service: SummaryService | None = None,
     ) -> None:
         # Store contributions by [user, week] key
@@ -45,7 +42,6 @@ class ContributionsIngestionService:
         self.embedding_jobs: dict[str, dict[str, Any]] = {}
         self.ingest_tasks: dict[str, IngestTaskStatus] = {}  # Track ingestion tasks
         self.meilisearch_service = meilisearch_service
-        self.github_content_service = GitHubContentService(github_token)
         self.summary_service = summary_service  # Will be injected to avoid circular imports
 
     def _get_user_week_key(self, user: str, week: str) -> str:
@@ -110,7 +106,8 @@ class ContributionsIngestionService:
             )
 
             # Fetch content for selected contributions using GitHub service
-            contributions = await self.github_content_service.fetch_contributions(
+            github_content_service = GitHubContentService(request.github_pat)
+            contributions = await github_content_service.fetch_contributions(
                 repository=request.repository,
                 user=request.user,
                 week=request.week,
@@ -148,18 +145,7 @@ class ContributionsIngestionService:
                 )
 
                 # Generate summary
-                summary_request = SummaryRequest(
-                    user=request.user,
-                    week=request.week,
-                    include_code_changes=True,
-                    include_pr_reviews=True,
-                    include_issue_discussions=True,
-                    max_detail_level=DetailLevel.COMPREHENSIVE,
-                )
-
-                summary = await self.summary_service.generate_summary(
-                    request.user, request.week, summary_request, summary_id
-                )
+                summary = await self.summary_service.generate_summary(request.user, request.week, summary_id)
 
                 # Store summary in task
                 if task_id in self.ingest_tasks:
@@ -217,7 +203,8 @@ class ContributionsIngestionService:
             record_request_metrics(meilisearch_requests, {"operation": "ingest"}, "started")
 
             # Fetch content for selected contributions using GitHub service
-            contributions = await self.github_content_service.fetch_contributions(
+            github_content_service = GitHubContentService(request.github_pat)
+            contributions = await github_content_service.fetch_contributions(
                 repository=request.repository,
                 user=request.user,
                 week=request.week,

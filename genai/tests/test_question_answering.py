@@ -5,7 +5,7 @@ import pytest_asyncio
 
 from src.meilisearch import MeilisearchService
 from src.models import QuestionContext, QuestionRequest, QuestionResponse
-from src.services import ContributionsIngestionService, QuestionAnsweringService
+from src.services import GitHubContentService, QuestionAnsweringService
 
 
 @pytest.mark.asyncio
@@ -18,8 +18,8 @@ class TestQuestionAnsweringService:
         meilisearch_service = MeilisearchService()
         await meilisearch_service.initialize()
 
-        ingestion_service = ContributionsIngestionService(meilisearch_service)
-        return QuestionAnsweringService(ingestion_service)
+        github_content_service = GitHubContentService()
+        return QuestionAnsweringService(github_content_service, meilisearch_service)
 
     async def test_question_context_validation(self) -> None:
         """Test QuestionContext model validation."""
@@ -40,6 +40,7 @@ class TestQuestionAnsweringService:
         """Test QuestionRequest model validation."""
         request = QuestionRequest(
             question="What commits were programmed?",
+            github_pat="fake_pat_for_testing",
             context=QuestionContext(
                 focus_areas=["features", "bugs", "performance"],
                 include_evidence=True,
@@ -56,6 +57,7 @@ class TestQuestionAnsweringService:
         """Test QuestionRequest JSON serialization."""
         request = QuestionRequest(
             question="What commits were programmed?",
+            github_pat="fake_pat_for_testing",
             context=QuestionContext(
                 focus_areas=["features", "bugs", "performance"],
                 include_evidence=True,
@@ -76,7 +78,9 @@ class TestQuestionAnsweringService:
 
     async def test_retrieve_relevant_contributions_empty(self, qa_service) -> None:
         """Test retrieving contributions when none exist."""
-        request = QuestionRequest(question="What was done?", context=QuestionContext(max_evidence_items=5))
+        request = QuestionRequest(
+            question="What was done?", github_pat="fake_pat_for_testing", context=QuestionContext(max_evidence_items=5)
+        )
 
         contributions = await qa_service._retrieve_relevant_contributions(
             user="nonexistent_user", week="2024-W99", request=request
@@ -87,7 +91,9 @@ class TestQuestionAnsweringService:
 
     async def test_answer_question_no_contributions(self, qa_service) -> None:
         """Test answering question when no contributions are found."""
-        request = QuestionRequest(question="What was done?", context=QuestionContext())
+        request = QuestionRequest(
+            question="What was done?", github_pat="fake_pat_for_testing", context=QuestionContext()
+        )
 
         # Test with a user/week that has no contributions
         response = await qa_service.answer_question(user="nonexistent_user", week="2024-W99", request=request)
@@ -111,6 +117,7 @@ class TestQuestionAnsweringService:
         """Test the complete question answering flow."""
         request = QuestionRequest(
             question="What commits were programmed?",
+            github_pat="fake_pat_for_testing",
             context=QuestionContext(
                 focus_areas=["features", "bugs", "performance"],
                 include_evidence=True,
@@ -133,30 +140,6 @@ class TestQuestionAnsweringService:
         assert isinstance(response.suggested_actions, list)
         assert isinstance(response.response_time_ms, int)
         assert response.response_time_ms > 0
-
-    async def test_question_storage_and_retrieval(self, qa_service) -> None:
-        """Test that questions are stored and can be retrieved."""
-        request = QuestionRequest(question="Test question", context=QuestionContext())
-
-        # Ask a question
-        response = await qa_service.answer_question(user="testuser", week="2024-W21", request=request)
-
-        question_id = response.question_id
-
-        # Retrieve the question
-        retrieved = qa_service.get_question(question_id)
-
-        assert retrieved is not None
-        assert retrieved.question_id == question_id
-        assert retrieved.question == "Test question"
-        assert retrieved.user == "testuser"
-        assert retrieved.week == "2024-W21"
-
-    async def test_question_not_found(self, qa_service) -> None:
-        """Test retrieving a non-existent question."""
-        fake_id = "non-existent-id"
-        result = qa_service.get_question(fake_id)
-        assert result is None
 
     @pytest.mark.skip(reason="Conversation history persistence is being refactored")
     async def test_conversation_context_functionality(self, qa_service) -> None:
