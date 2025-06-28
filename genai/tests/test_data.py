@@ -2,6 +2,7 @@
 
 This module provides properly structured test data that matches the GitHub API models.
 """
+
 from typing import Any
 
 
@@ -190,9 +191,7 @@ def get_test_contributions_metadata_request(
 
 
 def get_test_contributions_request(
-    user: str = "testuser",
-    week: str = "2024-W21",
-    contribution_types: list[str] | None = None
+    user: str = "testuser", week: str = "2024-W21", contribution_types: list[str] | None = None
 ) -> dict[str, Any]:
     """Get a complete contributions request with full contribution data (LEGACY - for backward compatibility)."""
     if contribution_types is None:

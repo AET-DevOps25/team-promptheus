@@ -51,18 +51,4 @@ public class SearchController {
         SearchResult results = SearchResult.builder().hits(meilisearchResults.getHits()).processingTimeMs(meilisearchResults.getProcessingTimeMs()).query(query).build();
         return ResponseEntity.status(HttpStatus.OK).body(results);
     }
-
-    @Operation(summary = "Get available filterable attributes")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "List of filterable attributes", content = {@Content(mediaType = "application/json")})})
-    @GetMapping("/filterable-attributes")
-    public ResponseEntity<List<String>> getFilterableAttributes() {
-        return ResponseEntity.ok(searchService.getFilterableAttributes());
-    }
-
-    @Operation(summary = "Get available sortable attributes")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "List of sortable attributes", content = {@Content(mediaType = "application/json")})})
-    @GetMapping("/sortable-attributes")
-    public ResponseEntity<List<String>> getSortableAttributes() {
-        return ResponseEntity.ok(searchService.getSortableAttributes());
-    }
 }

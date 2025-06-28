@@ -65,7 +65,7 @@ unfixable = []
 # Ignore these rules for now - can be re-enabled gradually
 ignore = [
     "TRY300",   # try-consider-else - stylistic
-    "TRY301",   # raise-within-try - stylistic 
+    "TRY301",   # raise-within-try - stylistic
     "PLR2004",  # magic-value-comparison - too many false positives
     "ANN201",   # missing-return-type-undocumented-public-function
     "ANN202",   # missing-return-type-private-function
@@ -144,4 +144,4 @@ line-ending = "auto"
 known-first-party = ["src"]
 
 [tool.ruff.lint.pydocstyle]
-convention = "google" 
+convention = "google"
