@@ -83,12 +83,10 @@ class QuestionAnsweringService:
             base_url=ollama_base_url,
             client_kwargs={
                 "headers": {"Authorization": f"Bearer {ollama_api_key}"},
-                "timeout": 30.0,  # Set a reasonable timeout
+                "timeout": 60.0,
             },
             temperature=0.2,
             num_predict=-1,
-            # Add request timeout to prevent hanging
-            request_timeout=60.0,
         )
 
         # Create LangGraph agent with automatic tool usage
@@ -481,7 +479,7 @@ information than the static evidence alone."""
         """Clean up async resources properly."""
         try:
             # If the LLM has an async client, close it properly
-            if hasattr(self.llm, "_async_client") and self.llm._async_client:
-                await self.llm._async_client.aclose()
+            if hasattr(self.llm, "_client") and hasattr(self.llm._client, "aclose"):
+                await self.llm._client.aclose()
         except Exception as e:
             logger.warning("Error during LLM cleanup", error=str(e))
