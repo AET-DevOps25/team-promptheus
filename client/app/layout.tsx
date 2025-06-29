@@ -4,32 +4,32 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
-import { ReactQueryProvider } from "@/lib/react-query";
 import { UserProvider } from "@/contexts/user-context";
+import { ReactQueryProvider } from "@/lib/react-query";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-	description: "We help diverse teams keep up with others changes",
-	title: "Prompteus",
+  description: "We help diverse teams keep up with others changes",
+  title: "Prompteus",
 };
 
 export default function RootLayout({
-	children,
+  children,
 }: Readonly<{
-	children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-	return (
-		<html lang="en">
-			<body className={inter.className}>
-				<ReactQueryProvider>
-					<UserProvider>
-						<Header />
-						{children}
-						<Footer />
-					</UserProvider>
-				</ReactQueryProvider>
-			</body>
-		</html>
-	);
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <ReactQueryProvider>
+          <UserProvider>
+            <Header />
+            {children}
+            <Footer />
+          </UserProvider>
+        </ReactQueryProvider>
+      </body>
+    </html>
+  );
 }
