@@ -9,24 +9,24 @@ import { ReactQueryProvider } from "@/lib/react-query";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-	description: "We help diverse teams keep up with others changes",
-	title: "Prompteus",
+  description: "We help diverse teams keep up with others changes",
+  title: "Prompteus",
 };
 
 export default function RootLayout({
-	children,
+  children,
 }: Readonly<{
-	children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-	return (
-		<html lang="en">
-			<body className={inter.className}>
-				<ReactQueryProvider>
-					<Header />
-					{children}
-					<Footer />
-				</ReactQueryProvider>
-			</body>
-		</html>
-	);
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <ReactQueryProvider>
+          <Header />
+          {children}
+          <Footer />
+        </ReactQueryProvider>
+      </body>
+    </html>
+  );
 }
