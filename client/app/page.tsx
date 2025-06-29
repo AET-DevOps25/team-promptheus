@@ -127,37 +127,6 @@ export default function HomePage() {
             repositories, automated progress summaries, and semantic search that actually works.
           </p>
 
-          {/* Features */}
-          <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
-            <div className="flex flex-col items-center p-6">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 mb-4">
-                <BarChart3 className="h-6 w-6 text-blue-600" />
-              </div>
-              <h3 className="font-semibold text-slate-900">Auto Summaries</h3>
-              <p className="text-sm text-slate-600 mt-2">
-                AI-generated progress reports without the Friday writeups
-              </p>
-            </div>
-            <div className="flex flex-col items-center p-6">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4">
-                <Search className="h-6 w-6 text-green-600" />
-              </div>
-              <h3 className="font-semibold text-slate-900">Semantic Search</h3>
-              <p className="text-sm text-slate-600 mt-2">
-                Find code and issues by meaning, not just keywords
-              </p>
-            </div>
-            <div className="flex flex-col items-center p-6">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 mb-4">
-                <Zap className="h-6 w-6 text-purple-600" />
-              </div>
-              <h3 className="font-semibold text-slate-900">Instant Q&A</h3>
-              <p className="text-sm text-slate-600 mt-2">
-                Ask questions about your codebase and get immediate answers
-              </p>
-            </div>
-          </div>
-
           {/* Setup Form */}
           <div className="mt-16 flex justify-center">
             <Card className="w-full max-w-md">
@@ -170,6 +139,17 @@ export default function HomePage() {
               </CardHeader>
               <CardContent>
                 <form className="space-y-4" onSubmit={handleSubmit}>
+                  <div className="space-y-2">
+                    <Label htmlFor="repoLink">GitHub Repository Link</Label>
+                    <Input
+                      disabled={isLoading}
+                      id="repoLink"
+                      onChange={(e) => setRepoLink(e.target.value)}
+                      placeholder="https://github.com/organization/repository"
+                      type="text"
+                      value={repoLink}
+                    />
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="pat">GitHub Personal Access Token</Label>
                     <Input
@@ -191,17 +171,6 @@ export default function HomePage() {
                         Create one here
                       </a>
                     </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="repoLink">GitHub Repository Link</Label>
-                    <Input
-                      disabled={isLoading}
-                      id="repoLink"
-                      onChange={(e) => setRepoLink(e.target.value)}
-                      placeholder="https://github.com/organization/repository"
-                      type="text"
-                      value={repoLink}
-                    />
                   </div>
 
                   {(error || isError || mutationError) && (
@@ -229,6 +198,37 @@ export default function HomePage() {
                 </form>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Features */}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 my-12">
+            <div className="flex flex-col items-center p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 mb-4">
+                <BarChart3 className="h-6 w-6 text-blue-600" />
+              </div>
+              <h3 className="font-semibold text-slate-900">Auto Summaries</h3>
+              <p className="text-sm text-slate-600 mt-2">
+                AI-generated progress reports without the Friday writeups
+              </p>
+            </div>
+            <div className="flex flex-col items-center p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4">
+                <Search className="h-6 w-6 text-green-600" />
+              </div>
+              <h3 className="font-semibold text-slate-900">Semantic Search</h3>
+              <p className="text-sm text-slate-600 mt-2">
+                Find code and issues by meaning, not just keywords
+              </p>
+            </div>
+            <div className="flex flex-col items-center p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 mb-4">
+                <Zap className="h-6 w-6 text-purple-600" />
+              </div>
+              <h3 className="font-semibold text-slate-900">Instant Q&A</h3>
+              <p className="text-sm text-slate-600 mt-2">
+                Ask questions about your codebase and get immediate answers
+              </p>
+            </div>
           </div>
         </div>
       </main>
