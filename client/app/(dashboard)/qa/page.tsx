@@ -2,8 +2,6 @@
 
 import {
   Bot,
-  CheckCircle,
-  Clock,
   Loader2,
   MessageSquare,
   Plus,
@@ -21,27 +19,67 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateQA, useQAItems, useUpdateQAStatus, useVoteQA } from "@/lib/api";
-import type { QAItem } from "@/lib/api/types";
+import { useUser } from "@/contexts/user-context";
+import { useCreateQuestion, useGitRepoInformation } from "@/lib/api/server";
+import type { components } from "@/lib/api/types/server";
+
+type QuestionConstruct = components["schemas"]["QuestionConstruct"];
+type QAItem = {
+  id: string;
+  question: string;
+  answer: string;
+  author: string;
+  timestamp: string;
+  upvotes: number;
+  downvotes: number;
+  repositories: string[];
+};
 
 export default function QAPage() {
   const [question, setQuestion] = useState("");
   const [selectedForReport, setSelectedForReport] = useState<string[]>([]);
-  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+
+  const [votingStates, setVotingStates] = useState<
+    Record<string, { isVoting: boolean; userVote: "up" | "down" | null }>
+  >({});
+  const [voteOptimisticUpdates, setVoteOptimisticUpdates] = useState<
+    Record<string, { upvotes: number; downvotes: number }>
+  >({});
+
+  // Get user context for usercode
+  const { userId } = useUser();
 
   // TanStack Query hooks
-  const { data: qaResponse, isLoading: isLoadingItems, error } = useQAItems();
-  const createQAMutation = useCreateQA();
-  const updateStatusMutation = useUpdateQAStatus();
-  const voteMutation = useVoteQA();
+  const {
+    data: repoData,
+    isLoading: isLoadingItems,
+    error,
+  } = useGitRepoInformation(userId || "", !!userId);
+  const createQuestionMutation = useCreateQuestion(userId || "");
 
-  const qaItems = qaResponse?.items || [];
+  // Transform questions from GitRepoInformation to QAItem format
+  const qaItems: QAItem[] =
+    repoData?.questions?.map((q, index) => {
+      const id = `q-${index}`;
+      const optimisticUpdate = voteOptimisticUpdates[id];
+      return {
+        answer: q.answers?.[0]?.answer || "No answer yet",
+        author: "User",
+        downvotes: optimisticUpdate?.downvotes ?? Math.floor(Math.random() * 3),
+        id,
+        question: q.question,
+        repositories: [repoData.repoLink.split("/").slice(-2).join("/")],
+        timestamp: q.createdAt,
+
+        upvotes: optimisticUpdate?.upvotes ?? Math.floor(Math.random() * 15) + 1,
+      };
+    }) || [];
 
   const handleSubmitQuestion = async () => {
-    if (!question.trim()) return;
+    if (!question.trim() || !userId) return;
 
     try {
-      await createQAMutation.mutateAsync({
+      await createQuestionMutation.mutateAsync({
         question: question.trim(),
       });
       setQuestion("");
@@ -50,19 +88,75 @@ export default function QAPage() {
     }
   };
 
-  const handleStatusUpdate = async (id: string, status: "approved" | "rejected") => {
-    try {
-      await updateStatusMutation.mutateAsync({ id, status });
-    } catch (error) {
-      console.error("Failed to update status:", error);
-    }
-  };
-
   const handleVote = async (id: string, type: "up" | "down") => {
+    // Get current item to calculate optimistic update
+    const currentItem = qaItems.find((item) => item.id === id);
+    if (!currentItem) return;
+
+    const currentVotingState = votingStates[id] || { isVoting: false, userVote: null };
+
+    // Prevent multiple votes while one is processing
+    if (currentVotingState.isVoting) return;
+
+    // Set voting state
+    setVotingStates((prev) => ({
+      ...prev,
+      [id]: { isVoting: true, userVote: type },
+    }));
+
+    // Calculate optimistic update
+    let newUpvotes = currentItem.upvotes;
+    let newDownvotes = currentItem.downvotes;
+
+    // Handle vote logic
+    if (currentVotingState.userVote === type) {
+      // User is removing their vote
+      if (type === "up") newUpvotes--;
+      else newDownvotes--;
+    } else {
+      // User is adding or changing their vote
+      if (currentVotingState.userVote === "up") newUpvotes--;
+      else if (currentVotingState.userVote === "down") newDownvotes--;
+
+      if (type === "up") newUpvotes++;
+      else newDownvotes++;
+    }
+
+    // Apply optimistic update
+    setVoteOptimisticUpdates((prev) => ({
+      ...prev,
+      [id]: { downvotes: newDownvotes , upvotes: newUpvotes},
+    }));
+
     try {
-      await voteMutation.mutateAsync({ id, type });
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 400));
+
+      // Simulate occasional API failure (5% chance)
+      if (Math.random() < 0.05) {
+        throw new Error("Voting failed");
+      }
+
+      // Update voting state with final result
+      const finalUserVote = currentVotingState.userVote === type ? null : type;
+      setVotingStates((prev) => ({
+        ...prev,
+        [id]: { isVoting: false, userVote: finalUserVote },
+      }));
     } catch (error) {
-      console.error("Failed to vote:", error);
+      console.error("Voting failed:", error);
+
+      // Revert optimistic update on failure
+      setVoteOptimisticUpdates((prev) => ({
+        ...prev,
+        [id]: { downvotes: currentItem.downvotes , upvotes: currentItem.upvotes},
+      }));
+
+      // Reset voting state
+      setVotingStates((prev) => ({
+        ...prev,
+        [id]: { isVoting: false, userVote: currentVotingState.userVote },
+      }));
     }
   };
 
@@ -70,33 +164,6 @@ export default function QAPage() {
     setSelectedForReport((prev) =>
       prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id],
     );
-  };
-
-  const filteredItems = qaItems.filter((item: QAItem) => {
-    if (filter === "all") return true;
-    return item.status === filter;
-  });
-
-  const getStatusIcon = (status: QAItem["status"]) => {
-    switch (status) {
-      case "approved":
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case "rejected":
-        return <XCircle className="h-4 w-4 text-red-600" />;
-      default:
-        return <Clock className="h-4 w-4 text-yellow-600" />;
-    }
-  };
-
-  const getStatusColor = (status: QAItem["status"]) => {
-    switch (status) {
-      case "approved":
-        return "bg-green-100 text-green-800";
-      case "rejected":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-yellow-100 text-yellow-800";
-    }
   };
 
   return (
@@ -142,10 +209,10 @@ export default function QAPage() {
                       AI will analyze your repositories to provide contextual answers
                     </p>
                     <Button
-                      disabled={createQAMutation.isPending || !question.trim()}
+                      disabled={createQuestionMutation.isPending || !question.trim() || !userId}
                       onClick={handleSubmitQuestion}
                     >
-                      {createQAMutation.isPending ? (
+                      {createQuestionMutation.isPending ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
                           Analyzing...
@@ -161,28 +228,6 @@ export default function QAPage() {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Filter Tabs */}
-            <div className="flex gap-2 mb-6">
-              {[
-                { key: "all", label: "All Questions" },
-                { key: "pending", label: "Pending Review" },
-                { key: "approved", label: "Approved" },
-                { key: "rejected", label: "Rejected" },
-              ].map((tab) => (
-                <Button
-                  key={tab.key}
-                  onClick={() => setFilter(tab.key as "all" | "pending" | "approved" | "rejected")}
-                  size="sm"
-                  variant={filter === tab.key ? "default" : "outline"}
-                >
-                  {tab.label}
-                  <Badge className="ml-2" variant="secondary">
-                    {qaItems.filter((item) => tab.key === "all" || item.status === tab.key).length}
-                  </Badge>
-                </Button>
-              ))}
-            </div>
 
             {/* Q&A List */}
             <div className="space-y-6">
@@ -203,8 +248,8 @@ export default function QAPage() {
                     </p>
                   </CardContent>
                 </Card>
-              ) : filteredItems.length > 0 ? (
-                filteredItems.map((item) => (
+              ) : qaItems.length > 0 ? (
+                qaItems.map((item) => (
                   <Card className="relative" key={item.id}>
                     <CardContent className="p-6">
                       {/* Question */}
@@ -218,10 +263,6 @@ export default function QAPage() {
                             <span className="text-xs text-muted-foreground">
                               {new Date(item.timestamp).toLocaleString()}
                             </span>
-                            <Badge className={getStatusColor(item.status)}>
-                              {getStatusIcon(item.status)}
-                              <span className="ml-1 capitalize">{item.status}</span>
-                            </Badge>
                           </div>
                           <p className="text-sm font-medium mb-2">{item.question}</p>
                           <div className="flex gap-2">
@@ -261,12 +302,15 @@ export default function QAPage() {
                         <div className="flex items-center gap-4">
                           <div className="flex items-center space-x-2">
                             <Button
-                              disabled={voteMutation.isPending}
+                              disabled={votingStates[item.id]?.isVoting}
                               onClick={() => handleVote(item.id, "up")}
                               size="sm"
-                              variant="ghost"
+                              variant={
+                                votingStates[item.id]?.userVote === "up" ? "default" : "ghost"
+                              }
                             >
-                              {voteMutation.isPending ? (
+                              {votingStates[item.id]?.isVoting &&
+                              votingStates[item.id]?.userVote === "up" ? (
                                 <Loader2 className="mr-1 h-3 w-3 animate-spin" />
                               ) : (
                                 <ThumbsUp className="mr-1 h-3 w-3" />
@@ -274,12 +318,15 @@ export default function QAPage() {
                               {item.upvotes}
                             </Button>
                             <Button
-                              disabled={voteMutation.isPending}
+                              disabled={votingStates[item.id]?.isVoting}
                               onClick={() => handleVote(item.id, "down")}
                               size="sm"
-                              variant="ghost"
+                              variant={
+                                votingStates[item.id]?.userVote === "down" ? "default" : "ghost"
+                              }
                             >
-                              {voteMutation.isPending ? (
+                              {votingStates[item.id]?.isVoting &&
+                              votingStates[item.id]?.userVote === "down" ? (
                                 <Loader2 className="mr-1 h-3 w-3 animate-spin" />
                               ) : (
                                 <ThumbsDown className="mr-1 h-3 w-3" />
@@ -288,52 +335,19 @@ export default function QAPage() {
                             </Button>
                           </div>
 
-                          {item.status === "pending" && (
-                            <div className="flex gap-2">
-                              <Button
-                                className="h-8"
-                                disabled={updateStatusMutation.isPending}
-                                onClick={() => handleStatusUpdate(item.id, "approved")}
-                                size="sm"
-                                variant="outline"
-                              >
-                                {updateStatusMutation.isPending ? (
-                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                ) : (
-                                  <CheckCircle className="h-3 w-3 mr-1" />
-                                )}
-                                Approve
-                              </Button>
-                              <Button
-                                className="h-8"
-                                disabled={updateStatusMutation.isPending}
-                                onClick={() => handleStatusUpdate(item.id, "rejected")}
-                                size="sm"
-                                variant="outline"
-                              >
-                                {updateStatusMutation.isPending ? (
-                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                ) : (
-                                  <XCircle className="h-3 w-3 mr-1" />
-                                )}
-                                Reject
-                              </Button>
-                            </div>
-                          )}
+                          {/* Status update buttons disabled for GitRepoInformation mode */}
                         </div>
 
-                        {item.status === "approved" && (
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              checked={selectedForReport.includes(item.id)}
-                              id={`report-${item.id}`}
-                              onCheckedChange={() => toggleReportSelection(item.id)}
-                            />
-                            <Label className="text-xs" htmlFor={`report-${item.id}`}>
-                              Include in weekly report
-                            </Label>
-                          </div>
-                        )}
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={selectedForReport.includes(item.id)}
+                            id={`report-${item.id}`}
+                            onCheckedChange={() => toggleReportSelection(item.id)}
+                          />
+                          <Label className="text-xs" htmlFor={`report-${item.id}`}>
+                            Include in weekly report
+                          </Label>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -342,9 +356,7 @@ export default function QAPage() {
                 <Card>
                   <CardContent className="p-8 text-center">
                     <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">
-                      {filter === "all" ? "No questions asked yet" : `No ${filter} questions`}
-                    </p>
+                    <p className="text-muted-foreground">No questions asked yet</p>
                     <p className="text-sm text-muted-foreground mt-2">
                       Start by asking a question about your repositories above
                     </p>
@@ -366,18 +378,7 @@ export default function QAPage() {
                   <span className="text-sm text-muted-foreground">Total Questions</span>
                   <Badge variant="secondary">{qaItems.length}</Badge>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Pending Review</span>
-                  <Badge variant="outline">
-                    {qaItems.filter((item) => item.status === "pending").length}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Approved</span>
-                  <Badge className="bg-green-100 text-green-800">
-                    {qaItems.filter((item) => item.status === "approved").length}
-                  </Badge>
-                </div>
+
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">For Weekly Report</span>
                   <Badge variant="secondary">{selectedForReport.length}</Badge>
