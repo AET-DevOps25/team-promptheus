@@ -2,8 +2,6 @@ name: Search CI/CD
 
 on:
   pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
   push:
     branches: [main]
   workflow_dispatch:
