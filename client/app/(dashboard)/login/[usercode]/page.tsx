@@ -117,7 +117,7 @@ export default function LoginPage({ params }: LoginPageProps) {
             {status === "loading" && (
               <div className="space-y-4">
                 <div className="flex justify-center">
-                  <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                  <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
                 </div>
                 <p className="text-sm text-gray-500">This should only take a moment...</p>
               </div>
