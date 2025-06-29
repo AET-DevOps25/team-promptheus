@@ -41,7 +41,7 @@ interface SummaryItem {
   author: string;
   date: string;
   url: string;
-  status: "done" | "in-progress" | "blocked";
+  status: "done" | "in-progress";
   selected: boolean;
 }
 
@@ -66,15 +66,17 @@ const typeLabels = {
 } as const;
 
 const statusColors = {
-  blocked: "bg-red-100 text-red-800",
+  all: "bg-gray-100 text-gray-800",
   done: "bg-green-100 text-green-800",
   "in-progress": "bg-blue-100 text-blue-800",
 } as const;
 
+type StateFilter = "all" | "done" | "in-progress";
+type TypeFilter = "all" | "commit" | "pr" | "issue" | "qa";
 export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [filter, setFilter] = useState<"all" | "done" | "in-progress" | "blocked">("all");
-  const [typeFilter, setTypeFilter] = useState<"all" | "commit" | "pr" | "issue" | "qa">("all");
+  const [filter, setFilter] = useState<StateFilter>("all");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [previewContent, setPreviewContent] = useState("");
   const [showPreview, setShowPreview] = useState(false);
 
@@ -229,7 +231,7 @@ export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
         id: contribution.id,
         repository: `repo-${contribution.gitRepositoryId}`,
         selected: contribution.isSelected,
-        status: "done",
+        status: "done" as StateFilter,
         title: contribution.summary,
         type: mapContributionType(contribution.type),
         url: "#",
@@ -300,30 +302,22 @@ export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
               </div>
               <div className="text-xs text-blue-600">In Progress</div>
             </div>
-            <div className="text-center p-3 bg-red-50 rounded-lg">
-              <div className="text-2xl font-bold text-red-700">
-                {contributionsData?.content?.filter((item) => item.status === "blocked").length ||
-                  0}
-              </div>
-              <div className="text-xs text-red-600">Blocked</div>
-            </div>
           </div>
 
           {/* Filters and Actions */}
           <div className="flex flex-wrap gap-2 items-center justify-between">
             <div className="flex gap-2">
-              <Tabs onValueChange={(value) => setFilter(value as any)} value={filter}>
+              <Tabs onValueChange={(value) => setFilter(value as StateFilter)} value={filter}>
                 <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="all">All</TabsTrigger>
                   <TabsTrigger value="done">Done</TabsTrigger>
                   <TabsTrigger value="in-progress">In Progress</TabsTrigger>
-                  <TabsTrigger value="blocked">Blocked</TabsTrigger>
                 </TabsList>
               </Tabs>
 
               <select
                 className="px-3 py-1 border rounded-md text-sm"
-                onChange={(e) => setTypeFilter(e.target.value as any)}
+                onChange={(e) => setTypeFilter(e.target.value as TypeFilter)}
                 value={typeFilter}
               >
                 <option value="all">All Types</option>

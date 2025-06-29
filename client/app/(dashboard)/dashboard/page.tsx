@@ -2,7 +2,7 @@
 
 import { BarChart3, Clock, GitBranch, Loader2, MessageSquare, Search, User } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { SearchModal } from "@/components/search-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ export default function DashboardPage() {
   } = useGitRepoInformation(userId, !!userId);
 
   // Fetch contributions data
-  const { data: contributionsData, isLoading: isContributionsLoading } = useContributions(
+  const { isLoading: isContributionsLoading } = useContributions(
     {
       pageable: {
         page: 0,

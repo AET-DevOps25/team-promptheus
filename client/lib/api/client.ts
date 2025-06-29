@@ -14,7 +14,7 @@ export class ApiError extends Error {
   }
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T> {
   data: T;
   status: number;
   statusText: string;
@@ -24,8 +24,6 @@ export interface ApiResponse<T = any> {
  * Base API client with consistent error handling and response formatting
  */
 class ApiClient {
-  constructor() {}
-
   private async handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -65,7 +63,11 @@ class ApiClient {
     return this.handleResponse<T>(response);
   }
 
-  async post<T>(url: string, body?: any, options?: RequestInit): Promise<ApiResponse<T>> {
+  async post<T>(
+    url: string,
+    body?: Record<string, unknown>,
+    options?: RequestInit,
+  ): Promise<ApiResponse<T>> {
     const response = await fetch(url, {
       body: body ? JSON.stringify(body) : undefined,
       headers: {
@@ -79,7 +81,11 @@ class ApiClient {
     return this.handleResponse<T>(response);
   }
 
-  async patch<T>(url: string, body?: any, options?: RequestInit): Promise<ApiResponse<T>> {
+  async patch<T>(
+    url: string,
+    body?: Record<string, unknown>,
+    options?: RequestInit,
+  ): Promise<ApiResponse<T>> {
     const response = await fetch(url, {
       body: body ? JSON.stringify(body) : undefined,
       headers: {
@@ -93,7 +99,11 @@ class ApiClient {
     return this.handleResponse<T>(response);
   }
 
-  async put<T>(url: string, body?: any, options?: RequestInit): Promise<ApiResponse<T>> {
+  async put<T>(
+    url: string,
+    body?: Record<string, unknown>,
+    options?: RequestInit,
+  ): Promise<ApiResponse<T>> {
     const response = await fetch(url, {
       body: body ? JSON.stringify(body) : undefined,
       headers: {

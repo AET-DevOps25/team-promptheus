@@ -62,7 +62,7 @@ const InputOTPSeparator = React.forwardRef<
   React.ElementRef<"div">,
   React.ComponentPropsWithoutRef<"div">
 >(({ ...props }, ref) => (
-  <div aria-valuenow={0} ref={ref} role="separator" tabIndex={0} {...props}>
+  <div ref={ref} {...props}>
     <Dot />
   </div>
 ));
