@@ -61,13 +61,7 @@ public class GitRepoController {
                     @Content(
                         mediaType = "application/json",
                         schema = @Schema(description = "Error message", nullable = false),
-                        examples = @ExampleObject(
-                            value = """
-                            {
-                              "error": "Invalid personal access token"
-                            }
-                            """
-                        )
+                        examples = @ExampleObject(value = "\"Invalid personal access token\"")
                     ),
                 }
             ),
@@ -84,8 +78,8 @@ public class GitRepoController {
                 examples = @ExampleObject(
                     value = """
                     {
-                      "personalAccessToken": "ghp_1234567890abcdefghijklmnopqrstuvwxyz",
-                      "repoLink": "https://github.com/organization/repository"
+                      "pat": "ghp_1234567890abcdefghijklmnopqrstuvwxyz",
+                      "repolink": "https://github.com/organization/repository"
                     }
                     """
                 )
@@ -119,12 +113,13 @@ public class GitRepoController {
                               "createdAt": "2023-01-15T14:30:45.123Z",
                               "questions": [
                                 {
-                                  "id": "550e8400-e29b-41d4-a716-446655440000",
                                   "question": "How does the authentication system work?",
-                                  "answer": {
-                                    "answer": "The system uses OAuth2 with JWT tokens",
-                                    "createdAt": "2023-01-16T09:15:30.456Z"
-                                  },
+                                  "answers": [
+                                    {
+                                      "answer": "The system uses OAuth2 with JWT tokens",
+                                      "createdAt": "2023-01-16T09:15:30.456Z"
+                                    }
+                                  ],
                                   "createdAt": "2023-01-15T16:45:22.789Z"
                                 }
                               ],
@@ -144,11 +139,7 @@ public class GitRepoController {
                         mediaType = "application/json",
                         schema = @Schema(implementation = String.class, description = "Error message", nullable = false),
                         examples = @ExampleObject(
-                            value = """
-                            {
-                              "error": "Invalid access token"
-                            }
-                            """
+                            value = "\"Invalid access token\""
                         )
                     ),
                 }
@@ -183,11 +174,7 @@ public class GitRepoController {
                             example = "Created Successfully"
                         ),
                         examples = @ExampleObject(
-                            value = """
-                            {
-                              "message": "Created Successfully"
-                            }
-                            """
+                            value = "\"Created Successfull\""
                         )
                     ),
                 }
@@ -199,13 +186,7 @@ public class GitRepoController {
                     @Content(
                         mediaType = "application/json",
                         schema = @Schema(implementation = String.class, description = "Error message", nullable = false),
-                        examples = @ExampleObject(
-                            value = """
-                            {
-                              "error": "Invalid access token"
-                            }
-                            """
-                        )
+                        examples = @ExampleObject(value = "\"Invalid access token\"")
                     ),
                 }
             ),

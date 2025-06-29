@@ -1,40 +1,61 @@
 {
-	"assist": {
-		"actions": {
-			"source": {
-				"organizeImports": "on",
-				"useSortedAttributes": "on",
-				"useSortedKeys": "on"
-			}
-		}
-	},
-	"files": {
-		"includes": [
-			"client/{app,components,hooks,public,lib}/**/*.{tsx,json,yaml,ts,mjs,md}",
-			"client/{app,components,hooks,public,lib}/*.{tsx,json,yaml,ts,mjs,md}",
-			"client/*.{json,yaml,ts,mjs,md}"
-		]
-	},
-	"linter": {
-		"domains": {
-			"react": "recommended"
-		},
-		"rules": {
-			"correctness": {
-				"useExhaustiveDependencies": "off"
-			},
-			"style": {
-				"noParameterAssign": "error",
-				"useAsConstAssertion": "error",
-				"useDefaultParameterLast": "error",
-				"useEnumInitializers": "error",
-				"useSelfClosingElements": "error",
-				"useSingleVarDeclarator": "error",
-				"noUnusedTemplateLiteral": "error",
-				"useNumberNamespace": "error",
-				"noInferrableTypes": "error",
-				"noUselessElse": "error"
-			}
-		}
-	}
+  "$schema": "https://biomejs.dev/schemas/2.0.6/schema.json",
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on",
+        "recommended": true,
+        "useSortedAttributes": "on",
+        "useSortedKeys": "on",
+        "useSortedProperties": "on"
+      }
+    }
+  },
+  "files": {
+    "includes": [
+      "client/{app,components,hooks,public,lib}/**/*.{tsx,ts,mjs}",
+      "client/{app,components,hooks,public,lib}/*.{tsx,ts,mjs}",
+      "client/*.{ts,mjs}",
+      "**/*.{json,jsonc,yaml}",
+      "*.{json,jsonc,yaml}",
+      ".github/workflows/*.yml"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "includes": ["**"],
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 100
+  },
+  "linter": {
+    "domains": {
+      "react": "recommended"
+    },
+    "rules": {
+      "correctness": {
+        "useExhaustiveDependencies": "off"
+      },
+      "style": {
+        "noInferrableTypes": "error",
+        "noParameterAssign": "error",
+        "noUnusedTemplateLiteral": "error",
+        "noUselessElse": "error",
+        "useAsConstAssertion": "error",
+        "useDefaultParameterLast": "error",
+        "useEnumInitializers": "error",
+        "useNumberNamespace": "error",
+        "useSelfClosingElements": "error",
+        "useSingleVarDeclarator": "error"
+      }
+    }
+  },
+  "vcs": {
+    "clientKind": "git",
+    "defaultBranch": "main",
+    "enabled": true,
+    "useIgnoreFile": true
+  }
 }
