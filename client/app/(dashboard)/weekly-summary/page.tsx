@@ -1,11 +1,11 @@
+"use client";
+
 import { Calendar, Clock, Download, FileText, Users } from "lucide-react";
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { WeeklySummaryServer } from "@/components/weekly-summary-server";
-
-// This would normally come from auth/params
-const userId = "current-user";
+import { useUser } from "@/contexts/user-context";
 
 async function RecentSummaries() {
   // Simulate server-side data fetching
@@ -104,6 +104,29 @@ async function QuickActions() {
 }
 
 export default function WeeklySummaryPage() {
+  const { userId } = useUser();
+
+  // Show not authenticated state if no userId
+  if (!userId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full text-center space-y-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Authentication Required</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Please log in to access the weekly summary builder
+            </p>
+          </div>
+          <div className="space-y-4">
+            <Button className="w-full" onClick={() => (window.location.href = "/login")}>
+              Go to Login
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <header className="border-b bg-white">

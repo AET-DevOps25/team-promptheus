@@ -1,18 +1,19 @@
 "use client";
 
-import { Search, Zap } from "lucide-react";
+import { LogOut, Search, User, Zap } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@/contexts/user-context";
 import { SearchModal } from "./search-modal";
 
 export function Header() {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const pathname = usePathname();
-  // todo: get from local storage or context
-  const userId = "abc";
+  const router = useRouter();
+  const { userId, isAuthenticated, clearUser } = useUser();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -25,6 +26,11 @@ export function Header() {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  const handleLogout = () => {
+    clearUser();
+    router.push("/login");
+  };
 
   return (
     <header className="border-b bg-white/80 backdrop-blur-sm">
@@ -74,6 +80,29 @@ export function Header() {
                   Settings
                 </Link>
               </nav>
+
+              {/* User Info and Logout */}
+              <div className="flex items-center gap-2 border-l pl-4">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-slate-600" />
+                  <span className="text-sm text-slate-600">{userId || "Not logged in"}</span>
+                  {!isAuthenticated && (
+                    <span className="text-xs text-slate-600 bg-slate-50 px-2 py-1 rounded">
+                      Anonymous
+                    </span>
+                  )}
+                </div>
+                {isAuthenticated && userId && (
+                  <Button
+                    className="text-slate-600 hover:text-slate-900"
+                    onClick={handleLogout}
+                    size="sm"
+                    variant="ghost"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </div>

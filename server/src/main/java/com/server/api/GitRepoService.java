@@ -68,7 +68,7 @@ public class GitRepoService {
         Link manLinkEntity = linkRepository.save(Link.builder().gitRepositoryId(repoEntity.getId()).isMaintainer(true).build());
 
         // we put the links together in a LinkConstruct and send it
-        return LinkConstruct.builder().developerview(devLinkEntity.getId().toString()).stakeholderview(manLinkEntity.getId().toString()).build();
+        return LinkConstruct.builder().developerview("/login/" + devLinkEntity.getId().toString()).stakeholderview("/login/" + manLinkEntity.getId().toString()).build();
     }
 
     public GitRepoInformationConstruct getRepositoryByAccessID(UUID accessID) {
