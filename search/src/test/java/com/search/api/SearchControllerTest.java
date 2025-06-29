@@ -75,7 +75,7 @@ class SearchControllerTest {
 
         // Mock the service call with correct parameters (all 6 parameters)
         // The controller passes null for sortFields, limit, and offset when not provided
-        when(searchService.search(eq(usercode), eq(query), any(Map.class), isNull(), isNull(), isNull())).thenReturn(mockSearchable);
+        when(searchService.search(eq(query), any(Map.class), isNull(), isNull(), isNull())).thenReturn(mockSearchable);
 
         Counter searches_performed_total = mock(Counter.class);
         when(meterRegistry.counter("searches_performed_total")).thenReturn(searches_performed_total);
@@ -87,7 +87,7 @@ class SearchControllerTest {
             .andExpect(content().json(objectMapper.writeValueAsString(expectedResult)));
 
         // Verify the service was called with correct parameters
-        verify(searchService, times(1)).search(eq(usercode), eq(query), any(Map.class), isNull(), isNull(), isNull());
+        verify(searchService, times(1)).search(eq(query), any(Map.class), isNull(), isNull(), isNull());
     }
 
     @Test
@@ -123,7 +123,7 @@ class SearchControllerTest {
         when(mockSearchable.getProcessingTimeMs()).thenReturn(25);
 
         // Mock the service call with all parameters
-        when(searchService.search(eq(usercode), eq(query), any(Map.class), any(List.class), eq(limit), eq(offset))).thenReturn(mockSearchable);
+        when(searchService.search(eq(query), any(Map.class), any(List.class), eq(limit), eq(offset))).thenReturn(mockSearchable);
 
         Counter searches_performed_total = mock(Counter.class);
         when(meterRegistry.counter("searches_performed_total")).thenReturn(searches_performed_total);
@@ -148,7 +148,7 @@ class SearchControllerTest {
             .andExpect(content().json(objectMapper.writeValueAsString(expectedResult)));
 
         // Verify the service was called with correct parameters
-        verify(searchService, times(1)).search(eq(usercode), eq(query), any(Map.class), any(List.class), eq(limit), eq(offset));
+        verify(searchService, times(1)).search(eq(query), any(Map.class), any(List.class), eq(limit), eq(offset));
         verify(searches_performed_total, times(1)).increment();
     }
 
@@ -210,7 +210,7 @@ class SearchControllerTest {
         when(mockSearchable.getProcessingTimeMs()).thenReturn(30);
 
         // Mock the service call
-        when(searchService.search(eq(usercode), eq(query), any(Map.class), isNull(), isNull(), isNull())).thenReturn(mockSearchable);
+        when(searchService.search(eq(query), any(Map.class), isNull(), isNull(), isNull())).thenReturn(mockSearchable);
 
         Counter searches_performed_total = mock(Counter.class);
         when(meterRegistry.counter("searches_performed_total")).thenReturn(searches_performed_total);
@@ -222,7 +222,7 @@ class SearchControllerTest {
             .andExpect(content().json(objectMapper.writeValueAsString(expectedResult)));
 
         // Verify the service was called
-        verify(searchService, times(1)).search(eq(usercode), eq(query), any(Map.class), isNull(), isNull(), isNull());
+        verify(searchService, times(1)).search(eq(query), any(Map.class), isNull(), isNull(), isNull());
         verify(searches_performed_total, times(1)).increment();
     }
 
@@ -250,7 +250,7 @@ class SearchControllerTest {
         when(mockSearchable.getProcessingTimeMs()).thenReturn(35);
 
         // Mock the service call with sort fields
-        when(searchService.search(eq(usercode), eq(query), any(Map.class), any(List.class), isNull(), isNull())).thenReturn(mockSearchable);
+        when(searchService.search(eq(query), any(Map.class), any(List.class), isNull(), isNull())).thenReturn(mockSearchable);
 
         Counter searches_performed_total = mock(Counter.class);
         when(meterRegistry.counter("searches_performed_total")).thenReturn(searches_performed_total);
@@ -262,7 +262,7 @@ class SearchControllerTest {
             .andExpect(content().json(objectMapper.writeValueAsString(expectedResult)));
 
         // Verify the service was called with sort fields
-        verify(searchService, times(1)).search(eq(usercode), eq(query), any(Map.class), any(List.class), isNull(), isNull());
+        verify(searchService, times(1)).search(eq(query), any(Map.class), any(List.class), isNull(), isNull());
         verify(searches_performed_total, times(1)).increment();
     }
 
@@ -292,7 +292,7 @@ class SearchControllerTest {
         when(mockSearchable.getProcessingTimeMs()).thenReturn(20);
 
         // Mock the service call with pagination
-        when(searchService.search(eq(usercode), eq(query), any(Map.class), isNull(), eq(limit), eq(offset))).thenReturn(mockSearchable);
+        when(searchService.search(eq(query), any(Map.class), isNull(), eq(limit), eq(offset))).thenReturn(mockSearchable);
 
         Counter searches_performed_total = mock(Counter.class);
         when(meterRegistry.counter("searches_performed_total")).thenReturn(searches_performed_total);
@@ -304,7 +304,7 @@ class SearchControllerTest {
             .andExpect(content().json(objectMapper.writeValueAsString(expectedResult)));
 
         // Verify the service was called with pagination parameters
-        verify(searchService, times(1)).search(eq(usercode), eq(query), any(Map.class), isNull(), eq(limit), eq(offset));
+        verify(searchService, times(1)).search(eq(query), any(Map.class), isNull(), eq(limit), eq(offset));
         verify(searches_performed_total, times(1)).increment();
     }
 
@@ -327,7 +327,7 @@ class SearchControllerTest {
         when(mockSearchable.getProcessingTimeMs()).thenReturn(15);
 
         // Mock the service call
-        when(searchService.search(eq(usercode), eq(query), any(Map.class), isNull(), isNull(), isNull())).thenReturn(mockSearchable);
+        when(searchService.search(eq(query), any(Map.class), isNull(), isNull(), isNull())).thenReturn(mockSearchable);
 
         Counter searches_performed_total = mock(Counter.class);
         when(meterRegistry.counter("searches_performed_total")).thenReturn(searches_performed_total);
@@ -358,7 +358,7 @@ class SearchControllerTest {
         when(mockSearchable.getProcessingTimeMs()).thenReturn(5);
 
         // Mock the service call
-        when(searchService.search(eq(usercode), eq(query), any(Map.class), isNull(), isNull(), isNull())).thenReturn(mockSearchable);
+        when(searchService.search(eq(query), any(Map.class), isNull(), isNull(), isNull())).thenReturn(mockSearchable);
 
         Counter searches_performed_total = mock(Counter.class);
         when(meterRegistry.counter("searches_performed_total")).thenReturn(searches_performed_total);
@@ -370,7 +370,7 @@ class SearchControllerTest {
             .andExpect(content().json(objectMapper.writeValueAsString(expectedResult)));
 
         // Verify the service was called and counter incremented
-        verify(searchService, times(1)).search(eq(usercode), eq(query), any(Map.class), isNull(), isNull(), isNull());
+        verify(searchService, times(1)).search(eq(query), any(Map.class), isNull(), isNull(), isNull());
         verify(searches_performed_total, times(1)).increment();
     }
 }
