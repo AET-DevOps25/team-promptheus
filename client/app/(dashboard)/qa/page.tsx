@@ -21,9 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@/contexts/user-context";
 import { useCreateQuestion, useGitRepoInformation } from "@/lib/api/server";
-import type { components } from "@/lib/api/types/server";
 
-type QuestionConstruct = components["schemas"]["QuestionConstruct"];
 type QAItem = {
   id: string;
   question: string;

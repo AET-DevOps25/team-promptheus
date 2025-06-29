@@ -123,7 +123,7 @@ const Carousel = React.forwardRef<
         className={cn("relative", className)}
         onKeyDownCapture={handleKeyDown}
         ref={ref}
-        role="region"
+        as="section"
         {...props}
       >
         {children}
