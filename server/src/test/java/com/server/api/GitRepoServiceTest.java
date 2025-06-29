@@ -72,8 +72,8 @@ class GitRepoServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals(devLinkUuid.toString(), result.developerview());
-        assertEquals(managerLinkUuid.toString(), result.stakeholderview());
+        assertEquals("/login/" + devLinkUuid.toString(), result.developerview());
+        assertEquals("/login/" + managerLinkUuid.toString(), result.stakeholderview());
 
         verify(gitRepoRepository, times(1)).findByRepositoryLink(repoLink);
         verify(gitRepoRepository, times(1)).save(any(GitRepo.class));
@@ -108,8 +108,8 @@ class GitRepoServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals(devLinkUuid.toString(), result.developerview());
-        assertEquals(managerLinkUuid.toString(), result.stakeholderview());
+        assertEquals("/login/" + devLinkUuid.toString(), result.developerview());
+        assertEquals("/login/" + managerLinkUuid.toString(), result.stakeholderview());
 
         verify(gitRepoRepository).findByRepositoryLink(repoLink);
         verify(gitRepoRepository, never()).save(any(GitRepo.class));

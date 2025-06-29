@@ -1,3 +1,5 @@
+"use client";
+
 import { Calendar, Clock, Download, FileText, Users } from "lucide-react";
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
@@ -9,9 +11,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { WeeklySummaryServer } from "@/components/weekly-summary-server";
-
-// This would normally come from auth/params
-const userId = "current-user";
+import { useUser } from "@/hooks/use-user";
 
 async function RecentSummaries() {
 	// Simulate server-side data fetching
@@ -110,6 +110,7 @@ async function QuickActions() {
 }
 
 export default function WeeklySummaryPage() {
+	const { userId } = useUser();
 	return (
 		<>
 			<header className="border-b bg-white">
