@@ -2,7 +2,7 @@
 
 import { Search, Zap, LogOut, User } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { useUser } from "@/contexts/user-context";
 export function Header() {
 	const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 	const pathname = usePathname();
+	const router = useRouter();
 	const { userId, isAuthenticated, clearUser } = useUser();
 
 	useEffect(() => {
@@ -25,6 +26,11 @@ export function Header() {
 		document.addEventListener("keydown", handleKeyDown);
 		return () => document.removeEventListener("keydown", handleKeyDown);
 	}, []);
+
+	const handleLogout = () => {
+		clearUser();
+		router.push("/login");
+	};
 
 	return (
 		<header className="border-b bg-white/80 backdrop-blur-sm">
@@ -95,7 +101,7 @@ export function Header() {
 									<Button
 										variant="ghost"
 										size="sm"
-										onClick={clearUser}
+										onClick={handleLogout}
 										className="text-slate-600 hover:text-slate-900"
 									>
 										<LogOut className="h-4 w-4" />
