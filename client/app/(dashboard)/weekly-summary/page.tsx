@@ -157,9 +157,10 @@ export default function WeeklySummaryPage() {
                     <div className="h-5 w-24 bg-slate-200 rounded animate-pulse" />
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                      <div className="h-9 bg-slate-100 rounded animate-pulse" key={i} />
-                    ))}
+                    <div className="h-9 bg-slate-100 rounded animate-pulse" />
+                    <div className="h-9 bg-slate-100 rounded animate-pulse" />
+                    <div className="h-9 bg-slate-100 rounded animate-pulse" />
+                    <div className="h-9 bg-slate-100 rounded animate-pulse" />
                   </CardContent>
                 </Card>
               }
@@ -203,6 +204,7 @@ export default function WeeklySummaryPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
+                      {/* biome-ignore-start lint/suspicious/noArrayIndexKey: skeletons are static */}
                       {Array.from({ length: 3 }).map((_, i) => (
                         <div className="flex items-center gap-3 p-2 border rounded" key={i}>
                           <div className="h-8 w-8 bg-slate-200 rounded animate-pulse" />
@@ -212,6 +214,7 @@ export default function WeeklySummaryPage() {
                           </div>
                         </div>
                       ))}
+                      {/* biome-ignore-end lint/suspicious/noArrayIndexKey: skeletons are static */}
                     </div>
                   </CardContent>
                 </Card>

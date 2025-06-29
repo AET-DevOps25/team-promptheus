@@ -337,10 +337,10 @@ export default function DashboardPage() {
                     </div>
                   ) : hasRepoData && repoData?.questions && repoData.questions.length > 0 ? (
                     <>
-                      {repoData.questions.slice(0, 3).map((qa, index) => (
+                      {repoData.questions.slice(0, 3).map((qa) => (
                         <div
                           className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg"
-                          key={index}
+                          key={qa.createdAt + qa.question}
                         >
                           <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
                             <User className="h-3 w-3 text-blue-600" />
@@ -403,8 +403,8 @@ export default function DashboardPage() {
                   </div>
                 ) : hasRepoData && repoData?.summaries && repoData.summaries.length > 0 ? (
                   <div className="space-y-4">
-                    {repoData.summaries.slice(0, 3).map((summary, index) => (
-                      <div className="flex items-start gap-3" key={index}>
+                    {repoData.summaries.slice(0, 3).map((summary) => (
+                      <div className="flex items-start gap-3" key={summary.id}>
                         <Badge variant="secondary">Summary</Badge>
                         <div>
                           <p className="font-medium">Repository Analysis</p>
@@ -438,34 +438,7 @@ export default function DashboardPage() {
 
           {/* Right Column - Weekly Summary */}
           <div>
-            <Suspense
-              fallback={
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      <div className="h-6 w-48 bg-slate-200 rounded animate-pulse" />
-                    </div>
-                    <div className="h-4 w-80 bg-slate-100 rounded animate-pulse" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {Array.from({ length: 4 }).map((_, i) => (
-                          <div className="text-center p-3 bg-slate-50 rounded-lg" key={i}>
-                            <div className="h-8 w-12 mx-auto mb-2 bg-slate-200 rounded animate-pulse" />
-                            <div className="h-3 w-16 mx-auto bg-slate-100 rounded animate-pulse" />
-                          </div>
-                        ))}
-                      </div>
-                      <div className="h-96 bg-slate-50 rounded-lg animate-pulse" />
-                    </div>
-                  </CardContent>
-                </Card>
-              }
-            >
-              <WeeklySummaryServer userId={userId} />
-            </Suspense>
+            <WeeklySummaryServer userId={userId} />
           </div>
         </div>
       </main>
