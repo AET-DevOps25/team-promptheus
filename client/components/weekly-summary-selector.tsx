@@ -55,7 +55,7 @@ const typeIcons = {
   issue: AlertCircle,
   pr: GitPullRequest,
   qa: MessageSquare,
-};
+} as const;
 
 const typeLabels = {
   comment: "Comment",
@@ -63,13 +63,13 @@ const typeLabels = {
   issue: "Issue",
   pr: "Pull Request",
   qa: "Q&A",
-};
+} as const;
 
 const statusColors = {
   blocked: "bg-red-100 text-red-800",
   done: "bg-green-100 text-green-800",
   "in-progress": "bg-blue-100 text-blue-800",
-};
+} as const;
 
 export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
