@@ -27,13 +27,22 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import {
-	useCreateQA,
-	useQAItems,
-	useUpdateQAStatus,
-	useVoteQA,
-} from "@/lib/api";
-import type { QAItem } from "@/lib/api/types";
+import { useCreateQuestion, useGitRepoInformation } from "@/lib/api/server";
+import { useUser } from "@/contexts/user-context";
+import type { components } from "@/lib/api/types/server";
+
+type QuestionConstruct = components["schemas"]["QuestionConstruct"];
+type QAItem = {
+	id: string;
+	question: string;
+	answer: string;
+	author: string;
+	timestamp: string;
+	status: "pending" | "approved" | "rejected";
+	upvotes: number;
+	downvotes: number;
+	repositories: string[];
+};
 
 export default function QAPage() {
 	const [question, setQuestion] = useState("");
@@ -42,19 +51,31 @@ export default function QAPage() {
 		"all" | "pending" | "approved" | "rejected"
 	>("all");
 
-	// TanStack Query hooks
-	const { data: qaResponse, isLoading: isLoadingItems, error } = useQAItems();
-	const createQAMutation = useCreateQA();
-	const updateStatusMutation = useUpdateQAStatus();
-	const voteMutation = useVoteQA();
+	// Get user context for usercode
+	const { userId } = useUser();
 
-	const qaItems = qaResponse?.items || [];
+	// TanStack Query hooks
+	const { data: repoData, isLoading: isLoadingItems, error } = useGitRepoInformation(userId || "", !!userId);
+	const createQuestionMutation = useCreateQuestion(userId || "");
+
+	// Transform questions from GitRepoInformation to QAItem format
+	const qaItems: QAItem[] = repoData?.questions?.map((q, index) => ({
+		id: `q-${index}`,
+		question: q.question,
+		answer: q.answers?.[0]?.answer || "No answer yet",
+		author: "User",
+		timestamp: q.createdAt,
+		status: "approved" as const,
+		upvotes: 0,
+		downvotes: 0,
+		repositories: [repoData.repoLink.split('/').slice(-2).join('/')]
+	})) || [];
 
 	const handleSubmitQuestion = async () => {
-		if (!question.trim()) return;
+		if (!question.trim() || !userId) return;
 
 		try {
-			await createQAMutation.mutateAsync({
+			await createQuestionMutation.mutateAsync({
 				question: question.trim(),
 			});
 			setQuestion("");
@@ -67,19 +88,13 @@ export default function QAPage() {
 		id: string,
 		status: "approved" | "rejected",
 	) => {
-		try {
-			await updateStatusMutation.mutateAsync({ id, status });
-		} catch (error) {
-			console.error("Failed to update status:", error);
-		}
+		// Status updates not supported with GitRepoInformation
+		console.log("Status update not supported in this mode");
 	};
 
 	const handleVote = async (id: string, type: "up" | "down") => {
-		try {
-			await voteMutation.mutateAsync({ id, type });
-		} catch (error) {
-			console.error("Failed to vote:", error);
-		}
+		// Voting not supported with GitRepoInformation
+		console.log("Voting not supported in this mode");
 	};
 
 	const toggleReportSelection = (id: string) => {
@@ -161,10 +176,10 @@ export default function QAPage() {
 											answers
 										</p>
 										<Button
-											disabled={createQAMutation.isPending || !question.trim()}
+											disabled={createQuestionMutation.isPending || !question.trim() || !userId}
 											onClick={handleSubmitQuestion}
 										>
-											{createQAMutation.isPending ? (
+											{createQuestionMutation.isPending ? (
 												<>
 													<Loader2 className="h-4 w-4 animate-spin mr-2" />
 													Analyzing...
@@ -304,20 +319,16 @@ export default function QAPage() {
 												<div className="flex items-center gap-4">
 													<div className="flex items-center space-x-2">
 														<Button
-															disabled={voteMutation.isPending}
+															disabled={true}
 															onClick={() => handleVote(item.id, "up")}
 															size="sm"
 															variant="ghost"
 														>
-															{voteMutation.isPending ? (
-																<Loader2 className="mr-1 h-3 w-3 animate-spin" />
-															) : (
-																<ThumbsUp className="mr-1 h-3 w-3" />
-															)}
+															<ThumbsUp className="mr-1 h-3 w-3" />
 															{item.upvotes}
 														</Button>
 														<Button
-															disabled={voteMutation.isPending}
+															disabled={true}
 															onClick={() => handleVote(item.id, "down")}
 															size="sm"
 															variant="ghost"
@@ -331,42 +342,7 @@ export default function QAPage() {
 														</Button>
 													</div>
 
-													{item.status === "pending" && (
-														<div className="flex gap-2">
-															<Button
-																className="h-8"
-																disabled={updateStatusMutation.isPending}
-																onClick={() =>
-																	handleStatusUpdate(item.id, "approved")
-																}
-																size="sm"
-																variant="outline"
-															>
-																{updateStatusMutation.isPending ? (
-																	<Loader2 className="h-3 w-3 mr-1 animate-spin" />
-																) : (
-																	<CheckCircle className="h-3 w-3 mr-1" />
-																)}
-																Approve
-															</Button>
-															<Button
-																className="h-8"
-																disabled={updateStatusMutation.isPending}
-																onClick={() =>
-																	handleStatusUpdate(item.id, "rejected")
-																}
-																size="sm"
-																variant="outline"
-															>
-																{updateStatusMutation.isPending ? (
-																	<Loader2 className="h-3 w-3 mr-1 animate-spin" />
-																) : (
-																	<XCircle className="h-3 w-3 mr-1" />
-																)}
-																Reject
-															</Button>
-														</div>
-													)}
+													{/* Status update buttons disabled for GitRepoInformation mode */}
 												</div>
 
 												{item.status === "approved" && (
