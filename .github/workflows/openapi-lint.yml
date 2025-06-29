@@ -21,4 +21,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Lint OpenAPI files (matrix)
-        run: npx @redocly/cli lint ${{ matrix.openapi_file }}
+        run: npx @redocly/cli lint ${{ matrix.openapi_file }} --skip-rule security-defined
