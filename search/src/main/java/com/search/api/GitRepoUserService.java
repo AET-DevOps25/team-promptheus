@@ -28,17 +28,16 @@ public class GitRepoUserService {
     this.linkRepository = linkRepository;
   }
 
-  public void ensureAccessRepositoryOrThrow(UUID accessID, String repository) {
+  public String getRepositoryLinkForAccessCodeOrThrow(UUID accessID) {
     Optional<Link> link = linkRepository.findById(accessID);
     if (!link.isPresent()) {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No such link exists");
     }
-    Optional<GitRepo> repo = gitRepoRepository.findByRepositoryLink(repository);
-    if (!repo.isPresent()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Repository not found");
+    Long gitRepositoryId = link.get().getGitRepositoryId();
+    Optional<GitRepo> gitRepo = gitRepoRepository.findById(gitRepositoryId);
+    if (!gitRepo.isPresent()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such repository exists");
     }
-    if (link.get().getGitRepositoryId() != repo.get().getId()) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
-    }
+    return gitRepo.get().getRepositoryLink();
   }
 }

@@ -48,7 +48,7 @@ class SearchControllerTest {
     UUID usercode = UUID.randomUUID();
     String query = "test query";
     // Mock repository access
-    doNothing().when(gitRepoUserService).ensureAccessRepositoryOrThrow(eq(usercode), any(String.class));
+    when(gitRepoUserService.getRepositoryLinkForAccessCodeOrThrow(eq(usercode))).thenReturn("test-repo");
 
     // Create mock search hits with test data
     ArrayList<HashMap<String, Object>> mockHits = new ArrayList<>();
@@ -87,13 +87,13 @@ class SearchControllerTest {
 
     // Act & Assert
     mockMvc
-      .perform(get("/api/search/{usercode}", usercode).param("query", query).param("repository", "test-repo"))
+      .perform(get("/api/search/{usercode}", usercode).param("query", query))
       .andExpect(status().isOk())
       .andExpect(content().json(objectMapper.writeValueAsString(expectedResult)));
 
     // Verify the service was called with correct parameters
     verify(searchService, times(1)).search(eq(query), any(Map.class), isNull(), isNull(), isNull());
-    verify(gitRepoUserService, times(1)).ensureAccessRepositoryOrThrow(eq(usercode), any(String.class));
+    verify(gitRepoUserService, times(1)).getRepositoryLinkForAccessCodeOrThrow(eq(usercode));
   }
 
   @Test
@@ -112,7 +112,7 @@ class SearchControllerTest {
     Integer limit = 10;
     Integer offset = 0;
     // Mock repository access
-    doNothing().when(gitRepoUserService).ensureAccessRepositoryOrThrow(eq(usercode), any(String.class));
+    when(gitRepoUserService.getRepositoryLinkForAccessCodeOrThrow(eq(usercode))).thenReturn(repository);
 
     // Create mock search hits
     ArrayList<HashMap<String, Object>> mockHits = new ArrayList<>();
@@ -158,7 +158,7 @@ class SearchControllerTest {
     // Verify the service was called with correct parameters
     verify(searchService, times(1)).search(eq(query), any(Map.class), any(List.class), eq(limit), eq(offset));
     verify(searches_performed_total, times(1)).increment();
-    verify(gitRepoUserService, times(1)).ensureAccessRepositoryOrThrow(eq(usercode), any(String.class));
+    verify(gitRepoUserService, times(1)).getRepositoryLinkForAccessCodeOrThrow(eq(usercode));
   }
 
   @Test
@@ -166,7 +166,7 @@ class SearchControllerTest {
     // Arrange
     UUID usercode = UUID.randomUUID();
     // Mock repository access
-    doNothing().when(gitRepoUserService).ensureAccessRepositoryOrThrow(eq(usercode), any(String.class));
+    when(gitRepoUserService.getRepositoryLinkForAccessCodeOrThrow(eq(usercode))).thenReturn("test-repo");
 
     // Act & Assert
     mockMvc.perform(get("/api/search/{usercode}", usercode).param("query", "")).andExpect(status().isBadRequest());
@@ -189,7 +189,7 @@ class SearchControllerTest {
     // Arrange
     UUID usercode = UUID.randomUUID();
     // Mock repository access
-    doNothing().when(gitRepoUserService).ensureAccessRepositoryOrThrow(eq(usercode), any(String.class));
+    when(gitRepoUserService.getRepositoryLinkForAccessCodeOrThrow(eq(usercode))).thenReturn("test-repo");
 
     // Act & Assert
     mockMvc.perform(get("/api/search/{usercode}", usercode)).andExpect(status().isBadRequest());
@@ -206,7 +206,7 @@ class SearchControllerTest {
     String repository = "specific-repo";
     Boolean isSelected = false;
     // Mock repository access
-    doNothing().when(gitRepoUserService).ensureAccessRepositoryOrThrow(eq(usercode), any(String.class));
+    when(gitRepoUserService.getRepositoryLinkForAccessCodeOrThrow(eq(usercode))).thenReturn(repository);
 
     // Create mock search hits
     ArrayList<HashMap<String, Object>> mockHits = new ArrayList<>();
@@ -239,7 +239,7 @@ class SearchControllerTest {
     // Verify the service was called
     verify(searchService, times(1)).search(eq(query), any(Map.class), isNull(), isNull(), isNull());
     verify(searches_performed_total, times(1)).increment();
-    verify(gitRepoUserService, times(1)).ensureAccessRepositoryOrThrow(eq(usercode), any(String.class));
+    verify(gitRepoUserService, times(1)).getRepositoryLinkForAccessCodeOrThrow(eq(usercode));
   }
 
   @Test
@@ -249,7 +249,7 @@ class SearchControllerTest {
     String query = "sorted search";
     String sort = "-created_at_timestamp";
     // Mock repository access
-    doNothing().when(gitRepoUserService).ensureAccessRepositoryOrThrow(eq(usercode), any(String.class));
+    when(gitRepoUserService.getRepositoryLinkForAccessCodeOrThrow(eq(usercode))).thenReturn("test-repo");
 
     // Create mock search hits
     ArrayList<HashMap<String, Object>> mockHits = new ArrayList<>();
@@ -275,14 +275,14 @@ class SearchControllerTest {
 
     // Act & Assert
     mockMvc
-      .perform(get("/api/search/{usercode}", usercode).param("query", query).param("sort", sort).param("repository", "test-repo"))
+      .perform(get("/api/search/{usercode}", usercode).param("query", query).param("sort", sort))
       .andExpect(status().isOk())
       .andExpect(content().json(objectMapper.writeValueAsString(expectedResult)));
 
     // Verify the service was called with sort fields
     verify(searchService, times(1)).search(eq(query), any(Map.class), any(List.class), isNull(), isNull());
     verify(searches_performed_total, times(1)).increment();
-    verify(gitRepoUserService, times(1)).ensureAccessRepositoryOrThrow(eq(usercode), any(String.class));
+    verify(gitRepoUserService, times(1)).getRepositoryLinkForAccessCodeOrThrow(eq(usercode));
   }
 
   @Test
@@ -293,7 +293,7 @@ class SearchControllerTest {
     Integer limit = 5;
     Integer offset = 10;
     // Mock repository access
-    doNothing().when(gitRepoUserService).ensureAccessRepositoryOrThrow(eq(usercode), any(String.class));
+    when(gitRepoUserService.getRepositoryLinkForAccessCodeOrThrow(eq(usercode))).thenReturn("test-repo");
 
     // Create mock search hits
     ArrayList<HashMap<String, Object>> mockHits = new ArrayList<>();
@@ -320,20 +320,14 @@ class SearchControllerTest {
 
     // Act & Assert
     mockMvc
-      .perform(
-        get("/api/search/{usercode}", usercode)
-          .param("query", query)
-          .param("limit", limit.toString())
-          .param("offset", offset.toString())
-          .param("repository", "test-repo")
-      )
+      .perform(get("/api/search/{usercode}", usercode).param("query", query).param("limit", limit.toString()).param("offset", offset.toString()))
       .andExpect(status().isOk())
       .andExpect(content().json(objectMapper.writeValueAsString(expectedResult)));
 
     // Verify the service was called with pagination parameters
     verify(searchService, times(1)).search(eq(query), any(Map.class), isNull(), eq(limit), eq(offset));
     verify(searches_performed_total, times(1)).increment();
-    verify(gitRepoUserService, times(1)).ensureAccessRepositoryOrThrow(eq(usercode), any(String.class));
+    verify(gitRepoUserService, times(1)).getRepositoryLinkForAccessCodeOrThrow(eq(usercode));
   }
 
   @Test
@@ -342,7 +336,7 @@ class SearchControllerTest {
     UUID usercode = UUID.randomUUID();
     String query = "metrics test";
     // Mock repository access
-    doNothing().when(gitRepoUserService).ensureAccessRepositoryOrThrow(eq(usercode), any(String.class));
+    when(gitRepoUserService.getRepositoryLinkForAccessCodeOrThrow(eq(usercode))).thenReturn("test-repo");
 
     // Create mock search hits
     ArrayList<HashMap<String, Object>> mockHits = new ArrayList<>();
@@ -363,12 +357,12 @@ class SearchControllerTest {
     when(meterRegistry.counter("searches_performed_total")).thenReturn(searches_performed_total);
 
     // Act
-    mockMvc.perform(get("/api/search/{usercode}", usercode).param("query", query).param("repository", "test-repo")).andExpect(status().isOk());
+    mockMvc.perform(get("/api/search/{usercode}", usercode).param("query", query)).andExpect(status().isOk());
 
     // Assert - Verify metrics counter is called correctly
     verify(meterRegistry, times(1)).counter("searches_performed_total");
     verify(searches_performed_total, times(1)).increment();
-    verify(gitRepoUserService, times(1)).ensureAccessRepositoryOrThrow(eq(usercode), any(String.class));
+    verify(gitRepoUserService, times(1)).getRepositoryLinkForAccessCodeOrThrow(eq(usercode));
   }
 
   @Test
@@ -377,7 +371,7 @@ class SearchControllerTest {
     UUID usercode = UUID.randomUUID();
     String query = "no results query";
     // Mock repository access
-    doNothing().when(gitRepoUserService).ensureAccessRepositoryOrThrow(eq(usercode), any(String.class));
+    when(gitRepoUserService.getRepositoryLinkForAccessCodeOrThrow(eq(usercode))).thenReturn("test-repo");
 
     // Create empty mock search hits
     ArrayList<HashMap<String, Object>> emptyHits = new ArrayList<>();
@@ -398,13 +392,13 @@ class SearchControllerTest {
 
     // Act & Assert
     mockMvc
-      .perform(get("/api/search/{usercode}", usercode).param("query", query).param("repository", "test-repo"))
+      .perform(get("/api/search/{usercode}", usercode).param("query", query))
       .andExpect(status().isOk())
       .andExpect(content().json(objectMapper.writeValueAsString(expectedResult)));
 
     // Verify the service was called and counter incremented
     verify(searchService, times(1)).search(eq(query), any(Map.class), isNull(), isNull(), isNull());
     verify(searches_performed_total, times(1)).increment();
-    verify(gitRepoUserService, times(1)).ensureAccessRepositoryOrThrow(eq(usercode), any(String.class));
+    verify(gitRepoUserService, times(1)).getRepositoryLinkForAccessCodeOrThrow(eq(usercode));
   }
 }
