@@ -1,7 +1,8 @@
 package de.promptheus.summary;
 
+import de.promptheus.summary.client.ContributionClient;
 import de.promptheus.summary.client.GenAiClient;
-import de.promptheus.summary.genai.model.SummaryResponse;
+import de.promptheus.summary.contribution.model.ContributionDto;
 import de.promptheus.summary.persistence.Summary;
 import de.promptheus.summary.persistence.SummaryRepository;
 import de.promptheus.summary.service.SummaryService;
@@ -24,6 +25,9 @@ class SummaryServiceTest {
 
     @Mock
     private GenAiClient genAiClient;
+
+    @Mock
+    private ContributionClient contributionClient;
 
     @Mock
     private SummaryRepository summaryRepository;
@@ -53,8 +57,19 @@ class SummaryServiceTest {
 
     @Test
     void testGenerateWeeklySummaries() {
+        // Setup mocks
         when(summaryRepository.findDistinctUsernames()).thenReturn(Collections.singletonList("testuser"));
-        when(genAiClient.generateSummary(any(), any(), any())).thenReturn(Mono.just(new SummaryResponse()));
+        when(summaryRepository.findByUsernameAndWeek(any(), any())).thenReturn(Collections.emptyList());
+
+        // Mock contribution with isSelected = true
+        ContributionDto contribution = new ContributionDto();
+        contribution.setId("1");
+        contribution.setIsSelected(true);
+        contribution.setType("commit");
+        when(contributionClient.getContributionsForUserAndWeek(any(), any()))
+                .thenReturn(Mono.just(Collections.singletonList(contribution)));
+
+        when(genAiClient.generateSummaryAsync(any(), any(), any(), any())).thenReturn(Mono.just("Test summary"));
 
         summaryService.generateWeeklySummaries();
 

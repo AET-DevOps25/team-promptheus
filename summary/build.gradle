@@ -35,8 +35,6 @@ dependencies {
 	implementation 'javax.annotation:javax.annotation-api:1.3.2'
 
 	runtimeOnly 'org.postgresql:postgresql'
-	implementation 'org.flywaydb:flyway-core:10.18.2'
-	implementation 'org.flywaydb:flyway-database-postgresql:10.18.2'
 
 	// tests
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -68,7 +66,6 @@ openApiGenerate {
     outputDir = "$buildDir/generated"
     apiPackage = "de.promptheus.summary.genai.api"
     modelPackage = "de.promptheus.summary.genai.model"
-    validateSpec = false
     configOptions = [
         "library": "webclient",
         "useSpringBoot3": "true",
@@ -85,11 +82,10 @@ openApiGenerate {
 // Generate Contribution client
 task openApiGenerateContrib(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
     generatorName = "java"
-    inputSpec = "$projectDir/contribution.json"
+    inputSpec = file("$projectDir/contribution.json").exists() ? "$projectDir/contribution.json" : "$projectDir/../contribution/openapi.json"
     outputDir = "$buildDir/generated-contrib"
     apiPackage = "de.promptheus.summary.contribution.api"
     modelPackage = "de.promptheus.summary.contribution.model"
-    validateSpec = false
     configOptions = [
         "library": "webclient",
         "useSpringBoot3": "true",
