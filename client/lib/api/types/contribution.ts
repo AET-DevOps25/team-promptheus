@@ -128,8 +128,8 @@ export type components = {
         };
         readonly SortObject: {
             readonly empty?: boolean;
-            readonly sorted?: boolean;
             readonly unsorted?: boolean;
+            readonly sorted?: boolean;
         };
         readonly PageContributionDto: {
             /** Format: int64 */
