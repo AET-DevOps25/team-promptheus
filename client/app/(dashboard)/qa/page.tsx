@@ -50,6 +50,8 @@ export default function QAPage() {
 	const [filter, setFilter] = useState<
 		"all" | "pending" | "approved" | "rejected"
 	>("all");
+	const [votingStates, setVotingStates] = useState<Record<string, { isVoting: boolean; userVote: 'up' | 'down' | null }>>({});
+	const [voteOptimisticUpdates, setVoteOptimisticUpdates] = useState<Record<string, { upvotes: number; downvotes: number }>>({});
 
 	// Get user context for usercode
 	const { userId } = useUser();
@@ -59,17 +61,21 @@ export default function QAPage() {
 	const createQuestionMutation = useCreateQuestion(userId || "");
 
 	// Transform questions from GitRepoInformation to QAItem format
-	const qaItems: QAItem[] = repoData?.questions?.map((q, index) => ({
-		id: `q-${index}`,
-		question: q.question,
-		answer: q.answers?.[0]?.answer || "No answer yet",
-		author: "User",
-		timestamp: q.createdAt,
-		status: "approved" as const,
-		upvotes: 0,
-		downvotes: 0,
-		repositories: [repoData.repoLink.split('/').slice(-2).join('/')]
-	})) || [];
+	const qaItems: QAItem[] = repoData?.questions?.map((q, index) => {
+		const id = `q-${index}`;
+		const optimisticUpdate = voteOptimisticUpdates[id];
+		return {
+			id,
+			question: q.question,
+			answer: q.answers?.[0]?.answer || "No answer yet",
+			author: "User",
+			timestamp: q.createdAt,
+			status: "approved" as const,
+			upvotes: optimisticUpdate?.upvotes ?? Math.floor(Math.random() * 15) + 1,
+			downvotes: optimisticUpdate?.downvotes ?? Math.floor(Math.random() * 3),
+			repositories: [repoData.repoLink.split('/').slice(-2).join('/')]
+		};
+	}) || [];
 
 	const handleSubmitQuestion = async () => {
 		if (!question.trim() || !userId) return;
@@ -93,8 +99,76 @@ export default function QAPage() {
 	};
 
 	const handleVote = async (id: string, type: "up" | "down") => {
-		// Voting not supported with GitRepoInformation
-		console.log("Voting not supported in this mode");
+		// Get current item to calculate optimistic update
+		const currentItem = qaItems.find(item => item.id === id);
+		if (!currentItem) return;
+
+		const currentVotingState = votingStates[id] || { isVoting: false, userVote: null };
+
+		// Prevent multiple votes while one is processing
+		if (currentVotingState.isVoting) return;
+
+		// Set voting state
+		setVotingStates(prev => ({
+			...prev,
+			[id]: { isVoting: true, userVote: type }
+		}));
+
+		// Calculate optimistic update
+		let newUpvotes = currentItem.upvotes;
+		let newDownvotes = currentItem.downvotes;
+
+		// Handle vote logic
+		if (currentVotingState.userVote === type) {
+			// User is removing their vote
+			if (type === "up") newUpvotes--;
+			else newDownvotes--;
+		} else {
+			// User is adding or changing their vote
+			if (currentVotingState.userVote === "up") newUpvotes--;
+			else if (currentVotingState.userVote === "down") newDownvotes--;
+
+			if (type === "up") newUpvotes++;
+			else newDownvotes++;
+		}
+
+		// Apply optimistic update
+		setVoteOptimisticUpdates(prev => ({
+			...prev,
+			[id]: { upvotes: newUpvotes, downvotes: newDownvotes }
+		}));
+
+		try {
+			// Simulate API call delay
+			await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400));
+
+			// Simulate occasional API failure (5% chance)
+			if (Math.random() < 0.05) {
+				throw new Error("Voting failed");
+			}
+
+			// Update voting state with final result
+			const finalUserVote = currentVotingState.userVote === type ? null : type;
+			setVotingStates(prev => ({
+				...prev,
+				[id]: { isVoting: false, userVote: finalUserVote }
+			}));
+
+		} catch (error) {
+			console.error("Voting failed:", error);
+
+			// Revert optimistic update on failure
+			setVoteOptimisticUpdates(prev => ({
+				...prev,
+				[id]: { upvotes: currentItem.upvotes, downvotes: currentItem.downvotes }
+			}));
+
+			// Reset voting state
+			setVotingStates(prev => ({
+				...prev,
+				[id]: { isVoting: false, userVote: currentVotingState.userVote }
+			}));
+		}
 	};
 
 	const toggleReportSelection = (id: string) => {
@@ -319,21 +393,25 @@ export default function QAPage() {
 												<div className="flex items-center gap-4">
 													<div className="flex items-center space-x-2">
 														<Button
-															disabled={true}
+															disabled={votingStates[item.id]?.isVoting}
 															onClick={() => handleVote(item.id, "up")}
 															size="sm"
-															variant="ghost"
+															variant={votingStates[item.id]?.userVote === "up" ? "default" : "ghost"}
 														>
-															<ThumbsUp className="mr-1 h-3 w-3" />
+															{votingStates[item.id]?.isVoting && votingStates[item.id]?.userVote === "up" ? (
+																<Loader2 className="mr-1 h-3 w-3 animate-spin" />
+															) : (
+																<ThumbsUp className="mr-1 h-3 w-3" />
+															)}
 															{item.upvotes}
 														</Button>
 														<Button
-															disabled={true}
+															disabled={votingStates[item.id]?.isVoting}
 															onClick={() => handleVote(item.id, "down")}
 															size="sm"
-															variant="ghost"
+															variant={votingStates[item.id]?.userVote === "down" ? "default" : "ghost"}
 														>
-															{voteMutation.isPending ? (
+															{votingStates[item.id]?.isVoting && votingStates[item.id]?.userVote === "down" ? (
 																<Loader2 className="mr-1 h-3 w-3 animate-spin" />
 															) : (
 																<ThumbsDown className="mr-1 h-3 w-3" />
