@@ -44,13 +44,5 @@ public interface ContributionRepository extends JpaRepository<Contribution, Stri
 
     Page<Contribution> findByUsernameAndCreatedAtBetween(String username, Instant startDate, Instant endDate, Pageable pageable);
 
-    @Query("SELECT c FROM Contribution c WHERE " +
-           "(:username IS NULL OR c.username = :username) AND " +
-           "(:startDate IS NULL OR c.createdAt >= :startDate) AND " +
-           "(:endDate IS NULL OR c.createdAt <= :endDate)")
-    Page<Contribution> findWithFilters(
-            @Param("username") String username,
-            @Param("startDate") Instant startDate,
-            @Param("endDate") Instant endDate,
-            Pageable pageable);
+
 }

@@ -33,8 +33,22 @@ public class ContributionService {
         log.debug("Fetching contributions with filters - contributor: {}, startDate: {}, endDate: {}, pagination: {}",
                 contributor, startDate, endDate, pageable);
 
-        // Use the flexible query method that handles null parameters
-        Page<Contribution> contributions = contributionRepository.findWithFilters(contributor, startDate, endDate, pageable);
+        Page<Contribution> contributions;
+
+        // Use specific repository methods based on which filters are provided
+        if (contributor != null && startDate != null && endDate != null) {
+            // All filters provided
+            contributions = contributionRepository.findByUsernameAndCreatedAtBetween(contributor, startDate, endDate, pageable);
+        } else if (contributor != null) {
+            // Only contributor filter
+            contributions = contributionRepository.findByUsername(contributor, pageable);
+        } else if (startDate != null && endDate != null) {
+            // Only date range filter
+            contributions = contributionRepository.findByCreatedAtBetween(startDate, endDate, pageable);
+        } else {
+            // No filters - return all
+            contributions = contributionRepository.findAll(pageable);
+        }
 
         log.debug("Found {} contributions matching filters", contributions.getTotalElements());
 

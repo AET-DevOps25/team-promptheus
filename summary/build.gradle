@@ -1,0 +1,132 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.3'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id "org.openapi.generator" version "7.14.0"
+}
+
+group = 'de.promptheus.summary'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
+	implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+	implementation 'javax.annotation:javax.annotation-api:1.3.2'
+
+	runtimeOnly 'org.postgresql:postgresql'
+	implementation 'org.flywaydb:flyway-core:10.18.2'
+	implementation 'org.flywaydb:flyway-database-postgresql:10.18.2'
+
+	// tests
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.testcontainers:testcontainers:1.21.2'
+	testImplementation 'org.testcontainers:postgresql:1.21.2'
+	testImplementation 'org.testcontainers:junit-jupiter:1.21.2'
+	testImplementation 'org.junit.jupiter:junit-jupiter-api'
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'org.mockito:mockito-core'
+
+	// observability
+	implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation platform('io.micrometer:micrometer-bom:1.15.0')
+	implementation 'io.micrometer:micrometer-tracing'
+	implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+	implementation 'io.micrometer:micrometer-registry-otlp'
+	// lombok => less weird setter/getters
+	compileOnly("org.projectlombok:lombok:1.18.38")
+	annotationProcessor("org.projectlombok:lombok:1.18.38")
+	testCompileOnly("org.projectlombok:lombok:1.18.38")
+	testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
+}
+
+openApiGenerate {
+    generatorName = "java"
+    inputSpec = file("$projectDir/genai.json").exists() ? "$projectDir/genai.json" : "$projectDir/../genai/openapi.json"
+    outputDir = "$buildDir/generated"
+    apiPackage = "de.promptheus.summary.genai.api"
+    modelPackage = "de.promptheus.summary.genai.model"
+    validateSpec = false
+    configOptions = [
+        "library": "webclient",
+        "useSpringBoot3": "true",
+        "openApiNullable": "false",
+        "useJakartaEe": "true",
+        "generateApiTests": "true",
+        "generateModelTests": "true",
+        "generateSupportingFiles": "true",
+        "generateApiDocumentation": "false",
+        "generateModelDocumentation": "false"
+    ]
+}
+
+// Generate Contribution client
+task openApiGenerateContrib(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+    generatorName = "java"
+    inputSpec = "$projectDir/contribution.json"
+    outputDir = "$buildDir/generated-contrib"
+    apiPackage = "de.promptheus.summary.contribution.api"
+    modelPackage = "de.promptheus.summary.contribution.model"
+    validateSpec = false
+    configOptions = [
+        "library": "webclient",
+        "useSpringBoot3": "true",
+        "openApiNullable": "false",
+        "useJakartaEe": "true",
+        "generateApiTests": "true",
+        "generateModelTests": "true",
+        "generateSupportingFiles": "true",
+        "generateApiDocumentation": "false",
+        "generateModelDocumentation": "false"
+    ]
+}
+
+tasks.named('compileJava') {
+    dependsOn 'openApiGenerate', 'openApiGenerateContrib'
+}
+
+tasks.named('compileTestJava') {
+    dependsOn 'openApiGenerate', 'openApiGenerateContrib'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+    dependsOn 'openApiGenerate', 'openApiGenerateContrib'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir "$buildDir/generated/src/main/java"
+            srcDir "$buildDir/generated-contrib/src/main/java"
+        }
+    }
+    test {
+        java {
+            srcDir "$buildDir/generated/src/test/java"
+            srcDir "$buildDir/generated-contrib/src/test/java"
+        }
+    }
+}

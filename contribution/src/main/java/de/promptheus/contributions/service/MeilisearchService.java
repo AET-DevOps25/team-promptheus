@@ -6,9 +6,6 @@ import com.meilisearch.sdk.Client;
 import com.meilisearch.sdk.Config;
 import com.meilisearch.sdk.Index;
 import com.meilisearch.sdk.exceptions.MeilisearchException;
-import com.meilisearch.sdk.model.Embedder;
-import com.meilisearch.sdk.model.EmbedderSource;
-import com.meilisearch.sdk.model.Settings;
 import com.meilisearch.sdk.model.TaskInfo;
 import de.promptheus.contributions.entity.Contribution;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +30,7 @@ import java.util.Map;
 public class MeilisearchService {
 
     private final ObjectMapper objectMapper;
-    private final OllamaEmbeddingService ollamaEmbeddingService;
+    // private final OllamaEmbeddingService ollamaEmbeddingService;
 
     @Value("${app.meiliHost}")
     private String meilisearchHost;
@@ -169,6 +166,9 @@ public class MeilisearchService {
 
             // Generate vector embeddings for the content
             // This will throw an exception if embeddings cannot be generated
+            /*
+             * Now handled by meilisearch via default REST embedder
+             *
             List<Double> embeddings = ollamaEmbeddingService.generateEmbedding(content);
             if (embeddings != null && !embeddings.isEmpty()) {
                 document.put("_vectors", Map.of("default", embeddings));
@@ -179,6 +179,7 @@ public class MeilisearchService {
                 log.error(errorMessage);
                 throw new RuntimeException(errorMessage);
             }
+            */
 
             return document;
 
@@ -313,8 +314,8 @@ public class MeilisearchService {
      */
     public String hybridSearch(String query, String user, String week, int limit) {
         try {
-            // Generate embedding for the query
-            List<Double> queryEmbedding = ollamaEmbeddingService.generateEmbedding(query);
+            // Generate embedding for the query, now handled by meilisearch via default REST embedder
+            // List<Double> queryEmbedding = ollamaEmbeddingService.generateEmbedding(query);
 
             // Build search parameters
             Map<String, Object> searchParams = new HashMap<>();
@@ -338,6 +339,7 @@ public class MeilisearchService {
                 searchParams.put("filter", String.join(" AND ", filters));
             }
 
+            /*
             // Add vector search if embedding was generated successfully
             if (queryEmbedding != null && !queryEmbedding.isEmpty()) {
                 Map<String, Object> vector = new HashMap<>();
@@ -349,6 +351,9 @@ public class MeilisearchService {
             } else {
                 log.info("Performing text-only search (vector embedding failed)");
             }
+            */
+
+            searchParams.put("hybrid", Map.of("semanticRatio", 0.5)); // 50% semantic, 50% keyword
 
             // Perform search
             String searchParamsJson = objectMapper.writeValueAsString(searchParams);
@@ -397,8 +402,9 @@ public class MeilisearchService {
                 "repository", "author", "created_at", "relevance_score", "is_selected"
             ));
 
-            // Add semantic search if query provided
-            if (semanticQuery != null && !semanticQuery.trim().isEmpty()) {
+            /*
+             * Add semantic search if query provided, now handled by meilisearch via default REST embedder
+             if (semanticQuery != null && !semanticQuery.trim().isEmpty()) {
                 List<Double> queryEmbedding = ollamaEmbeddingService.generateEmbedding(semanticQuery);
                 if (queryEmbedding != null && !queryEmbedding.isEmpty()) {
                     Map<String, Object> vector = new HashMap<>();
@@ -406,9 +412,10 @@ public class MeilisearchService {
                     searchParams.put("vector", vector);
 
                     log.debug("Performing filtered vector search for user: '{}', week: '{}', query: '{}'",
-                            user, week, semanticQuery);
+                    user, week, semanticQuery);
                 }
             }
+            */
 
             String searchParamsJson = objectMapper.writeValueAsString(searchParams);
             log.info("Searching contributions for user: '{}', week: '{}' with {} results requested",
