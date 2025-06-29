@@ -2,8 +2,6 @@
 
 import {
 	Bot,
-	CheckCircle,
-	Clock,
 	Loader2,
 	MessageSquare,
 	Plus,
@@ -38,7 +36,6 @@ type QAItem = {
 	answer: string;
 	author: string;
 	timestamp: string;
-	status: "pending" | "approved" | "rejected";
 	upvotes: number;
 	downvotes: number;
 	repositories: string[];
@@ -47,9 +44,7 @@ type QAItem = {
 export default function QAPage() {
 	const [question, setQuestion] = useState("");
 	const [selectedForReport, setSelectedForReport] = useState<string[]>([]);
-	const [filter, setFilter] = useState<
-		"all" | "pending" | "approved" | "rejected"
-	>("all");
+
 	const [votingStates, setVotingStates] = useState<Record<string, { isVoting: boolean; userVote: 'up' | 'down' | null }>>({});
 	const [voteOptimisticUpdates, setVoteOptimisticUpdates] = useState<Record<string, { upvotes: number; downvotes: number }>>({});
 
@@ -70,7 +65,7 @@ export default function QAPage() {
 			answer: q.answers?.[0]?.answer || "No answer yet",
 			author: "User",
 			timestamp: q.createdAt,
-			status: "approved" as const,
+
 			upvotes: optimisticUpdate?.upvotes ?? Math.floor(Math.random() * 15) + 1,
 			downvotes: optimisticUpdate?.downvotes ?? Math.floor(Math.random() * 3),
 			repositories: [repoData.repoLink.split('/').slice(-2).join('/')]
@@ -90,13 +85,7 @@ export default function QAPage() {
 		}
 	};
 
-	const handleStatusUpdate = async (
-		id: string,
-		status: "approved" | "rejected",
-	) => {
-		// Status updates not supported with GitRepoInformation
-		console.log("Status update not supported in this mode");
-	};
+
 
 	const handleVote = async (id: string, type: "up" | "down") => {
 		// Get current item to calculate optimistic update
@@ -179,32 +168,7 @@ export default function QAPage() {
 		);
 	};
 
-	const filteredItems = qaItems.filter((item: QAItem) => {
-		if (filter === "all") return true;
-		return item.status === filter;
-	});
 
-	const getStatusIcon = (status: QAItem["status"]) => {
-		switch (status) {
-			case "approved":
-				return <CheckCircle className="h-4 w-4 text-green-600" />;
-			case "rejected":
-				return <XCircle className="h-4 w-4 text-red-600" />;
-			default:
-				return <Clock className="h-4 w-4 text-yellow-600" />;
-		}
-	};
-
-	const getStatusColor = (status: QAItem["status"]) => {
-		switch (status) {
-			case "approved":
-				return "bg-green-100 text-green-800";
-			case "rejected":
-				return "bg-red-100 text-red-800";
-			default:
-				return "bg-yellow-100 text-yellow-800";
-		}
-	};
 
 	return (
 		<>
@@ -270,35 +234,7 @@ export default function QAPage() {
 							</CardContent>
 						</Card>
 
-						{/* Filter Tabs */}
-						<div className="flex gap-2 mb-6">
-							{[
-								{ key: "all", label: "All Questions" },
-								{ key: "pending", label: "Pending Review" },
-								{ key: "approved", label: "Approved" },
-								{ key: "rejected", label: "Rejected" },
-							].map((tab) => (
-								<Button
-									key={tab.key}
-									onClick={() =>
-										setFilter(
-											tab.key as "all" | "pending" | "approved" | "rejected",
-										)
-									}
-									size="sm"
-									variant={filter === tab.key ? "default" : "outline"}
-								>
-									{tab.label}
-									<Badge className="ml-2" variant="secondary">
-										{
-											qaItems.filter(
-												(item) => tab.key === "all" || item.status === tab.key,
-											).length
-										}
-									</Badge>
-								</Button>
-							))}
-						</div>
+
 
 						{/* Q&A List */}
 						<div className="space-y-6">
@@ -323,8 +259,8 @@ export default function QAPage() {
 										</p>
 									</CardContent>
 								</Card>
-							) : filteredItems.length > 0 ? (
-								filteredItems.map((item) => (
+							) : qaItems.length > 0 ? (
+								qaItems.map((item) => (
 									<Card className="relative" key={item.id}>
 										<CardContent className="p-6">
 											{/* Question */}
@@ -340,12 +276,7 @@ export default function QAPage() {
 														<span className="text-xs text-muted-foreground">
 															{new Date(item.timestamp).toLocaleString()}
 														</span>
-														<Badge className={getStatusColor(item.status)}>
-															{getStatusIcon(item.status)}
-															<span className="ml-1 capitalize">
-																{item.status}
-															</span>
-														</Badge>
+
 													</div>
 													<p className="text-sm font-medium mb-2">
 														{item.question}
@@ -423,23 +354,21 @@ export default function QAPage() {
 													{/* Status update buttons disabled for GitRepoInformation mode */}
 												</div>
 
-												{item.status === "approved" && (
-													<div className="flex items-center space-x-2">
-														<Checkbox
-															checked={selectedForReport.includes(item.id)}
-															id={`report-${item.id}`}
-															onCheckedChange={() =>
-																toggleReportSelection(item.id)
-															}
-														/>
-														<Label
-															className="text-xs"
-															htmlFor={`report-${item.id}`}
-														>
-															Include in weekly report
-														</Label>
-													</div>
-												)}
+												<div className="flex items-center space-x-2">
+													<Checkbox
+														checked={selectedForReport.includes(item.id)}
+														id={`report-${item.id}`}
+														onCheckedChange={() =>
+															toggleReportSelection(item.id)
+														}
+													/>
+													<Label
+														className="text-xs"
+														htmlFor={`report-${item.id}`}
+													>
+														Include in weekly report
+													</Label>
+												</div>
 											</div>
 										</CardContent>
 									</Card>
@@ -449,9 +378,7 @@ export default function QAPage() {
 									<CardContent className="p-8 text-center">
 										<MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
 										<p className="text-muted-foreground">
-											{filter === "all"
-												? "No questions asked yet"
-												: `No ${filter} questions`}
+											No questions asked yet
 										</p>
 										<p className="text-sm text-muted-foreground mt-2">
 											Start by asking a question about your repositories above
@@ -476,25 +403,7 @@ export default function QAPage() {
 									</span>
 									<Badge variant="secondary">{qaItems.length}</Badge>
 								</div>
-								<div className="flex justify-between items-center">
-									<span className="text-sm text-muted-foreground">
-										Pending Review
-									</span>
-									<Badge variant="outline">
-										{qaItems.filter((item) => item.status === "pending").length}
-									</Badge>
-								</div>
-								<div className="flex justify-between items-center">
-									<span className="text-sm text-muted-foreground">
-										Approved
-									</span>
-									<Badge className="bg-green-100 text-green-800">
-										{
-											qaItems.filter((item) => item.status === "approved")
-												.length
-										}
-									</Badge>
-								</div>
+
 								<div className="flex justify-between items-center">
 									<span className="text-sm text-muted-foreground">
 										For Weekly Report

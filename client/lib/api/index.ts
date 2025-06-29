@@ -13,5 +13,4 @@ export {
 export { ApiClient, ApiError, apiClient } from "./client";
 
 // Export service hooks
-export * from "./qa";
 export { SEARCH_KEYS, useSearch } from "./search";
