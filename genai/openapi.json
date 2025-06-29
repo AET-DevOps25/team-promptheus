@@ -601,7 +601,8 @@
   "info": {
     "description": "AI-powered service for ingesting GitHub contributions and providing Q&A for user weekly summaries",
     "license": {
-      "name": "MIT"
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
     },
     "title": "Prompteus GenAI Service",
     "version": "1.0.0"
