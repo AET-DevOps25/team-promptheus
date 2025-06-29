@@ -24,7 +24,7 @@ export interface ApiResponse<T = any> {
  * Base API client with consistent error handling and response formatting
  */
 class ApiClient {
-  constructor() { }
+  constructor() {}
 
   private async handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
     if (!response.ok) {

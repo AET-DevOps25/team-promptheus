@@ -125,7 +125,7 @@ export default function QAPage() {
     // Apply optimistic update
     setVoteOptimisticUpdates((prev) => ({
       ...prev,
-      [id]: { downvotes: newDownvotes , upvotes: newUpvotes},
+      [id]: { downvotes: newDownvotes, upvotes: newUpvotes },
     }));
 
     try {
@@ -149,7 +149,7 @@ export default function QAPage() {
       // Revert optimistic update on failure
       setVoteOptimisticUpdates((prev) => ({
         ...prev,
-        [id]: { downvotes: currentItem.downvotes , upvotes: currentItem.upvotes},
+        [id]: { downvotes: currentItem.downvotes, upvotes: currentItem.upvotes },
       }));
 
       // Reset voting state

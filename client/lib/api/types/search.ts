@@ -4,97 +4,97 @@
  */
 
 export type paths = {
-    readonly "/api/search/{usercode}": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        /** Search repository content with filtering and sorting */
-        readonly get: operations["search"];
-        readonly put?: never;
-        readonly post?: never;
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
+  readonly "/api/search/{usercode}": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
     };
+    /** Search repository content with filtering and sorting */
+    readonly get: operations["search"];
+    readonly put?: never;
+    readonly post?: never;
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
+  };
 };
 export type webhooks = Record<string, never>;
 export type components = {
-    schemas: {
-        readonly SearchResult: {
-            readonly hits?: readonly {
-                readonly [key: string]: unknown;
-            }[];
-            /** Format: int32 */
-            readonly processingTimeMs?: number;
-            readonly query?: string;
-            readonly facetHits?: readonly {
-                readonly [key: string]: unknown;
-            }[];
-            readonly facetQuery?: string;
-        };
+  schemas: {
+    readonly SearchResult: {
+      readonly hits?: readonly {
+        readonly [key: string]: unknown;
+      }[];
+      /** Format: int32 */
+      readonly processingTimeMs?: number;
+      readonly query?: string;
+      readonly facetHits?: readonly {
+        readonly [key: string]: unknown;
+      }[];
+      readonly facetQuery?: string;
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 };
 export type $defs = Record<string, never>;
 export interface operations {
-    readonly search: {
-        readonly parameters: {
-            readonly query: {
-                readonly query: string;
-                /** @description Filter by user */
-                readonly user?: string;
-                /** @description Filter by week */
-                readonly week?: string;
-                /** @description Filter by contribution type */
-                readonly contribution_type?: string;
-                /** @description Filter by author */
-                readonly author?: string;
-                /** @description Filter by timestamp (exact or range like '1640995200 TO 1672531200') */
-                readonly created_at_timestamp?: string;
-                /** @description Filter by selection status */
-                readonly is_selected?: boolean;
-                /** @description Sort fields (comma-separated, prefix with - for descending, e.g., '-created_at_timestamp,relevance_score') */
-                readonly sort?: string;
-                /** @description Maximum number of Search responses */
-                readonly limit?: number;
-                /** @description Offset of Search responses */
-                readonly offset?: number;
-            };
-            readonly header?: never;
-            readonly path: {
-                readonly usercode: string;
-            };
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            /** @description Search results */
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["SearchResult"];
-                };
-            };
-            /** @description Forbidden - Requested code does not exist */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "text/plain": string;
-                };
-            };
-        };
+  readonly search: {
+    readonly parameters: {
+      readonly query: {
+        readonly query: string;
+        /** @description Filter by user */
+        readonly user?: string;
+        /** @description Filter by week */
+        readonly week?: string;
+        /** @description Filter by contribution type */
+        readonly contribution_type?: string;
+        /** @description Filter by author */
+        readonly author?: string;
+        /** @description Filter by timestamp (exact or range like '1640995200 TO 1672531200') */
+        readonly created_at_timestamp?: string;
+        /** @description Filter by selection status */
+        readonly is_selected?: boolean;
+        /** @description Sort fields (comma-separated, prefix with - for descending, e.g., '-created_at_timestamp,relevance_score') */
+        readonly sort?: string;
+        /** @description Maximum number of Search responses */
+        readonly limit?: number;
+        /** @description Offset of Search responses */
+        readonly offset?: number;
+      };
+      readonly header?: never;
+      readonly path: {
+        readonly usercode: string;
+      };
+      readonly cookie?: never;
     };
+    readonly requestBody?: never;
+    readonly responses: {
+      /** @description Search results */
+      readonly 200: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "application/json": components["schemas"]["SearchResult"];
+        };
+      };
+      /** @description Forbidden - Requested code does not exist */
+      readonly 403: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content: {
+          readonly "text/plain": string;
+        };
+      };
+    };
+  };
 }
