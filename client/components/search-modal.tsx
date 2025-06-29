@@ -40,7 +40,6 @@ interface SearchFilters {
   contributionType: string | undefined;
   dateFrom: Date | undefined;
   dateTo: Date | undefined;
-  repository: string | undefined;
   week: string | undefined;
   user: string | undefined;
 }
@@ -89,7 +88,6 @@ export function SearchModal({ isOpen, onCloseAction, usercode }: SearchModalProp
     contributionType: undefined,
     dateFrom: undefined,
     dateTo: undefined,
-    repository: undefined,
     user: undefined,
     week: undefined,
   });
@@ -110,7 +108,6 @@ export function SearchModal({ isOpen, onCloseAction, usercode }: SearchModalProp
             ? `* TO ${Math.floor(filters.dateTo.getTime() / 1000)}`
             : undefined,
     query: debouncedQuery,
-    repository: filters.repository,
     user: filters.user,
     week: filters.week,
   };
@@ -138,7 +135,6 @@ export function SearchModal({ isOpen, onCloseAction, usercode }: SearchModalProp
       contributionType: undefined,
       dateFrom: undefined,
       dateTo: undefined,
-      repository: undefined,
       user: undefined,
       week: undefined,
     });
@@ -204,17 +200,6 @@ export function SearchModal({ isOpen, onCloseAction, usercode }: SearchModalProp
                       placeholder="Filter by author"
                       value={filters.author || ""}
                     />
-
-                    <Label className="text-sm font-medium mb-2 block">Repository</Label>
-                    <Input
-                      className="mb-4"
-                      onChange={(e) =>
-                        handleFilterChange("repository", e.target.value || undefined)
-                      }
-                      placeholder="Filter by repository"
-                      value={filters.repository || ""}
-                    />
-
                     <Label className="text-sm font-medium mb-2 block">Contribution Type</Label>
                     <Input
                       className="mb-4"
@@ -295,7 +280,6 @@ export function SearchModal({ isOpen, onCloseAction, usercode }: SearchModalProp
                 <Separator className="my-4" />
                 <div className="flex justify-between items-center">
                   <div className="flex gap-2 flex-wrap">
-                    {filters.repository && <Badge variant="secondary">Repository filtered</Badge>}
                     {filters.author && <Badge variant="secondary">Author filtered</Badge>}
                     {filters.contributionType && <Badge variant="secondary">Type filtered</Badge>}
                     {filters.week && <Badge variant="secondary">Week filtered</Badge>}

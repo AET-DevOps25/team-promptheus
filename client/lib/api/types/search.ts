@@ -56,8 +56,6 @@ export interface operations {
                 readonly week?: string;
                 /** @description Filter by contribution type */
                 readonly contribution_type?: string;
-                /** @description Filter by repository */
-                readonly repository?: string;
                 /** @description Filter by author */
                 readonly author?: string;
                 /** @description Filter by timestamp (exact or range like '1640995200 TO 1672531200') */

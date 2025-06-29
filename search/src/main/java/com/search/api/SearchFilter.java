@@ -39,13 +39,8 @@ public class SearchFilter {
      * @param filters Map of filter attributes and values
      * @return Formatted filter string for MeiliSearch
      */
-    public static String buildFilterString(UUID usercode, Map<String, String> filters) {
+    public static String buildFilterString(Map<String, String> filters) {
         StringBuilder filterBuilder = new StringBuilder();
-
-        // Always filter by user code
-        filterBuilder.append("repo_id = \"").append(usercode.toString()).append("\"");
-
-        // Add additional filters
         if (filters != null && !filters.isEmpty()) {
             for (Map.Entry<String, String> filter : filters.entrySet()) {
                 String attribute = filter.getKey();

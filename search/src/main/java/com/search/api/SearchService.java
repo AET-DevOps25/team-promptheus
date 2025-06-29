@@ -28,7 +28,7 @@ public class SearchService {
         contributionsIndex = meilisearchClient.index("contributions");
     }
 
-    public Searchable search(@NotNull UUID usercode, @NotNull @NotBlank String query, Map<String, String> filters, List<String> sort, Integer limit, Integer offset) {
+    public Searchable search(@NotNull @NotBlank String query, Map<String, String> filters, List<String> sort, Integer limit, Integer offset) {
         SearchRequest requestBuilder = new SearchRequest(query);
 
         // Set limit and offset if provided
@@ -48,7 +48,7 @@ public class SearchService {
         requestBuilder.setCropLength(20);
 
         // Build filter string using utility
-        String filterString = SearchFilter.buildFilterString(usercode, filters);
+        String filterString = SearchFilter.buildFilterString(filters);
         requestBuilder.setFilter(new String[]{filterString});
 
         // Add sorting using utility

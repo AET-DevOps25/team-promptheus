@@ -41,9 +41,6 @@ export function useSearch(usercode: string, params: useSearchParams, enabled = t
       if (params.contribution_type) {
         searchParams.append("contribution_type", params.contribution_type);
       }
-      if (params.repository) {
-        searchParams.append("repository", params.repository);
-      }
       if (params.author) {
         searchParams.append("author", params.author);
       }

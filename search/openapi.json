@@ -92,15 +92,6 @@
             }
           },
           {
-            "description": "Filter by repository",
-            "in": "query",
-            "name": "repository",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "description": "Filter by author",
             "in": "query",
             "name": "author",
