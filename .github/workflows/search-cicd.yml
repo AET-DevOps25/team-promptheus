@@ -12,6 +12,16 @@ jobs:
   search-checks:
     runs-on: ubuntu-latest
     services:
+      db:
+        image: postgres:17
+        env:
+          TZ: Europe/Berlin
+          PGDATA: /var/lib/postgresql/data/pgdata
+          POSTGRES_PASSWORD: CHANGE_ME
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
       meilisearch:
         image: getmeili/meilisearch:latest
         ports:
