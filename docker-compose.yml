@@ -221,7 +221,7 @@ services:
       app.meiliMasterKey: ${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
       app.meiliHost: http://meilisearch:7700
       # Updated to use containerized Ollama
-      app.ollamaBaseUrl: https://gpu.aet.cit.tum.de/
+      app.ollamaBaseUrl: https://gpu.aet.cit.tum.de/ollama
       app.ollamaModel: tinyllama:latest
       app.ollamaApiKey: ${OLLAMA_API_KEY:-not-required-for-local}
       management.otlp.tracing.endpoint: http://monitoring:4318/v1/traces
