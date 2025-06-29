@@ -179,6 +179,7 @@ public class ContributionFetchService {
         for (Contribution contribution : contributions) {
             try {
                 contribution.setGitRepositoryId(repositoryId);
+                contribution.setIsSelected(true);
                 contributionRepository.save(contribution);
                 upserted++;
             } catch (Exception e) {
