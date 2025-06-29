@@ -59,7 +59,7 @@ export function useContributions(
         });
       }
 
-      const response = await apiClient.get<Page>(`/contributions?${searchParams.toString()}`);
+      const response = await apiClient.get<Page>(`/api/contributions?${searchParams.toString()}`);
 
       return response.data;
     },
@@ -76,7 +76,7 @@ export function useUpdateContributions() {
 
   return useMutation({
     mutationFn: async (contributions: ContributionDto[]) => {
-      const response = await apiClient.put<string>("/contributions", contributions);
+      const response = await apiClient.put<string>("/api/contributions", contributions);
       return response.data;
     },
     onSuccess: () => {
@@ -94,7 +94,7 @@ export function useTriggerContributionFetch() {
 
   return useMutation({
     mutationFn: async () => {
-      const response = await apiClient.post<TriggerResponse>("/contributions/trigger");
+      const response = await apiClient.post<TriggerResponse>("/api/contributions/trigger");
       return response.data;
     },
     onSuccess: () => {
@@ -113,7 +113,7 @@ export function useTriggerContributionFetchForRepository() {
   return useMutation({
     mutationFn: async (request: TriggerRequest) => {
       const response = await apiClient.post<TriggerResponse>(
-        "/contributions/trigger/repository",
+        "/api/contributions/trigger/repository",
         request,
       );
       return response.data;

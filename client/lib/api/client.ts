@@ -24,11 +24,7 @@ export interface ApiResponse<T = any> {
  * Base API client with consistent error handling and response formatting
  */
 class ApiClient {
-  private baseURL: string;
-
-  constructor(baseURL = "") {
-    this.baseURL = baseURL;
-  }
+  constructor() { }
 
   private async handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
     if (!response.ok) {
@@ -57,7 +53,7 @@ class ApiClient {
   }
 
   async get<T>(url: string, options?: RequestInit): Promise<ApiResponse<T>> {
-    const response = await fetch(`${this.baseURL}${url}`, {
+    const response = await fetch(url, {
       headers: {
         "Content-Type": "application/json",
         ...options?.headers,
@@ -70,7 +66,7 @@ class ApiClient {
   }
 
   async post<T>(url: string, body?: any, options?: RequestInit): Promise<ApiResponse<T>> {
-    const response = await fetch(`${this.baseURL}${url}`, {
+    const response = await fetch(url, {
       body: body ? JSON.stringify(body) : undefined,
       headers: {
         "Content-Type": "application/json",
@@ -84,7 +80,7 @@ class ApiClient {
   }
 
   async patch<T>(url: string, body?: any, options?: RequestInit): Promise<ApiResponse<T>> {
-    const response = await fetch(`${this.baseURL}${url}`, {
+    const response = await fetch(url, {
       body: body ? JSON.stringify(body) : undefined,
       headers: {
         "Content-Type": "application/json",
@@ -98,7 +94,7 @@ class ApiClient {
   }
 
   async put<T>(url: string, body?: any, options?: RequestInit): Promise<ApiResponse<T>> {
-    const response = await fetch(`${this.baseURL}${url}`, {
+    const response = await fetch(url, {
       body: body ? JSON.stringify(body) : undefined,
       headers: {
         "Content-Type": "application/json",
@@ -112,7 +108,7 @@ class ApiClient {
   }
 
   async delete<T>(url: string, options?: RequestInit): Promise<ApiResponse<T>> {
-    const response = await fetch(`${this.baseURL}${url}`, {
+    const response = await fetch(url, {
       headers: {
         "Content-Type": "application/json",
         ...options?.headers,
@@ -126,7 +122,7 @@ class ApiClient {
 }
 
 // Create and export the default API client instance
-export const apiClient = new ApiClient("/api");
+export const apiClient = new ApiClient();
 
 // Export the class for creating custom instances if needed
 export { ApiClient };

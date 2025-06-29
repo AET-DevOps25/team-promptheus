@@ -64,7 +64,7 @@ export function useSearch(usercode: string, params: useSearchParams, enabled = t
       }
 
       const response = await apiClient.get<SearchResult>(
-        `/search/${usercode}?${searchParams.toString()}`,
+        `/api/search/${usercode}?${searchParams.toString()}`,
       );
 
       return response.data;
