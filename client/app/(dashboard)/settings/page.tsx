@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { useUser } from "@/hooks/use-user";
+import { useUser } from "@/contexts/user-context";
 
 export default function SettingsPage() {
 	const { userId } = useUser();
@@ -24,7 +24,7 @@ export default function SettingsPage() {
 				<div className="container mx-auto px-4 py-4">
 					<div className="flex items-center gap-2">
 						<Settings className="h-6 w-6" />
-						<h1 className="text-2xl font-bold">Settings - {userId}</h1>
+						<h1 className="text-2xl font-bold">Settings{userId ? ` - ${userId}` : ""}</h1>
 					</div>
 					<p className="text-slate-600">
 						Configure your repositories and AI preferences

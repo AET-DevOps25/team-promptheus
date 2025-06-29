@@ -26,7 +26,7 @@ import {
 import { WeeklySummaryServer } from "@/components/weekly-summary-server";
 import { useContributions } from "@/lib/api/contributions";
 import { useGitRepoInformation } from "@/lib/api/server";
-import { useUser } from "@/hooks/use-user";
+import { useUser } from "@/contexts/user-context";
 
 export default function DashboardPage() {
 	const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -40,7 +40,7 @@ export default function DashboardPage() {
 	});
 
 	// Fetch repository information
-	const { data: repoData, isLoading: isRepoLoading, error: repoError } = useGitRepoInformation(userId);
+	const { data: repoData, isLoading: isRepoLoading, error: repoError } = useGitRepoInformation(userId, !!userId);
 
 	// Fetch contributions data
 	const { data: contributionsData, isLoading: isContributionsLoading } = useContributions(
@@ -51,11 +51,35 @@ export default function DashboardPage() {
 				sort: ["createdAt,desc"],
 			},
 		},
-		true,
+		!!userId,
 	);
 
 	const isLoading = isRepoLoading || isContributionsLoading;
 	const hasRepoData = repoData && !repoError;
+
+	// Show not authenticated state if no userId
+	if (!userId) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-gray-50">
+				<div className="max-w-md w-full text-center space-y-6">
+					<div>
+						<h2 className="text-2xl font-bold text-gray-900">Authentication Required</h2>
+						<p className="mt-2 text-sm text-gray-600">
+							Please log in to access your dashboard
+						</p>
+					</div>
+					<div className="space-y-4">
+						<Button
+							onClick={() => window.location.href = "/login"}
+							className="w-full"
+						>
+							Go to Login
+						</Button>
+					</div>
+				</div>
+			</div>
+		);
+	}
 
 	// Process data to extract dashboard stats
 	useEffect(() => {
@@ -125,7 +149,7 @@ export default function DashboardPage() {
 				<div className="container mx-auto px-4 py-4">
 					<div className="flex items-center justify-between">
 						<div>
-							<h1 className="text-2xl font-bold">Dashboard - {userId}</h1>
+							<h1 className="text-2xl font-bold">Dashboard{userId ? ` - ${userId}` : ""}</h1>
 							<div className="flex items-center gap-2 text-slate-600">
 								<p>Your AI-powered GitHub insights</p>
 								{hasRepoData && repoData?.repoLink && (

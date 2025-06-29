@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-interface UseUserResult {
+interface UserContextType {
 	userId: string;
 	setUserId: (id: string) => void;
 	isLoading: boolean;
@@ -10,13 +10,14 @@ interface UseUserResult {
 	clearUser: () => void;
 }
 
-/**
- * Custom hook to manage user ID across the application
- * Currently reads from localStorage with fallback to "abc"
- * TODO: Replace with proper authentication system
- */
-export function useUser(): UseUserResult {
-	const [userId, setUserIdState] = useState<string>("abc");
+const UserContext = createContext<UserContextType | undefined>(undefined);
+
+interface UserProviderProps {
+	children: ReactNode;
+}
+
+export function UserProvider({ children }: UserProviderProps) {
+	const [userId, setUserIdState] = useState<string>("");
 	const [isLoading, setIsLoading] = useState(true);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -24,11 +25,10 @@ export function useUser(): UseUserResult {
 		// Only run on client side
 		if (typeof window !== "undefined") {
 			const storedUserId = localStorage.getItem("usercode");
-			if (storedUserId && storedUserId !== "abc") {
+			if (storedUserId) {
 				setUserIdState(storedUserId);
 				setIsAuthenticated(true);
 			} else {
-				// Keep default "abc" but mark as not authenticated
 				setIsAuthenticated(false);
 			}
 		}
@@ -37,25 +37,39 @@ export function useUser(): UseUserResult {
 
 	const setUserId = (id: string) => {
 		setUserIdState(id);
-		setIsAuthenticated(id !== "abc");
+		setIsAuthenticated(!!id);
 		if (typeof window !== "undefined") {
 			localStorage.setItem("usercode", id);
 		}
 	};
 
 	const clearUser = () => {
-		setUserIdState("abc");
+		setUserIdState("");
 		setIsAuthenticated(false);
 		if (typeof window !== "undefined") {
 			localStorage.removeItem("usercode");
 		}
 	};
 
-	return {
+	const value: UserContextType = {
 		userId,
 		setUserId,
 		isLoading,
 		isAuthenticated,
 		clearUser,
 	};
+
+	return (
+		<UserContext.Provider value={value}>
+			{children}
+		</UserContext.Provider>
+	);
+}
+
+export function useUser(): UserContextType {
+	const context = useContext(UserContext);
+	if (context === undefined) {
+		throw new Error("useUser must be used within a UserProvider");
+	}
+	return context;
 }

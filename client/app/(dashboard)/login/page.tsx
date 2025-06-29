@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUser } from "@/hooks/use-user";
+import { useUser } from "@/contexts/user-context";
 
 export default function LoginLandingPage() {
 	const [userCode, setUserCode] = useState("");

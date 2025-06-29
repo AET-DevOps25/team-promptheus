@@ -11,7 +11,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { WeeklySummaryServer } from "@/components/weekly-summary-server";
-import { useUser } from "@/hooks/use-user";
+import { useUser } from "@/contexts/user-context";
 
 async function RecentSummaries() {
 	// Simulate server-side data fetching
@@ -111,6 +111,31 @@ async function QuickActions() {
 
 export default function WeeklySummaryPage() {
 	const { userId } = useUser();
+
+	// Show not authenticated state if no userId
+	if (!userId) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-gray-50">
+				<div className="max-w-md w-full text-center space-y-6">
+					<div>
+						<h2 className="text-2xl font-bold text-gray-900">Authentication Required</h2>
+						<p className="mt-2 text-sm text-gray-600">
+							Please log in to access the weekly summary builder
+						</p>
+					</div>
+					<div className="space-y-4">
+						<Button
+							onClick={() => window.location.href = "/login"}
+							className="w-full"
+						>
+							Go to Login
+						</Button>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<>
 			<header className="border-b bg-white">

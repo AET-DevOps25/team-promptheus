@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SearchModal } from "./search-modal";
-import { useUser } from "@/hooks/use-user";
+import { useUser } from "@/contexts/user-context";
 
 export function Header() {
 	const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -83,15 +83,15 @@ export function Header() {
 								<div className="flex items-center gap-2">
 									<User className="h-4 w-4 text-slate-600" />
 									<span className="text-sm text-slate-600">
-										{userId}
+										{userId || "Not logged in"}
 									</span>
 									{!isAuthenticated && (
-										<span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
-											Demo
+										<span className="text-xs text-slate-600 bg-slate-50 px-2 py-1 rounded">
+											Anonymous
 										</span>
 									)}
 								</div>
-								{isAuthenticated && (
+								{isAuthenticated && userId && (
 									<Button
 										variant="ghost"
 										size="sm"
