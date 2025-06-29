@@ -118,7 +118,12 @@ export default function WeeklySummaryPage() {
             </p>
           </div>
           <div className="space-y-4">
-            <Button className="w-full" onClick={() => {window.location.href = "/login";}}>
+            <Button
+              className="w-full"
+              onClick={() => {
+                window.location.href = "/login";
+              }}
+            >
               Go to Login
             </Button>
           </div>

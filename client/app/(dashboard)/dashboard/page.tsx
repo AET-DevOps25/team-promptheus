@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  BarChart3,
-  Clock,
-  GitBranch,
-  Loader2,
-  MessageSquare,
-  Search,
-  User,
-} from "lucide-react";
+import { BarChart3, Clock, GitBranch, Loader2, MessageSquare, Search, User } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { SearchModal } from "@/components/search-modal";
@@ -58,7 +50,12 @@ export default function DashboardPage() {
             <p className="mt-2 text-sm text-gray-600">Please log in to access your dashboard</p>
           </div>
           <div className="space-y-4">
-            <Button className="w-full" onClick={() => {window.location.href = "/login";}}>
+            <Button
+              className="w-full"
+              onClick={() => {
+                window.location.href = "/login";
+              }}
+            >
               Go to Login
             </Button>
           </div>
@@ -266,33 +263,33 @@ export default function DashboardPage() {
                       <span className="ml-2 text-sm text-muted-foreground">Loading Q&A...</span>
                     </div>
                   ) : hasRepoData && repoData?.questions && repoData.questions.length > 0 ? (
-                      repoData.questions.slice(0, 3).map((qa) => (
-                        <div
-                          className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg"
-                          key={qa.createdAt + qa.question}
-                        >
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
-                            <User className="h-3 w-3 text-blue-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium">{qa.question}</p>
-                            {qa.answers && qa.answers.length > 0 && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {qa.answers[0].answer.substring(0, 100)}
-                                {qa.answers[0].answer.length > 100 ? "..." : ""}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-2 mt-2">
-                              <Badge className="text-xs" variant="secondary">
-                                {qa.answers && qa.answers.length > 0 ? "Answered" : "Pending"}
-                              </Badge>
-                              <span className="text-xs text-muted-foreground">
-                                {new Date(qa.createdAt).toLocaleDateString()}
-                              </span>
-                            </div>
+                    repoData.questions.slice(0, 3).map((qa) => (
+                      <div
+                        className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg"
+                        key={qa.createdAt + qa.question}
+                      >
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
+                          <User className="h-3 w-3 text-blue-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">{qa.question}</p>
+                          {qa.answers && qa.answers.length > 0 && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {qa.answers[0].answer.substring(0, 100)}
+                              {qa.answers[0].answer.length > 100 ? "..." : ""}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge className="text-xs" variant="secondary">
+                              {qa.answers && qa.answers.length > 0 ? "Answered" : "Pending"}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(qa.createdAt).toLocaleDateString()}
+                            </span>
                           </div>
                         </div>
-                      ))
+                      </div>
+                    ))
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
                       <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
