@@ -14,7 +14,7 @@ COPY pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # build standalone bundle
-COPY . ./
+COPY . .
 RUN pnpm run build
 
 FROM base AS runner
