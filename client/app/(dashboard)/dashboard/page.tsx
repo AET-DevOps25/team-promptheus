@@ -1,18 +1,8 @@
 "use client";
 
-import {
-  BarChart3,
-  Calendar,
-  Clock,
-  GitBranch,
-  Loader2,
-  MessageSquare,
-  Search,
-  User,
-  Users,
-} from "lucide-react";
+import { BarChart3, Clock, GitBranch, Loader2, MessageSquare, Search, User } from "lucide-react";
 import Link from "next/link";
-import { Suspense, useEffect, useState } from "react";
+import { useState } from "react";
 import { SearchModal } from "@/components/search-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,13 +15,6 @@ import { useGitRepoInformation } from "@/lib/api/server";
 export default function DashboardPage() {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const { userId } = useUser();
-  const [stats, setStats] = useState({
-    activeRepos: 0,
-    avgResponseTime: "0h",
-    teamMembers: 0,
-    weeklyChange: 0,
-    weeklyCommits: 0,
-  });
 
   // Fetch repository information
   const {
@@ -41,7 +24,7 @@ export default function DashboardPage() {
   } = useGitRepoInformation(userId, !!userId);
 
   // Fetch contributions data
-  const { data: contributionsData, isLoading: isContributionsLoading } = useContributions(
+  const { isLoading: isContributionsLoading } = useContributions(
     {
       pageable: {
         page: 0,
@@ -55,6 +38,8 @@ export default function DashboardPage() {
   const isLoading = isRepoLoading || isContributionsLoading;
   const hasRepoData = repoData && !repoError;
 
+  // No stats calculation needed as it's not used in the component
+
   // Show not authenticated state if no userId
   if (!userId) {
     return (
@@ -65,7 +50,12 @@ export default function DashboardPage() {
             <p className="mt-2 text-sm text-gray-600">Please log in to access your dashboard</p>
           </div>
           <div className="space-y-4">
-            <Button className="w-full" onClick={() => (window.location.href = "/login")}>
+            <Button
+              className="w-full"
+              onClick={() => {
+                window.location.href = "/login";
+              }}
+            >
               Go to Login
             </Button>
           </div>
@@ -73,69 +63,6 @@ export default function DashboardPage() {
       </div>
     );
   }
-
-  // Process data to extract dashboard stats
-  useEffect(() => {
-    if (contributionsData?.content || repoData) {
-      // Calculate stats from contributions
-      const repos = new Set();
-      const users = new Set();
-      const thisWeekStart = new Date();
-      thisWeekStart.setDate(thisWeekStart.getDate() - 7);
-
-      let weeklyCommits = 0;
-      let totalResponseTime = 0;
-      let prCount = 0;
-
-      // Process contributions if available
-      contributionsData?.content?.forEach((contribution: any) => {
-        // Count unique repositories
-        repos.add(contribution.gitRepositoryId);
-
-        // Count unique contributors
-        users.add(contribution.username);
-
-        // Count commits from the last week
-        if (
-          contribution.type?.includes("Commit") &&
-          contribution.createdAt &&
-          new Date(contribution.createdAt) >= thisWeekStart
-        ) {
-          weeklyCommits++;
-        }
-
-        // Calculate average PR review time (simplified example)
-        if (contribution.type?.includes("PullRequest")) {
-          prCount++;
-          totalResponseTime += 2.4; // Using placeholder for demo
-        }
-      });
-
-      // Add repository data if available
-      if (repoData) {
-        repos.add(userId); // Add current repo to count
-      }
-
-      // Previous week comparison (simplified example)
-      const previousWeeklyCommits = Math.max(weeklyCommits - 2, 0);
-      const weeklyChange = weeklyCommits - previousWeeklyCommits;
-
-      // Average response time based on questions/answers
-      const avgResponseHours = repoData?.questions?.length
-        ? "1.2"
-        : prCount > 0
-          ? (totalResponseTime / prCount).toFixed(1)
-          : "2.4";
-
-      setStats({
-        activeRepos: Math.max(repos.size, 1), // At least 1 if we have repo data
-        avgResponseTime: `${avgResponseHours}h`,
-        teamMembers: Math.max(users.size, 1),
-        weeklyChange,
-        weeklyCommits,
-      });
-    }
-  }, [contributionsData, repoData, userId]);
   return (
     <>
       <header className="border-b bg-white">
@@ -336,35 +263,33 @@ export default function DashboardPage() {
                       <span className="ml-2 text-sm text-muted-foreground">Loading Q&A...</span>
                     </div>
                   ) : hasRepoData && repoData?.questions && repoData.questions.length > 0 ? (
-                    <>
-                      {repoData.questions.slice(0, 3).map((qa, index) => (
-                        <div
-                          className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg"
-                          key={index}
-                        >
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
-                            <User className="h-3 w-3 text-blue-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium">{qa.question}</p>
-                            {qa.answers && qa.answers.length > 0 && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {qa.answers[0].answer.substring(0, 100)}
-                                {qa.answers[0].answer.length > 100 ? "..." : ""}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-2 mt-2">
-                              <Badge className="text-xs" variant="secondary">
-                                {qa.answers && qa.answers.length > 0 ? "Answered" : "Pending"}
-                              </Badge>
-                              <span className="text-xs text-muted-foreground">
-                                {new Date(qa.createdAt).toLocaleDateString()}
-                              </span>
-                            </div>
+                    repoData.questions.slice(0, 3).map((qa) => (
+                      <div
+                        className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg"
+                        key={qa.createdAt + qa.question}
+                      >
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
+                          <User className="h-3 w-3 text-blue-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">{qa.question}</p>
+                          {qa.answers && qa.answers.length > 0 && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {qa.answers[0].answer.substring(0, 100)}
+                              {qa.answers[0].answer.length > 100 ? "..." : ""}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge className="text-xs" variant="secondary">
+                              {qa.answers && qa.answers.length > 0 ? "Answered" : "Pending"}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(qa.createdAt).toLocaleDateString()}
+                            </span>
                           </div>
                         </div>
-                      ))}
-                    </>
+                      </div>
+                    ))
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
                       <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -403,8 +328,8 @@ export default function DashboardPage() {
                   </div>
                 ) : hasRepoData && repoData?.summaries && repoData.summaries.length > 0 ? (
                   <div className="space-y-4">
-                    {repoData.summaries.slice(0, 3).map((summary, index) => (
-                      <div className="flex items-start gap-3" key={index}>
+                    {repoData.summaries.slice(0, 3).map((summary) => (
+                      <div className="flex items-start gap-3" key={summary.id}>
                         <Badge variant="secondary">Summary</Badge>
                         <div>
                           <p className="font-medium">Repository Analysis</p>
@@ -438,34 +363,7 @@ export default function DashboardPage() {
 
           {/* Right Column - Weekly Summary */}
           <div>
-            <Suspense
-              fallback={
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      <div className="h-6 w-48 bg-slate-200 rounded animate-pulse" />
-                    </div>
-                    <div className="h-4 w-80 bg-slate-100 rounded animate-pulse" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {Array.from({ length: 4 }).map((_, i) => (
-                          <div className="text-center p-3 bg-slate-50 rounded-lg" key={i}>
-                            <div className="h-8 w-12 mx-auto mb-2 bg-slate-200 rounded animate-pulse" />
-                            <div className="h-3 w-16 mx-auto bg-slate-100 rounded animate-pulse" />
-                          </div>
-                        ))}
-                      </div>
-                      <div className="h-96 bg-slate-50 rounded-lg animate-pulse" />
-                    </div>
-                  </CardContent>
-                </Card>
-              }
-            >
-              <WeeklySummaryServer userId={userId} />
-            </Suspense>
+            <WeeklySummaryServer userId={userId} />
           </div>
         </div>
       </main>

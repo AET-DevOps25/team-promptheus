@@ -21,7 +21,7 @@ export default function HomePage() {
   } | null>(null);
 
   const { mutate, isError, error: mutationError } = useCreateFromPAT();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, _setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

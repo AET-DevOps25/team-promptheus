@@ -21,9 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@/contexts/user-context";
 import { useCreateQuestion, useGitRepoInformation } from "@/lib/api/server";
-import type { components } from "@/lib/api/types/server";
 
-type QuestionConstruct = components["schemas"]["QuestionConstruct"];
 type QAItem = {
   id: string;
   question: string;
@@ -125,7 +123,7 @@ export default function QAPage() {
     // Apply optimistic update
     setVoteOptimisticUpdates((prev) => ({
       ...prev,
-      [id]: { downvotes: newDownvotes , upvotes: newUpvotes},
+      [id]: { downvotes: newDownvotes, upvotes: newUpvotes },
     }));
 
     try {
@@ -149,7 +147,7 @@ export default function QAPage() {
       // Revert optimistic update on failure
       setVoteOptimisticUpdates((prev) => ({
         ...prev,
-        [id]: { downvotes: currentItem.downvotes , upvotes: currentItem.upvotes},
+        [id]: { downvotes: currentItem.downvotes, upvotes: currentItem.upvotes },
       }));
 
       // Reset voting state
