@@ -5,7 +5,7 @@ WORKDIR /app
 COPY summary/build.gradle summary/settings.gradle ./
 COPY summary/src ./src
 COPY genai/openapi.json ./genai.json
-COPY summary/contribution.json ./contribution.json
+COPY contribution/openapi.json ./contribution.json
 RUN gradle bootJar --no-daemon
 
 # Stage 1.5 busybox
