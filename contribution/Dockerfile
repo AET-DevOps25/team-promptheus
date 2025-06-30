@@ -5,7 +5,7 @@ COPY build.gradle settings.gradle ./
 COPY src ./src
 RUN gradle bootJar --no-daemon
 
-# Stage 1.5 buisybox
+# Stage 1.5 busybox
 FROM busybox AS busybox
 # Stage 2: Run the application
 FROM gcr.io/distroless/java21-debian12

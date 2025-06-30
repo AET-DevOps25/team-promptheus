@@ -44,6 +44,21 @@ spec:
                       privileged: false
                   env:
                       # secrets
+                      - name: spring.datasource.url
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: spring.datasource.url
+                      - name: spring.datasource.username
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: POSTGRES_USER
+                      - name: spring.datasource.password
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: POSTGRES_PASSWORD
                       - name: app.meiliMasterKey
                         valueFrom:
                             secretKeyRef:

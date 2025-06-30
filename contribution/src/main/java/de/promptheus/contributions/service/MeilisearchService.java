@@ -6,9 +6,6 @@ import com.meilisearch.sdk.Client;
 import com.meilisearch.sdk.Config;
 import com.meilisearch.sdk.Index;
 import com.meilisearch.sdk.exceptions.MeilisearchException;
-import com.meilisearch.sdk.model.Embedder;
-import com.meilisearch.sdk.model.EmbedderSource;
-import com.meilisearch.sdk.model.Settings;
 import com.meilisearch.sdk.model.TaskInfo;
 import de.promptheus.contributions.entity.Contribution;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +30,6 @@ import java.util.Map;
 public class MeilisearchService {
 
     private final ObjectMapper objectMapper;
-    private final OllamaEmbeddingService ollamaEmbeddingService;
 
     @Value("${app.meiliHost}")
     private String meilisearchHost;
@@ -167,21 +163,7 @@ public class MeilisearchService {
             document.put("relevance_score", 1.0);
             document.put("is_selected", contribution.getIsSelected());
 
-            // Generate vector embeddings for the content
-            // This will throw an exception if embeddings cannot be generated
-            List<Double> embeddings = ollamaEmbeddingService.generateEmbedding(content);
-            if (embeddings != null && !embeddings.isEmpty()) {
-                document.put("_vectors", Map.of("default", embeddings));
-                log.debug("Generated embeddings for contribution {} with {} dimensions",
-                        contribution.getId(), embeddings.size());
-            } else {
-                String errorMessage = String.format("No embeddings generated for contribution %s", contribution.getId());
-                log.error(errorMessage);
-                throw new RuntimeException(errorMessage);
-            }
-
             return document;
-
         } catch (Exception e) {
             log.warn("Failed to create document for contribution {}", contribution.getId(), e);
             return null;
@@ -300,126 +282,6 @@ public class MeilisearchService {
 
         } catch (Exception e) {
             log.error("Failed to delete contributions from Meilisearch", e);
-        }
-    }
-
-    /**
-     * Perform hybrid search combining text search and vector similarity
-     * @param query The search query text
-     * @param user Filter by user (optional)
-     * @param week Filter by ISO week (optional)
-     * @param limit Maximum number of results
-     * @return Search results as JSON string
-     */
-    public String hybridSearch(String query, String user, String week, int limit) {
-        try {
-            // Generate embedding for the query
-            List<Double> queryEmbedding = ollamaEmbeddingService.generateEmbedding(query);
-
-            // Build search parameters
-            Map<String, Object> searchParams = new HashMap<>();
-            searchParams.put("q", query);
-            searchParams.put("limit", limit);
-            searchParams.put("attributesToRetrieve", Arrays.asList(
-                "id", "user", "week", "contribution_type", "title", "content",
-                "repository", "author", "created_at", "relevance_score"
-            ));
-
-            // Add filters
-            List<String> filters = new ArrayList<>();
-            if (user != null && !user.trim().isEmpty()) {
-                filters.add("user = \"" + user + "\"");
-            }
-            if (week != null && !week.trim().isEmpty()) {
-                filters.add("week = \"" + week + "\"");
-            }
-
-            if (!filters.isEmpty()) {
-                searchParams.put("filter", String.join(" AND ", filters));
-            }
-
-            // Add vector search if embedding was generated successfully
-            if (queryEmbedding != null && !queryEmbedding.isEmpty()) {
-                Map<String, Object> vector = new HashMap<>();
-                vector.put("default", queryEmbedding);
-                searchParams.put("vector", vector);
-                searchParams.put("hybrid", Map.of("semanticRatio", 0.5)); // 50% semantic, 50% keyword
-
-                log.debug("Performing hybrid search with {} dimensional vector", queryEmbedding.size());
-            } else {
-                log.info("Performing text-only search (vector embedding failed)");
-            }
-
-            // Perform search
-            String searchParamsJson = objectMapper.writeValueAsString(searchParams);
-
-            // Note: The actual search result handling would depend on the Meilisearch Java SDK API
-            // For now, we return the search parameters as a placeholder
-            // In production, this would perform the actual search and return results
-
-            log.info("Hybrid search completed for query: '{}' with {} results requested", query, limit);
-            return searchParamsJson; // Placeholder - would return actual results
-
-        } catch (Exception e) {
-            log.error("Failed to perform hybrid search for query: '{}'", query, e);
-            return null;
-        }
-    }
-
-    /**
-     * Search for contributions by user and week with vector similarity
-     * @param user The username to search for
-     * @param week The ISO week to search for
-     * @param semanticQuery Optional semantic query for similarity search
-     * @param limit Maximum number of results
-     * @return Search results as JSON string
-     */
-    public String searchContributions(String user, String week, String semanticQuery, int limit) {
-        try {
-            Map<String, Object> searchParams = new HashMap<>();
-
-            // Build filters
-            List<String> filters = new ArrayList<>();
-            if (user != null && !user.trim().isEmpty()) {
-                filters.add("user = \"" + user + "\"");
-            }
-            if (week != null && !week.trim().isEmpty()) {
-                filters.add("week = \"" + week + "\"");
-            }
-
-            if (!filters.isEmpty()) {
-                searchParams.put("filter", String.join(" AND ", filters));
-            }
-
-            searchParams.put("limit", limit);
-            searchParams.put("attributesToRetrieve", Arrays.asList(
-                "id", "user", "week", "contribution_type", "title", "content",
-                "repository", "author", "created_at", "relevance_score", "is_selected"
-            ));
-
-            // Add semantic search if query provided
-            if (semanticQuery != null && !semanticQuery.trim().isEmpty()) {
-                List<Double> queryEmbedding = ollamaEmbeddingService.generateEmbedding(semanticQuery);
-                if (queryEmbedding != null && !queryEmbedding.isEmpty()) {
-                    Map<String, Object> vector = new HashMap<>();
-                    vector.put("default", queryEmbedding);
-                    searchParams.put("vector", vector);
-
-                    log.debug("Performing filtered vector search for user: '{}', week: '{}', query: '{}'",
-                            user, week, semanticQuery);
-                }
-            }
-
-            String searchParamsJson = objectMapper.writeValueAsString(searchParams);
-            log.info("Searching contributions for user: '{}', week: '{}' with {} results requested",
-                    user, week, limit);
-
-            // Return search parameters for now - would perform actual search in production
-            return searchParamsJson;
-
-        } catch (Exception e) {
-            log.error("Failed to search contributions for user: '{}', week: '{}'", user, week, e);
-            return null;
         }
     }
 }

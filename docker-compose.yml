@@ -65,6 +65,8 @@ services:
         condition: service_healthy
       meilisearch-setup:
         condition: service_completed_successfully
+      db:
+        condition: service_healthy
     develop:
       watch:
         - action: rebuild
@@ -248,6 +250,38 @@ services:
         condition: service_healthy
       meilisearch-setup:
         condition: service_completed_successfully
+  summary:
+    image: ghcr.io/aet-devops25/promptheus-summary:main
+    build:
+      context: .
+      dockerfile: summary/Dockerfile
+    ports:
+      - 8084:8084
+    restart: unless-stopped
+    environment:
+      spring.datasource.url: jdbc:postgresql://db:5432/${POSTGRES_DB:-postgres}
+      spring.datasource.username: ${POSTGRES_USER:-postgres}
+      spring.datasource.password: ${POSTGRES_PASSWORD:-CHANGE_ME}
+      # Service URLs configuration
+      CONTRIBUTION_SERVICE_URL: ${CONTRIBUTION_SERVICE_URL:-http://contribution:8082}
+      GENAI_SERVICE_URL: ${GENAI_SERVICE_URL:-http://genai:3003}
+      GITHUB_PAT: ${GITHUB_PAT:-}
+      DEFAULT_REPOSITORY: ${DEFAULT_REPOSITORY:-owner/repo}
+      management.otlp.tracing.endpoint: http://monitoring:4318/v1/traces
+      management.otlp.metrics.export.url: http://monitoring:4318/v1/metrics
+      management.otlp.logging.endpoint: http://monitoring:4318/v1/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 1s
+      start_interval: 100ms
+    depends_on:
+      db:
+        condition: service_healthy
+      genai:
+        condition: service_started
   client:
     image: ghcr.io/aet-devops25/promptheus-client:main
     build:
@@ -256,6 +290,8 @@ services:
     ports:
       - ${CLIENT_PORT:-8081}:8081
     restart: unless-stopped
+    profiles:
+      - client
     healthcheck:
       test:
         [
