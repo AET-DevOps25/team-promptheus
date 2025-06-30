@@ -10,8 +10,9 @@ MEILISEARCH_URL="${MEILISEARCH_URL:-http://localhost:7700}"
 MEILI_MASTER_KEY="${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}"
 OLLAMA_BASE_URL="${OLLAMA_BASE_URL:-}"
 OLLAMA_API_KEY="${OLLAMA_API_KEY:-}"
-OLLAMA_EMBEDDING_MODEL="${OLLAMA_EMBEDDING_MODEL:-}"
 OPENAI_API_KEY="${OPENAI_API_KEY:-}"
+OPENAI_EMBEDDING_MODEL="${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}"
+OPENAI_EMBEDDING_DIMENSIONS="${OPENAI_EMBEDDING_DIMENSIONS:-1536}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -103,8 +104,8 @@ configure_index_settings() {
         embedders_config="\"embedders\": {
             \"default\": {
                 \"source\": \"openAi\",
-                \"model\": \"text-embedding-3-small\",
-                \"dimensions\": 1536,
+                \"model\": \"${OPENAI_EMBEDDING_MODEL}\",
+                \"dimensions\": ${OPENAI_EMBEDDING_DIMENSIONS:-1536},
                 \"apiKey\": \"${OPENAI_API_KEY}\",
                 \"documentTemplate\": \"Repository: {{doc.repository}} Author: {{doc.author}} Type: {{doc.contribution_type}} Title: {{doc.title}} Content: {{doc.content}}\"
             }
