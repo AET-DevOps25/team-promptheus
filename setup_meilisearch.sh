@@ -8,9 +8,11 @@ set -e
 # Configuration
 MEILISEARCH_URL="${MEILISEARCH_URL:-http://localhost:7700}"
 MEILI_MASTER_KEY="${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}"
-OLLAMA_BASE_URL="${OLLAMA_BASE_URL:-https://gpu.aet.cit.tum.de/ollama}"
+OLLAMA_BASE_URL="${OLLAMA_BASE_URL:-}"
 OLLAMA_API_KEY="${OLLAMA_API_KEY:-}"
-OLLAMA_EMBEDDING_MODEL="${OLLAMA_EMBEDDING_MODEL:-tinyllama:latest}"
+OPENAI_API_KEY="${OPENAI_API_KEY:-}"
+OPENAI_EMBEDDING_MODEL="${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}"
+OPENAI_EMBEDDING_DIMENSIONS="${OPENAI_EMBEDDING_DIMENSIONS:-1536}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -96,8 +98,20 @@ configure_index_settings() {
 
     # Prepare embedder configuration based on both Java and Python implementations
     local embedders_config=""
-    if [ -n "$OLLAMA_API_KEY" ]; then
-        log_info "Configuring embedders for AI-powered semantic search..."
+    if [ -n "$OPENAI_API_KEY" ]; then
+        log_info "Configuring embedders for OpenAI-powered semantic search..."
+        # Use OpenAI embedder configuration
+        embedders_config="\"embedders\": {
+            \"default\": {
+                \"source\": \"openAi\",
+                \"model\": \"${OPENAI_EMBEDDING_MODEL}\",
+                \"dimensions\": ${OPENAI_EMBEDDING_DIMENSIONS:-1536},
+                \"apiKey\": \"${OPENAI_API_KEY}\",
+                \"documentTemplate\": \"Repository: {{doc.repository}} Author: {{doc.author}} Type: {{doc.contribution_type}} Title: {{doc.title}} Content: {{doc.content}}\"
+            }
+        },"
+    elif [ -n "$OLLAMA_API_KEY" ]; then
+        log_info "Configuring embedders for Ollama-powered semantic search..."
         # Use REST embedder configuration (matches Python implementation)
         embedders_config="\"embedders\": {
             \"default\": {
@@ -277,7 +291,9 @@ verify_setup() {
 
         # Check embedders configuration
         if echo "$settings_response" | grep -q '"embedders"'; then
-            if [ -n "$OLLAMA_API_KEY" ] && echo "$settings_response" | grep -q '"source":"rest"'; then
+            if [ -n "$OPENAI_API_KEY" ] && echo "$settings_response" | grep -q '"source":"openAi"'; then
+                log_info "✅ OpenAI embedder configured for semantic search"
+            elif [ -n "$OLLAMA_API_KEY" ] && echo "$settings_response" | grep -q '"source":"rest"'; then
                 log_info "✅ REST embedder configured for Ollama API integration"
             elif echo "$settings_response" | grep -q '"source":"userProvided"'; then
                 log_info "✅ User-provided embedder configured (Java service compatibility)"
@@ -325,6 +341,7 @@ main() {
     echo "Configuration:"
     echo "  Meilisearch URL: $MEILISEARCH_URL"
     echo "  Master Key: ${MEILI_MASTER_KEY:0:8}..."
+    echo "  OpenAI API Key: ${OPENAI_API_KEY:+✓ Available}"
     echo "  Ollama Base URL: $OLLAMA_BASE_URL"
     echo "  Ollama Model: $OLLAMA_EMBEDDING_MODEL"
     echo "  Ollama API Key: ${OLLAMA_API_KEY:+✓ Available}"
@@ -370,12 +387,14 @@ main() {
     echo "  ✅ Stop words filtering (the, a, an, and, or, etc.)"
     echo "  ✅ Synonyms configured (bug/issue, feature/enhancement, fix/repair, test/testing)"
     echo "  ✅ Searchable attributes: content, title, message, body, repository, author, filename, patch"
-    if [ -n "$OLLAMA_API_KEY" ]; then
+    if [ -n "$OPENAI_API_KEY" ]; then
+        echo "  ✅ AI-powered semantic search with OpenAI embedder (text-embedding-3-small)"
+        echo "  ✅ Hybrid search combining full-text and vector similarity"
+    elif [ -n "$OLLAMA_API_KEY" ]; then
         echo "  ✅ AI-powered semantic search with REST embedder (${OLLAMA_EMBEDDING_MODEL})"
         echo "  ✅ Hybrid search combining full-text and vector similarity"
     else
-        echo "  ✅ User-provided embeddings support (2048 dimensions for TinyLlama)"
-        echo "  ⚠️  REST embedder disabled (no OLLAMA_API_KEY) - applications must provide embeddings"
+        echo "  ⚠️  AI embedders disabled (no API keys)"
     fi
     echo ""
     echo "The contributions index is ready to receive data!"
