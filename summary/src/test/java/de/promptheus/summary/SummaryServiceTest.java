@@ -5,6 +5,8 @@ import de.promptheus.summary.client.GenAiClient;
 import de.promptheus.summary.contribution.model.ContributionDto;
 import de.promptheus.summary.persistence.Summary;
 import de.promptheus.summary.persistence.SummaryRepository;
+import de.promptheus.summary.persistence.GitRepository;
+import de.promptheus.summary.persistence.GitRepositoryRepository;
 import de.promptheus.summary.service.SummaryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,6 +34,9 @@ class SummaryServiceTest {
 
     @Mock
     private SummaryRepository summaryRepository;
+
+    @Mock
+    private GitRepositoryRepository gitRepositoryRepository;
 
     @InjectMocks
     private SummaryService summaryService;
@@ -57,8 +63,16 @@ class SummaryServiceTest {
 
     @Test
     void testGenerateWeeklySummaries() {
-        // Setup mocks
-        when(summaryRepository.findDistinctUsernames()).thenReturn(Collections.singletonList("testuser"));
+        // Create a mock GitRepository
+        GitRepository repository = new GitRepository();
+        repository.setId(1L);
+        repository.setRepositoryLink("https://github.com/test/repo");
+        repository.setCreatedAt(Instant.now());
+
+        // Setup mocks for new repository-based logic
+        when(gitRepositoryRepository.findAll()).thenReturn(Collections.singletonList(repository));
+        when(gitRepositoryRepository.findTokenByRepositoryId(1L)).thenReturn("test-token");
+        when(gitRepositoryRepository.findDistinctUsersByRepositoryId(1L)).thenReturn(Collections.singletonList("testuser"));
         when(summaryRepository.findByUsernameAndWeek(any(), any())).thenReturn(Collections.emptyList());
 
         // Mock contribution with isSelected = true
