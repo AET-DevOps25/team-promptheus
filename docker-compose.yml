@@ -287,8 +287,6 @@ services:
     ports:
       - ${CLIENT_PORT:-8081}:8081
     restart: unless-stopped
-    profiles:
-      - client
     healthcheck:
       test:
         [
