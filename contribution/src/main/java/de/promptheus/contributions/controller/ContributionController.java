@@ -79,6 +79,7 @@ public class ContributionController {
             @ApiResponse(responseCode = "200", description = "Contributions retrieved successfully",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(implementation = Page.class))}),
+            @ApiResponse(responseCode = "400", description = "Bad request"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping

@@ -1,191 +1,184 @@
 {
-  "openapi": "3.1.0",
-  "info": {
-    "title": "OpenAPI definition",
-    "version": "v0"
-  },
-  "servers": [
-    {
-      "url": "http://localhost:8070",
-      "description": "Generated server url"
+  "components": {
+    "schemas": {
+      "SearchResult": {
+        "properties": {
+          "facetHits": {
+            "items": {
+              "additionalProperties": {},
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "facetQuery": {
+            "type": "string"
+          },
+          "hits": {
+            "items": {
+              "additionalProperties": {},
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "processingTimeMs": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "query": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
     }
-  ],
+  },
+  "info": {
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "title": "Prompteus Search",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
   "paths": {
     "/api/search/{usercode}": {
       "get": {
-        "tags": [
-          "search-controller"
-        ],
-        "summary": "Search repository content with filtering and sorting",
         "operationId": "search",
         "parameters": [
           {
-            "name": "usercode",
             "in": "path",
+            "name": "usercode",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "type": "string"
             }
           },
           {
+            "in": "query",
             "name": "query",
-            "in": "query",
             "required": true,
             "schema": {
-              "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "type": "string"
             }
           },
           {
-            "name": "user",
-            "in": "query",
             "description": "Filter by user",
+            "in": "query",
+            "name": "user",
             "required": false,
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "week",
-            "in": "query",
             "description": "Filter by week",
+            "in": "query",
+            "name": "week",
             "required": false,
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "contribution_type",
-            "in": "query",
             "description": "Filter by contribution type",
+            "in": "query",
+            "name": "contribution_type",
             "required": false,
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "repository",
-            "in": "query",
-            "description": "Filter by repository",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "author",
-            "in": "query",
             "description": "Filter by author",
+            "in": "query",
+            "name": "author",
             "required": false,
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "created_at_timestamp",
-            "in": "query",
             "description": "Filter by timestamp (exact or range like '1640995200 TO 1672531200')",
+            "in": "query",
+            "name": "created_at_timestamp",
             "required": false,
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "is_selected",
-            "in": "query",
             "description": "Filter by selection status",
+            "in": "query",
+            "name": "is_selected",
             "required": false,
             "schema": {
               "type": "boolean"
             }
           },
           {
-            "name": "sort",
-            "in": "query",
             "description": "Sort fields (comma-separated, prefix with - for descending, e.g., '-created_at_timestamp,relevance_score')",
+            "in": "query",
+            "name": "sort",
             "required": false,
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "limit",
-            "in": "query",
             "description": "Maximum number of Search responses",
+            "in": "query",
+            "name": "limit",
             "required": false,
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "type": "integer"
             }
           },
           {
-            "name": "offset",
-            "in": "query",
             "description": "Offset of Search responses",
+            "in": "query",
+            "name": "offset",
             "required": false,
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "type": "integer"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Search results",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SearchResult"
                 }
               }
-            }
+            },
+            "description": "Search results"
           },
           "403": {
-            "description": "Forbidden - Requested code does not exist",
             "content": {
               "text/plain": {
                 "schema": {
                   "type": "string"
                 }
               }
-            }
+            },
+            "description": "Forbidden - Requested code does not exist"
           }
-        }
+        },
+        "summary": "Search repository content with filtering and sorting",
+        "tags": ["search-controller"]
       }
     }
   },
-  "components": {
-    "schemas": {
-      "SearchResult": {
-        "type": "object",
-        "properties": {
-          "hits": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {}
-            }
-          },
-          "processingTimeMs": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "query": {
-            "type": "string"
-          },
-          "facetHits": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {}
-            }
-          },
-          "facetQuery": {
-            "type": "string"
-          }
-        }
-      }
+  "servers": [
+    {
+      "description": "Production server",
+      "url": "https://prompteus.ai"
     }
-  }
+  ]
 }

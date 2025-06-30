@@ -2,16 +2,24 @@ name: Search CI/CD
 
 on:
   pull_request:
-    branches: [ main ]
-    types: [ opened, reopened, synchronize ]
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   search-checks:
     runs-on: ubuntu-latest
     services:
+      db:
+        image: postgres:17
+        env:
+          TZ: Europe/Berlin
+          PGDATA: /var/lib/postgresql/data/pgdata
+          POSTGRES_PASSWORD: CHANGE_ME
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
       meilisearch:
         image: getmeili/meilisearch:latest
         ports:
@@ -32,7 +40,7 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: "temurin"
           java-version: 17
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -42,6 +50,9 @@ jobs:
         env:
           app.meiliMasterKey: CHANGE_ME_CHANGE_ME
           app.meiliHost: http://meilisearch:7700
+          spring.datasource.url: jdbc:postgresql://db:5432/postgres
+          spring.datasource.username: postgres
+          spring.datasource.password: CHANGE_ME
   docker-build:
     uses: ./.github/workflows/_docker-build.yml
     needs:

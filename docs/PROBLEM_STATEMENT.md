@@ -24,10 +24,9 @@ Teams need a zero‑friction way to surface work done, highlight blockers, and a
 1. harvest (cron, daily to not exceed rate limit): pull all GitHub events —commits, PRs, reviews, issues, comments.
 2. Vectorized context: index artifacts into Postgres pgvector for Retrieval‑Augmented Generation.
 3. GenAI summarization: LangChain → LLM (OpenAI or local) outputs a Done / In‑Progress / Blocked / Next‑Week summary.
-4. A frontend (React/Vue UI)
+4. A frontend (React)
    - Shows the content from the database and allows selecting which of the items to include/exclude via checkboxes for summarization.
    - Questions can also be asked against the database content to build up an Q&A.
    - An AI-driven semantic search bar helps users find content by semantics, not just a typo tolerant prefix-based system. 
-5. Auto‑publish: every Friday run appends the team’s Markdown summary (one‑click regenerate summary) + any approved Q&A to the rolling GitHub Wiki page.
-6. Observability: Prometheus logs summary latency, Q&A response time, regeneration count, harvesting latency+status
-7. Deployment: Zero‑touch delivery: CI/CD on GitHub Actions builds containers, deploys to docker compose/…
+5. Observability: Prometheus logs summary latency, Q&A response time, regeneration count, harvesting latency+status
+6. Deployment: Zero‑touch delivery: CI/CD on GitHub Actions builds containers, deploys to docker compose/…

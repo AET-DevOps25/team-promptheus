@@ -2,10 +2,8 @@ name: Client CI/CD
 
 on:
   pull_request:
-    branches: [ main ]
-    types: [ opened, reopened, synchronize ]
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -13,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run:  npm i --frozen-lockfile --strict-peer-dependencies
+      - run: npm i --frozen-lockfile --strict-peer-dependencies
         working-directory: client
       - run: npm run type-check
         working-directory: client
@@ -21,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run:  npx @biomejs/biome ci
+      - run: npx @biomejs/biome ci
   client-build:
     uses: ./.github/workflows/_docker-build.yml
     #needs:
