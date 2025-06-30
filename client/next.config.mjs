@@ -30,6 +30,10 @@ const nextConfig = {
         destination: `${process.env.NEXT_PUBLIC_CONTRIBUTIONS_API_URL || "http://localhost:8082"}/api/contributions`,
         source: "/api/contributions",
       },
+      {
+        destination: `${process.env.NEXT_PUBLIC_SUMMARIES_API_URL || "http://localhost:8084"}/api/summaries/:path*`,
+        source: "/api/summaries/:path*",
+      },
     ];
   },
   typescript: {
