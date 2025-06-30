@@ -25,14 +25,6 @@ public class SummaryController {
         return summaryService.getSummaries(week);
     }
 
-    @GetMapping("/repositories/search")
-    public List<GitRepository> searchRepositoriesByName(@RequestParam String name) {
-        log.info("Searching for repositories with name: {}", name);
-        List<GitRepository> repositories = gitRepositoryRepository.findRepoByName(name);
-        log.info("Found {} repositories matching name: {}", repositories.size(), name);
-        return repositories;
-    }
-
     @PostMapping("/{owner}/{repo}/{username}/{week}")
     public void generateSummary(@PathVariable String owner, @PathVariable String repo, @PathVariable String username, @PathVariable String week) {
         log.info("Manual summary generation triggered for user: {}, week: {}, repository: {}/{}", username, week, owner, repo);
