@@ -288,7 +288,7 @@ services:
         - NEXT_PUBLIC_SERVER_API_URL=http://server:8080
         - NEXT_PUBLIC_GENAI_API_URL=http://genai:3003
         - NEXT_PUBLIC_SEARCH_API_URL=http://search:8070
-        - NEXT_PUBLIC_CONTRIBUTIONS_API_URL=http://collector:8082
+        - NEXT_PUBLIC_CONTRIBUTIONS_API_URL=http://contribution:8082
         - NEXT_PUBLIC_SUMMARIES_API_URL=http://summary:8084
     ports:
       - ${CLIENT_PORT:-8081}:8081
