@@ -68,6 +68,8 @@ jobs:
           -e MEILISEARCH_URL=http://localhost:7700 \
           -e MEILI_MASTER_KEY=CHANGE_ME_CHANGE_ME \
           -e OLLAMA_API_KEY=${{ secrets.OLLAMA_API_KEY }} \
+          -e OLLAMA_EMBEDDING_MODEL=tinyllama:latest \
+          -e OLLAMA_BASE_URL=https://gpu.aet.cit.tum.de/ollama \
           ghcr.io/aet-devops25/promptheus-ms-init:main
 
       - name: Run tests in Docker container
