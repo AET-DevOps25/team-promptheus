@@ -1,6 +1,7 @@
 package de.promptheus.contributions.repository;
 
 import de.promptheus.contributions.entity.Contribution;
+import de.promptheus.contributions.entity.ContributionId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ContributionRepository extends JpaRepository<Contribution, String> {
+public interface ContributionRepository extends JpaRepository<Contribution, ContributionId> {
 
     List<Contribution> findByGitRepositoryId(Long gitRepositoryId);
 
@@ -24,12 +25,8 @@ public interface ContributionRepository extends JpaRepository<Contribution, Stri
     List<Contribution> findByGitRepositoryIdAndCreatedAtBetween(
             Long gitRepositoryId, Instant startDate, Instant endDate);
 
-    @Query("SELECT c FROM Contribution c WHERE c.gitRepositoryId = :repositoryId AND c.username = :user AND c.type = :type AND c.summary = :summary")
-    Optional<Contribution> findExistingContribution(
-            @Param("repositoryId") Long repositoryId,
-            @Param("user") String user,
-            @Param("type") String type,
-            @Param("summary") String summary);
+    // Check if contribution exists by type and id (primary key)
+    Optional<Contribution> findByTypeAndId(String type, String id);
 
     @Query("SELECT COUNT(c) FROM Contribution c WHERE c.gitRepositoryId = :repositoryId")
     Long countByRepositoryId(@Param("repositoryId") Long repositoryId);

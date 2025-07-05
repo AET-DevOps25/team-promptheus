@@ -11,6 +11,7 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "contributions")
+@IdClass(ContentId.class)
 @Builder
 @Getter
 @Setter
@@ -19,13 +20,14 @@ import java.time.Instant;
 public class Content {
     @Id
     @Column(nullable = false)
+    private String type;
+
+    @Id
+    @Column(nullable = false)
     private String id;
 
     @Column(name = "git_repository_id", nullable = false)
     private Long gitRepositoryId;
-
-    @Column(nullable = false)
-    private String type;
     @Column(nullable = false, name = "username")
     private String user;
     @Column(nullable = false)

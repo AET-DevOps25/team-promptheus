@@ -389,17 +389,27 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/TriggerResponse"
+                  "type": "object"
                 }
               }
             },
             "description": "Bad request"
           },
+          "429": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "GitHub API rate limit exceeded"
+          },
           "500": {
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/TriggerResponse"
+                  "type": "object"
                 }
               }
             },
@@ -438,7 +448,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/TriggerResponse"
+                  "type": "object"
                 }
               }
             },
@@ -448,17 +458,27 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/TriggerResponse"
+                  "type": "object"
                 }
               }
             },
             "description": "Repository not found"
           },
+          "429": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "GitHub API rate limit exceeded"
+          },
           "500": {
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/TriggerResponse"
+                  "type": "object"
                 }
               }
             },

@@ -2,6 +2,7 @@ package de.promptheus.contributions.service;
 
 import de.promptheus.contributions.dto.ContributionDto;
 import de.promptheus.contributions.entity.Contribution;
+import de.promptheus.contributions.entity.ContributionId;
 import de.promptheus.contributions.repository.ContributionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,8 +63,9 @@ public class ContributionService {
         int updatedCount = 0;
 
         for (ContributionDto dto : contributionDtos) {
-            // Find contribution by ID (which is now required and validated)
-            Optional<Contribution> existingOpt = contributionRepository.findById(dto.getId());
+            // Find contribution by composite key (type + id)
+            ContributionId compositeKey = new ContributionId(dto.getType(), dto.getId());
+            Optional<Contribution> existingOpt = contributionRepository.findById(compositeKey);
 
             if (existingOpt.isPresent()) {
                 Contribution existing = existingOpt.get();

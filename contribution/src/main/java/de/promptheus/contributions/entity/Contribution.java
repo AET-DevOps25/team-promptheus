@@ -14,6 +14,7 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "contributions")
+@IdClass(ContributionId.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,14 +22,15 @@ import java.time.Instant;
 public class Contribution {
 
     @Id
+    @Column(name = "type", nullable = false, length = 50)
+    private String type;
+
+    @Id
     @Column(nullable = false)
     private String id;
 
     @Column(name = "git_repository_id", nullable = false)
     private Long gitRepositoryId;
-
-    @Column(name = "type", nullable = false, length = 50)
-    private String type;
 
     @Column(name = "username", nullable = false, length = 255)
     private String username;
