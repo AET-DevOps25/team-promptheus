@@ -51,9 +51,16 @@ public class ContributionFetchService {
                     // Index contributions to Meilisearch
                     meilisearchService.indexContributions(contributions, repository.getRepositoryLink());
 
-                    // Update last fetched time
-                    repository.setLastFetchedAt(Instant.now());
-                    gitRepositoryRepository.save(repository);
+                    // Update last fetched time only if contributions were actually found
+                    if (contributions.size() > 0) {
+                        repository.setLastFetchedAt(Instant.now());
+                        gitRepositoryRepository.save(repository);
+                        log.info("Updated last_fetched_at for repository {} since {} contributions were found",
+                                repository.getRepositoryLink(), contributions.size());
+                    } else {
+                        log.info("NOT updating last_fetched_at for repository {} since 0 contributions were found",
+                                repository.getRepositoryLink());
+                    }
 
                     processedRepositories.add(repository.getRepositoryLink());
                     totalContributionsFetched += contributions.size();
@@ -135,9 +142,16 @@ public class ContributionFetchService {
             // Index contributions to Meilisearch
             meilisearchService.indexContributions(contributions, repositoryUrl);
 
-            // Update last fetched time
-            repository.setLastFetchedAt(Instant.now());
-            gitRepositoryRepository.save(repository);
+            // Update last fetched time only if contributions were actually found
+            if (contributions.size() > 0) {
+                repository.setLastFetchedAt(Instant.now());
+                gitRepositoryRepository.save(repository);
+                log.info("Updated last_fetched_at for repository {} since {} contributions were found",
+                        repositoryUrl, contributions.size());
+            } else {
+                log.info("NOT updating last_fetched_at for repository {} since 0 contributions were found",
+                        repositoryUrl);
+            }
 
             long processingTime = Instant.now().toEpochMilli() - startTime.toEpochMilli();
 
@@ -175,17 +189,32 @@ public class ContributionFetchService {
     }
 
     private int upsertContributions(List<Contribution> contributions, Long repositoryId) {
+        log.info("Starting upsert of {} contributions for repository ID {}", contributions.size(), repositoryId);
         int upserted = 0;
+
         for (Contribution contribution : contributions) {
             try {
+                log.debug("Upserting contribution: type={}, id={}, username={}, summary={}",
+                         contribution.getType(), contribution.getId(), contribution.getUsername(),
+                         contribution.getSummary());
+
                 contribution.setGitRepositoryId(repositoryId);
                 contribution.setIsSelected(true);
-                contributionRepository.save(contribution);
+
+                Contribution saved = contributionRepository.save(contribution);
                 upserted++;
+
+                log.debug("Successfully upserted contribution: type={}, id={}, database_id={}",
+                         saved.getType(), saved.getId(), saved.getGitRepositoryId());
+
             } catch (Exception e) {
-                log.warn("Failed to upsert contribution {}: {}", contribution.getId(), e.getMessage());
+                log.error("Failed to upsert contribution type={}, id={}, username={}: {}",
+                         contribution.getType(), contribution.getId(), contribution.getUsername(), e.getMessage(), e);
             }
         }
+
+        log.info("Completed upsert: {}/{} contributions successfully saved for repository ID {}",
+                upserted, contributions.size(), repositoryId);
         return upserted;
     }
 }

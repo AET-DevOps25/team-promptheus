@@ -5,6 +5,7 @@ import de.promptheus.summary.client.GenAiClient;
 import de.promptheus.summary.contribution.model.ContributionDto;
 import de.promptheus.summary.genai.model.ContributionMetadata;
 import de.promptheus.summary.genai.model.ContributionType;
+import de.promptheus.summary.genai.model.ContributionsIngestRequest;
 import de.promptheus.summary.persistence.Summary;
 import de.promptheus.summary.persistence.SummaryRepository;
 import de.promptheus.summary.persistence.GitRepository;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
@@ -31,6 +33,8 @@ public class SummaryService {
     private final ContributionClient contributionClient;
     private final SummaryRepository summaryRepository;
     private final GitRepositoryRepository gitRepositoryRepository;
+    @Value("${app.githubPat:}")
+    private String githubPat;
 
     public List<Summary> getSummaries(Optional<String> week) {
         if (week.isPresent()) {
@@ -127,18 +131,47 @@ public class SummaryService {
                     log.info("Sending {} selected contributions to GenAI service for user: {}, week: {}, repository: {}",
                             metadata.size(), username, week, repositoryName);
 
-                    return genAiClient.generateSummaryAsync(username, week, repositoryName, metadata);
+                    ContributionsIngestRequest request = new ContributionsIngestRequest();
+                    request.setUser(username);
+                    request.setWeek(week);
+                    request.setRepository(repositoryName);
+                    request.setContributions(metadata);
+                    request.setGithubPat(githubPat);
+
+                    return genAiClient.generateSummaryAsync(request);
                 })
                 .subscribe(
-                    summaryMarkdown -> {
+                    summaryResponse -> {
                         // Step 5: Save the summary to database
                         try {
                             Summary summary = new Summary();
                             summary.setUsername(username);
                             summary.setWeek(week);
                             summary.setGitRepositoryId(repository.getId());
-                            summary.setSummary(summaryMarkdown);
                             summary.setCreatedAt(LocalDateTime.now());
+
+                            // Map from DTO to entity
+                            summary.setOverview(summaryResponse.getOverview());
+                            summary.setCommitsSummary(summaryResponse.getCommitsSummary());
+                            summary.setPullRequestsSummary(summaryResponse.getPullRequestsSummary());
+                            summary.setIssuesSummary(summaryResponse.getIssuesSummary());
+                            summary.setReleasesSummary(summaryResponse.getReleasesSummary());
+                            summary.setAnalysis(summaryResponse.getAnalysis());
+                            if (summaryResponse.getKeyAchievements() != null) {
+                                summary.setKeyAchievements(summaryResponse.getKeyAchievements().stream().toArray(String[]::new));
+                            }
+                            if (summaryResponse.getAreasForImprovement() != null) {
+                                summary.setAreasForImprovement(summaryResponse.getAreasForImprovement().stream().toArray(String[]::new));
+                            }
+
+                            if (summaryResponse.getMetadata() != null) {
+                                summary.setTotalContributions(summaryResponse.getMetadata().getTotalContributions());
+                                summary.setCommitsCount(summaryResponse.getMetadata().getCommitsCount());
+                                summary.setPullRequestsCount(summaryResponse.getMetadata().getPullRequestsCount());
+                                summary.setIssuesCount(summaryResponse.getMetadata().getIssuesCount());
+                                summary.setReleasesCount(summaryResponse.getMetadata().getReleasesCount());
+                            }
+
 
                             Summary savedSummary = summaryRepository.save(summary);
                             log.info("Successfully generated and saved summary with ID {} for user: {}, week: {}, repository: {}",

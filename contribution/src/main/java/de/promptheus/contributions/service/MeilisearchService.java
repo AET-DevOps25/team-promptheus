@@ -99,8 +99,8 @@ public class MeilisearchService {
             String user = contribution.getUsername();
             String week = getISOWeek(contribution.getCreatedAt());
 
-            // Create unique ID
-            String documentId = user + "-" + week + "-" + contribution.getId();
+            // Create unique ID using type and id to avoid conflicts
+            String documentId = user + "-" + week + "-" + contribution.getType() + "-" + contribution.getId();
             document.put("id", documentId);
 
             // Basic fields
