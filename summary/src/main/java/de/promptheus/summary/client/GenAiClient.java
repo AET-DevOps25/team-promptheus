@@ -1,68 +1,45 @@
 package de.promptheus.summary.client;
 
-import de.promptheus.summary.genai.model.*;
+import de.promptheus.summary.genai.api.DefaultApi;
+import de.promptheus.summary.genai.model.ContributionsIngestRequest;
+import de.promptheus.summary.genai.model.IngestTaskStatus;
+import de.promptheus.summary.genai.model.SummaryResponse;
+import de.promptheus.summary.genai.model.TaskStatus;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
-import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 @Slf4j
 public class GenAiClient {
 
-    private final WebClient webClient;
-    private final String githubPat;
+    private final DefaultApi genAiApi;
 
-    public GenAiClient(WebClient.Builder webClientBuilder,
-                      @Value("${app.genaiServiceUrl}") String genaiServiceUrl,
-                      @Value("${app.githubPat:}") String githubPat) {
-        this.webClient = webClientBuilder.baseUrl(genaiServiceUrl).build();
-        this.githubPat = githubPat;
-        log.info("GenAiClient configured with URL: {}", genaiServiceUrl);
-    }
+    public Mono<SummaryResponse> generateSummaryAsync(ContributionsIngestRequest request) {
+        log.info("Starting async summary generation for user: {}, week: {}, repository: {}",
+                request.getUser(), request.getWeek(), request.getRepository());
 
-    public Mono<String> generateSummaryAsync(String username, String week, String repository, List<ContributionMetadata> contributions) {
-        log.info("Starting async summary generation for user: {}, week: {}, repository: {}, contributions: {}",
-                username, week, repository, contributions.size());
-
-        // Step 1: Create the ingest request
-        ContributionsIngestRequest request = new ContributionsIngestRequest();
-        request.setUser(username);
-        request.setWeek(week);
-        request.setRepository(repository);
-        request.setContributions(contributions);
-        request.setGithubPat(githubPat);
-
-        // Step 2: POST to /contributions to start the async task
-        return webClient.post()
-                .uri("/contributions")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(IngestTaskResponse.class)
+        return genAiApi.startContributionsIngestionTaskContributionsPost(request)
                 .flatMap(taskResponse -> {
-                    log.info("Created task: {} for user: {}, week: {}", taskResponse.getTaskId(), username, week);
-                    // Step 3: Poll the task status until completion
+                    log.info("Created task: {} for user: {}, week: {}", taskResponse.getTaskId(), request.getUser(), request.getWeek());
                     return pollTaskUntilComplete(taskResponse.getTaskId());
                 })
-                .doOnSuccess(summary -> log.info("Successfully generated summary for user: {}, week: {}", username, week))
-                .doOnError(error -> log.error("Failed to generate summary for user: {}, week: {}", username, week, error));
+                .doOnSuccess(summary -> log.info("Successfully generated summary for user: {}, week: {}", request.getUser(), request.getWeek()))
+                .doOnError(error -> log.error("Failed to generate summary for user: {}, week: {}", request.getUser(), request.getWeek(), error));
     }
 
-    private Mono<String> pollTaskUntilComplete(String taskId) {
-        return webClient.get()
-                .uri("/ingest/{taskId}", taskId)
-                .retrieve()
-                .bodyToMono(IngestTaskStatus.class)
+    private Mono<SummaryResponse> pollTaskUntilComplete(String taskId) {
+        return genAiApi.getIngestionTaskStatusIngestTaskIdGet(taskId)
                 .flatMap(status -> {
                     log.debug("Task {} status: {}", taskId, status.getStatus());
 
                     if (status.getStatus() == TaskStatus.DONE) {
-                        if (status.getSummary() != null && status.getSummary().getOverview() != null) {
-                            return Mono.just(status.getSummary().getOverview());
+                        if (status.getSummary() != null) {
+                            return Mono.just(status.getSummary());
                         } else {
                             return Mono.error(new RuntimeException("Task completed but no summary available"));
                         }

@@ -29,6 +29,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
+    // GitHub API for Java - much better than raw REST calls
+	implementation 'org.kohsuke:github-api:1.326'
     // search
 	implementation 'com.meilisearch.sdk:meilisearch-java:0.15.0'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'

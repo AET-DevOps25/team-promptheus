@@ -27,6 +27,10 @@ public record SummaryConstruct(
     Instant createdAt
 ) {
     public static SummaryConstruct from(Summary s) {
-        return SummaryConstruct.builder().summary(s.getSummary()).id(s.getId()).createdAt(s.getCreatedAt()).build();
+        return SummaryConstruct.builder()
+            .summary(s.getOverview())
+            .id(s.getId())
+            .createdAt(s.getCreatedAt().atZone(java.time.ZoneOffset.UTC).toInstant())
+            .build();
     }
 }

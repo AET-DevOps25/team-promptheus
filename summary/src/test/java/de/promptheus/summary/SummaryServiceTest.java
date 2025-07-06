@@ -18,75 +18,99 @@ import reactor.core.publisher.Mono;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import de.promptheus.summary.genai.model.ContributionsIngestRequest;
+import de.promptheus.summary.genai.model.SummaryResponse;
+import org.springframework.test.util.ReflectionTestUtils;
+
 class SummaryServiceTest {
 
-    @Mock
     private GenAiClient genAiClient;
 
-    @Mock
     private ContributionClient contributionClient;
 
-    @Mock
     private SummaryRepository summaryRepository;
 
-    @Mock
     private GitRepositoryRepository gitRepositoryRepository;
 
-    @InjectMocks
     private SummaryService summaryService;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        summaryRepository = mock(SummaryRepository.class);
+        gitRepositoryRepository = mock(GitRepositoryRepository.class);
+        genAiClient = mock(GenAiClient.class);
+        contributionClient = mock(ContributionClient.class);
+        summaryService = new SummaryService(genAiClient, contributionClient, summaryRepository, gitRepositoryRepository);
+        ReflectionTestUtils.setField(summaryService, "githubPat", "test-pat");
     }
 
     @Test
-    void testGetSummaries() {
+    void testGetSummariesWithWeek() {
         Summary summary = new Summary();
         summary.setId(1L);
+        summary.setGitRepositoryId(1L);
         summary.setUsername("testuser");
-        summary.setWeek("2024-W01");
-        summary.setSummary("Test Summary");
+        summary.setWeek("2024-W28");
+        summary.setOverview("Test Summary");
+        when(summaryRepository.findByWeek("2024-W28")).thenReturn(Collections.singletonList(summary));
+
+        List<Summary> summaries = summaryService.getSummaries(Optional.of("2024-W28"));
+
+        assertEquals(1, summaries.size());
+        assertEquals("Test Summary", summaries.get(0).getOverview());
+    }
+
+    @Test
+    void testGetSummariesWithoutWeek() {
+        Summary summary = new Summary();
+        summary.setId(1L);
+        summary.setGitRepositoryId(1L);
+        summary.setUsername("testuser");
+        summary.setWeek("2024-W28");
+        summary.setOverview("Test Summary");
         when(summaryRepository.findAll()).thenReturn(Collections.singletonList(summary));
 
         List<Summary> summaries = summaryService.getSummaries(java.util.Optional.empty());
 
         assertEquals(1, summaries.size());
-        assertEquals("Test Summary", summaries.get(0).getSummary());
+        assertEquals("Test Summary", summaries.get(0).getOverview());
     }
 
     @Test
-    void testGenerateWeeklySummaries() {
-        // Create a mock GitRepository
+    void testGenerateSummary() {
+        // Given
+        String username = "testuser";
+        String week = "2024-W28";
         GitRepository repository = new GitRepository();
         repository.setId(1L);
         repository.setRepositoryLink("https://github.com/test/repo");
-        repository.setCreatedAt(Instant.now());
 
-        // Setup mocks for new repository-based logic
-        when(gitRepositoryRepository.findAll()).thenReturn(Collections.singletonList(repository));
-        when(gitRepositoryRepository.findTokenByRepositoryId(1L)).thenReturn("test-token");
-        when(gitRepositoryRepository.findDistinctUsersByRepositoryId(1L)).thenReturn(Collections.singletonList("testuser"));
-        when(summaryRepository.findByUsernameAndWeek(any(), any())).thenReturn(Collections.emptyList());
-
-        // Mock contribution with isSelected = true
         ContributionDto contribution = new ContributionDto();
-        contribution.setId("1");
         contribution.setIsSelected(true);
         contribution.setType("commit");
-        when(contributionClient.getContributionsForUserAndWeek(any(), any()))
-                .thenReturn(Mono.just(Collections.singletonList(contribution)));
 
-        when(genAiClient.generateSummaryAsync(any(), any(), any(), any())).thenReturn(Mono.just("Test summary"));
+        when(contributionClient.getContributionsForUserAndWeek(any(), any())).thenReturn(Mono.just(Collections.singletonList(contribution)));
+        when(genAiClient.generateSummaryAsync(any(ContributionsIngestRequest.class))).thenReturn(Mono.just(new SummaryResponse()));
+        when(summaryRepository.findByUsernameAndWeek(username, week)).thenReturn(Collections.emptyList());
 
-        summaryService.generateWeeklySummaries();
+        // When
+        summaryService.generateSummary(username, week, repository, "test-token");
 
-        verify(summaryRepository).save(any(Summary.class));
+        // Then
+        try {
+            Thread.sleep(1000); // Wait for async processing
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        verify(summaryRepository, times(1)).save(any(Summary.class));
     }
 }
