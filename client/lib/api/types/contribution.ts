@@ -267,7 +267,16 @@ export interface operations {
                     readonly [name: string]: unknown;
                 };
                 content: {
-                    readonly "*/*": components["schemas"]["TriggerResponse"];
+                    readonly "*/*": Record<string, never>;
+                };
+            };
+            /** @description GitHub API rate limit exceeded */
+            readonly 429: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "*/*": Record<string, never>;
                 };
             };
             /** @description Internal server error */
@@ -276,7 +285,7 @@ export interface operations {
                     readonly [name: string]: unknown;
                 };
                 content: {
-                    readonly "*/*": components["schemas"]["TriggerResponse"];
+                    readonly "*/*": Record<string, never>;
                 };
             };
         };
@@ -309,7 +318,7 @@ export interface operations {
                     readonly [name: string]: unknown;
                 };
                 content: {
-                    readonly "*/*": components["schemas"]["TriggerResponse"];
+                    readonly "*/*": Record<string, never>;
                 };
             };
             /** @description Repository not found */
@@ -318,7 +327,16 @@ export interface operations {
                     readonly [name: string]: unknown;
                 };
                 content: {
-                    readonly "*/*": components["schemas"]["TriggerResponse"];
+                    readonly "*/*": Record<string, never>;
+                };
+            };
+            /** @description GitHub API rate limit exceeded */
+            readonly 429: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "*/*": Record<string, never>;
                 };
             };
             /** @description Internal server error */
@@ -327,7 +345,7 @@ export interface operations {
                     readonly [name: string]: unknown;
                 };
                 content: {
-                    readonly "*/*": components["schemas"]["TriggerResponse"];
+                    readonly "*/*": Record<string, never>;
                 };
             };
         };
