@@ -226,6 +226,14 @@ services:
       management.otlp.tracing.endpoint: http://monitoring:4318/v1/traces
       management.otlp.metrics.export.url: http://monitoring:4318/v1/metrics
       management.otlp.logging.endpoint: http://monitoring:4318/v1/logs
+    develop:
+      watch:
+        - action: rebuild
+          path: ./contribution/build.gradle
+        - action: rebuild
+          path: ./contribution/settings.gradle
+        - action: rebuild
+          path: ./contribution/src
     healthcheck:
       test:
         [
@@ -267,6 +275,14 @@ services:
       management.otlp.tracing.endpoint: http://monitoring:4318/v1/traces
       management.otlp.metrics.export.url: http://monitoring:4318/v1/metrics
       management.otlp.logging.endpoint: http://monitoring:4318/v1/logs
+    develop:
+      watch:
+        - action: rebuild
+          path: ./summary/build.gradle
+        - action: rebuild
+          path: ./summary/settings.gradle
+        - action: rebuild
+          path: ./summary/src
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
       interval: 10s
