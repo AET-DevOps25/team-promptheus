@@ -3,6 +3,7 @@ package com.server.api;
 import com.server.CommunicationObjects.*;
 import com.server.persistence.entity.*;
 import com.server.persistence.repository.*;
+import com.server.service.QuestionAnswerService;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -27,6 +28,7 @@ public class GitRepoService {
     private final PersonalAccessToken2GitRepoRepository pat2gitRepository;
     private final QuestionRepository questionRepository;
     private final GitContentRepository gitContentRepository;
+    private final QuestionAnswerService questionAnswerService;
 
     @Autowired
     public GitRepoService(
@@ -35,7 +37,8 @@ public class GitRepoService {
         PersonalAccessTokenRepository patRepository,
         PersonalAccessToken2GitRepoRepository pat2gitRepository,
         QuestionRepository questionRepository,
-        GitContentRepository gitContentRepository
+        GitContentRepository gitContentRepository,
+        QuestionAnswerService questionAnswerService
     ) {
         this.gitRepoRepository = gitRepoRepository;
         this.linkRepository = linkRepository;
@@ -43,6 +46,7 @@ public class GitRepoService {
         this.pat2gitRepository = pat2gitRepository;
         this.questionRepository = questionRepository;
         this.gitContentRepository = gitContentRepository;
+        this.questionAnswerService = questionAnswerService;
     }
 
     public LinkConstruct createAccessLinks(PATConstruct patRequest) {
@@ -104,7 +108,17 @@ public class GitRepoService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "link is not a valid access id");
         }
 
+        // Get repository information for processing
+        Optional<GitRepo> repoEntity = gitRepoRepository.findById(repoLinkEntity.get().getGitRepositoryId());
+        if (repoEntity.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "repository not found");
+        }
+
+        // Save the question first
         Question q = Question.builder().gitRepositoryId(repoLinkEntity.get().getGitRepositoryId()).question(question).build();
-        questionRepository.save(q);
+        Question savedQuestion = questionRepository.save(q);
+
+        // Trigger async processing with GenAI and Summary services
+        questionAnswerService.processQuestionAsync(savedQuestion.getId(), repoEntity.get().getRepositoryLink());
     }
 }

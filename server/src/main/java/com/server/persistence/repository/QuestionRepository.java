@@ -1,8 +1,9 @@
 package com.server.persistence.repository;
 
 import com.server.persistence.entity.Question;
-import org.springframework.data.repository.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface QuestionRepository extends Repository<Question, Long> {
-    void save(Question question);
+@Repository
+public interface QuestionRepository extends JpaRepository<Question, Long> {
 }
