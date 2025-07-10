@@ -1,8 +1,10 @@
 # Stage 1: Build the application
 FROM --platform=$BUILDPLATFORM gradle:8.14-jdk21 AS build
 WORKDIR /app
-COPY build.gradle settings.gradle ./
-COPY src ./src
+COPY server/build.gradle server/settings.gradle ./
+COPY server/src ./src
+COPY genai/openapi.json ./genai.json
+COPY summary/openapi.json ./summary.json
 RUN gradle bootJar --no-daemon
 
 # Stage 1.5 buisybox

@@ -29,4 +29,9 @@ public class Question {
     private List<QuestionAnswer> answers;
 
     public Question() {}
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+    }
 }

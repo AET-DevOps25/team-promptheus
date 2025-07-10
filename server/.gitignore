@@ -38,3 +38,7 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+### Inline Openapi ###
+summary.json
+genai.json

@@ -17,6 +17,14 @@ public record QuestionAnswerConstruct(
     String answer,
 
     @Schema(
+        description = "Confidence score of the AI answer (0.0 to 1.0)",
+        example = "0.85",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
+        nullable = true
+    )
+    Float confidence,
+
+    @Schema(
         description = "Timestamp when the answer was generated",
         example = "2023-01-16T09:15:30.456Z",
         requiredMode = Schema.RequiredMode.REQUIRED,
@@ -25,6 +33,10 @@ public record QuestionAnswerConstruct(
     Instant createdAt
 ) {
     public static QuestionAnswerConstruct from(QuestionAnswer a) {
-        return QuestionAnswerConstruct.builder().answer(a.getAnswer()).createdAt(a.getCreatedAt()).build();
+        return QuestionAnswerConstruct.builder()
+            .answer(a.getAnswer())
+            .confidence(a.getConfidence())
+            .createdAt(a.getCreatedAt())
+            .build();
     }
 }
