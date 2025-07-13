@@ -6,15 +6,14 @@ import com.server.summary.api.SummaryControllerApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class ApiClientConfig {
 
-    @Value("${genai.service.url:http://localhost:8003}")
+    @Value("${genai.service.url:http://genai:3003}")
     private String genaiServiceUrl;
 
-    @Value("${summary.service.url:http://localhost:8084}")
+    @Value("${summary.service.url:http://summary:8084}")
     private String summaryServiceUrl;
 
     @Bean

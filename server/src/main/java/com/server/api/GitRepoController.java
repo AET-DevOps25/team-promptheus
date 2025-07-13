@@ -205,11 +205,11 @@ public class GitRepoController {
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = QuestionSubmission.class),
-                examples = @ExampleObject(value = "{ \"question\": \"Why are these developer raving about 42?\" }")
+                examples = @ExampleObject(value = "{ \"question\": \"Why are these developer raving about 42?\", \"username\": \"john.doe\" }")
             )
         ) @RequestBody @NotNull QuestionSubmission question
     ) {
-        gitRepoService.createQuestion(usercode, question.question());
+        gitRepoService.createQuestion(usercode, question.question(), question.username());
         meterRegistry.counter("question_creation_total").increment();
 
         return ResponseEntity.ok("Created Successfully");
