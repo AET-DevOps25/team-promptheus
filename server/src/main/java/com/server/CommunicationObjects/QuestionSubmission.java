@@ -12,5 +12,15 @@ public record QuestionSubmission(
         minLength = 5,
         maxLength = 500
     )
-    String question
+    String question,
+
+    @Schema(
+        description = "The username of the person asking the question",
+        example = "john.doe",
+        requiredMode = Schema.RequiredMode.REQUIRED,
+        nullable = false,
+        minLength = 1,
+        maxLength = 100
+    )
+    String username
 ) {}

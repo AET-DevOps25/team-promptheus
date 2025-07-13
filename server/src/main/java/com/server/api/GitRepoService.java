@@ -102,7 +102,7 @@ public class GitRepoService {
             .build();
     }
 
-    public void createQuestion(UUID usercode, String question) {
+    public void createQuestion(UUID usercode, String question, String username) {
         Optional<Link> repoLinkEntity = linkRepository.findById(usercode);
         if (repoLinkEntity.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "link is not a valid access id");
@@ -118,7 +118,23 @@ public class GitRepoService {
         Question q = Question.builder().gitRepositoryId(repoLinkEntity.get().getGitRepositoryId()).question(question).build();
         Question savedQuestion = questionRepository.save(q);
 
+        // Use the provided username and current week
+        String weekId = getCurrentWeekId();
+
         // Trigger async processing with GenAI and Summary services
-        questionAnswerService.processQuestionAsync(savedQuestion.getId(), repoEntity.get().getRepositoryLink());
+        questionAnswerService.processQuestionAsync(
+            savedQuestion.getId(),
+            repoEntity.get().getRepositoryLink(),
+            username,
+            weekId
+        );
+    }
+
+    private String getCurrentWeekId() {
+        java.time.LocalDate now = java.time.LocalDate.now();
+        java.time.temporal.WeekFields weekFields = java.time.temporal.WeekFields.of(java.util.Locale.getDefault());
+        int weekNumber = now.get(weekFields.weekOfWeekBasedYear());
+        int year = now.get(weekFields.weekBasedYear());
+        return String.format("%d-W%02d", year, weekNumber);
     }
 }
