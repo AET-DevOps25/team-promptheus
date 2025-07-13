@@ -282,8 +282,8 @@
             "type": "string"
           },
           "relevance_score": {
-            "maximum": 1,
-            "minimum": 0,
+            "maximum": 1.0,
+            "minimum": 0.0,
             "title": "Relevance Score",
             "type": "number"
           },
@@ -351,8 +351,8 @@
             "type": "string"
           },
           "confidence": {
-            "maximum": 1,
-            "minimum": 0,
+            "maximum": 1.0,
+            "minimum": 0.0,
             "title": "Confidence",
             "type": "number"
           },
