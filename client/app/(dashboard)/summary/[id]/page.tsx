@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Markdown } from "@/components/ui/markdown";
 import { QuestionAnswerSection } from "@/components/ui/question-answer";
 import { useSummaries, useQuestionsAndAnswers, useCreateQuestion, useQueryClient } from "@/lib/api";
 import { useUser } from "@/contexts/user-context";
@@ -230,7 +231,7 @@ export default function SingleSummaryPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 leading-relaxed">{summary.overview}</p>
+              <Markdown variant="default">{summary.overview}</Markdown>
             </CardContent>
           </Card>
         )}
@@ -247,7 +248,7 @@ export default function SingleSummaryPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 leading-relaxed">{summary.commitsSummary}</p>
+                <Markdown variant="default">{summary.commitsSummary}</Markdown>
               </CardContent>
             </Card>
           )}
@@ -262,7 +263,7 @@ export default function SingleSummaryPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 leading-relaxed">{summary.pullRequestsSummary}</p>
+                <Markdown variant="default">{summary.pullRequestsSummary}</Markdown>
               </CardContent>
             </Card>
           )}
@@ -277,7 +278,7 @@ export default function SingleSummaryPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 leading-relaxed">{summary.issuesSummary}</p>
+                <Markdown variant="default">{summary.issuesSummary}</Markdown>
               </CardContent>
             </Card>
           )}
@@ -292,7 +293,7 @@ export default function SingleSummaryPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 leading-relaxed">{summary.releasesSummary}</p>
+                <Markdown variant="default">{summary.releasesSummary}</Markdown>
               </CardContent>
             </Card>
           )}
@@ -310,7 +311,7 @@ export default function SingleSummaryPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 leading-relaxed">{summary.analysis}</p>
+              <Markdown variant="default">{summary.analysis}</Markdown>
             </CardContent>
           </Card>
         )}
@@ -330,7 +331,9 @@ export default function SingleSummaryPage() {
                   {summary.keyAchievements.map((achievement, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
-                      <span className="text-gray-700">{achievement}</span>
+                      <div className="flex-1">
+                        <Markdown variant="compact">{achievement}</Markdown>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -351,7 +354,9 @@ export default function SingleSummaryPage() {
                   {summary.areasForImprovement.map((area, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0" />
-                      <span className="text-gray-700">{area}</span>
+                      <div className="flex-1">
+                        <Markdown variant="compact">{area}</Markdown>
+                      </div>
                     </li>
                   ))}
                 </ul>

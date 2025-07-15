@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Markdown } from "@/components/ui/markdown";
 import type { QuestionAnswerConstruct } from "@/lib/api";
 import { format } from "date-fns";
 
@@ -204,7 +205,7 @@ function QuestionAnswerItem({ qa }: QuestionAnswerItemProps) {
           <div className="flex items-start gap-2">
             <Brain className="h-4 w-4 text-blue-600 mt-1 flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-gray-700 leading-relaxed">{qa.answer}</p>
+              <Markdown variant="default">{qa.answer}</Markdown>
             </div>
           </div>
         </div>

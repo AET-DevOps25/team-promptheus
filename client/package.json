@@ -28,6 +28,7 @@
     "@radix-ui/react-toggle": "1.1.9",
     "@radix-ui/react-toggle-group": "1.1.10",
     "@radix-ui/react-tooltip": "1.2.7",
+    "@tailwindcss/typography": "^0.5.16",
     "@tanstack/react-query": "5.81.2",
     "autoprefixer": "10.4.21",
     "class-variance-authority": "0.7.1",
@@ -43,8 +44,10 @@
     "react-day-picker": "9.7.0",
     "react-dom": "19.1.0",
     "react-hook-form": "7.58.1",
+    "react-markdown": "^10.1.0",
     "react-resizable-panels": "2.1.9",
     "recharts": "2.15.0",
+    "remark-gfm": "^4.0.1",
     "sonner": "1.7.4",
     "tailwind-merge": "3.3.1",
     "tailwindcss-animate": "1.0.7",
@@ -79,11 +82,12 @@
     "lint-fix": "biome check --write",
     "start": "next start",
     "type-check": "tsc --noEmit",
-    "type-refresh": "pnpm run type-refresh-genai && pnpm run type-refresh-contributions && pnpm run type-refresh-server && pnpm run type-refresh-search",
+    "type-refresh": "pnpm run type-refresh-genai && pnpm run type-refresh-contributions && pnpm run type-refresh-server && pnpm run type-refresh-search && pnpm run type-refresh-summary",
     "type-refresh-contributions": "npx openapi-typescript ../contributions/openapi.json --output lib/api/types/contributions.ts --export-type --immutable --array-length",
     "type-refresh-genai": "npx openapi-typescript ../genai/openapi.json --output lib/api/types/genai.ts --export-type --immutable --array-length",
     "type-refresh-search": "npx openapi-typescript ../server/openapi.json --output lib/api/types/search.ts --export-type --immutable --array-length",
-    "type-refresh-server": "npx openapi-typescript ../server/openapi.json --output lib/api/types/server.ts --export-type --immutable --array-length"
+    "type-refresh-server": "npx openapi-typescript ../server/openapi.json --output lib/api/types/server.ts --export-type --immutable --array-length",
+    "type-refresh-summary": "npx openapi-typescript ../summary/openapi.json --output lib/api/types/summary.ts --export-type --immutable --array-length"
   },
   "version": "0.1.0"
 }

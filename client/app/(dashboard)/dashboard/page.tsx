@@ -7,6 +7,7 @@ import { SearchModal } from "@/components/search-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Markdown } from "@/components/ui/markdown";
 import { WeeklySummaryServer } from "@/components/weekly-summary-server";
 import { useUser } from "@/contexts/user-context";
 import { useContributions } from "@/lib/api/contributions";
@@ -274,10 +275,9 @@ export default function DashboardPage() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium">{qa.question}</p>
                           {qa.answers && qa.answers.length > 0 && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {qa.answers[0].answer.substring(0, 100)}
-                              {qa.answers[0].answer.length > 100 ? "..." : ""}
-                            </p>
+                            <div className="mt-1">
+                              <Markdown variant="compact">{qa.answers[0].answer.substring(0, 200) + (qa.answers[0].answer.length > 200 ? "..." : "")}</Markdown>
+                            </div>
                           )}
                           <div className="flex items-center gap-2 mt-2">
                             <Badge className="text-xs" variant="secondary">
@@ -333,10 +333,9 @@ export default function DashboardPage() {
                         <Badge variant="secondary">Summary</Badge>
                         <div>
                           <p className="font-medium">Repository Analysis</p>
-                          <p className="text-sm text-muted-foreground">
-                            {summary.summary.substring(0, 120)}
-                            {summary.summary.length > 120 ? "..." : ""}
-                          </p>
+                          <div className="mt-1">
+                            <Markdown variant="compact">{summary.summary.substring(0, 120) + (summary.summary.length > 120 ? "..." : "")}</Markdown>
+                          </div>
                           <p className="text-xs text-muted-foreground mt-1">
                             Generated on {new Date(summary.createdAt).toLocaleDateString()}
                           </p>

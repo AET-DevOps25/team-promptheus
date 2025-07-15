@@ -73,27 +73,11 @@ export type components = {
          * @description Metadata about a contribution to be fetched.
          */
         readonly ContributionMetadata: {
+            readonly type: components["schemas"]["ContributionType"];
             /** Id */
             readonly id: string;
             /** Selected */
             readonly selected: boolean;
-            readonly type: components["schemas"]["ContributionType"];
-        };
-        /**
-         * ContributionsIngestRequest
-         * @description Request to ingest contributions for a user's week (metadata only).
-         */
-        readonly ContributionsIngestRequest: {
-            /** Contributions */
-            readonly contributions: readonly components["schemas"]["ContributionMetadata"][];
-            /** Github Pat */
-            readonly github_pat: string;
-            /** Repository */
-            readonly repository: string;
-            /** User */
-            readonly user: string;
-            /** Week */
-            readonly week: string;
         };
         /**
          * ContributionType
@@ -101,6 +85,22 @@ export type components = {
          * @enum {string}
          */
         readonly ContributionType: "commit" | "pull_request" | "issue" | "release";
+        /**
+         * ContributionsIngestRequest
+         * @description Request to ingest contributions for a user's week (metadata only).
+         */
+        readonly ContributionsIngestRequest: {
+            /** User */
+            readonly user: string;
+            /** Week */
+            readonly week: string;
+            /** Repository */
+            readonly repository: string;
+            /** Contributions */
+            readonly contributions: readonly components["schemas"]["ContributionMetadata"][];
+            /** Github Pat */
+            readonly github_pat: string;
+        };
         /** HTTPValidationError */
         readonly HTTPValidationError: {
             /** Detail */
@@ -111,62 +111,62 @@ export type components = {
          * @description Response from starting a contributions ingestion task.
          */
         readonly IngestTaskResponse: {
+            /** Task Id */
+            readonly task_id: string;
+            /** User */
+            readonly user: string;
+            /** Week */
+            readonly week: string;
+            /** Repository */
+            readonly repository: string;
+            /** @default queued */
+            readonly status: components["schemas"]["TaskStatus"];
+            /** Total Contributions */
+            readonly total_contributions: number;
+            /** Summary Id */
+            readonly summary_id?: string | null;
             /**
              * Created At
              * Format: date-time
              */
             readonly created_at: string;
-            /** Repository */
-            readonly repository: string;
-            /** @default queued */
-            readonly status: components["schemas"]["TaskStatus"];
-            /** Summary Id */
-            readonly summary_id?: string | null;
-            /** Task Id */
-            readonly task_id: string;
-            /** Total Contributions */
-            readonly total_contributions: number;
-            /** User */
-            readonly user: string;
-            /** Week */
-            readonly week: string;
         };
         /**
          * IngestTaskStatus
          * @description Status of a contributions ingestion task.
          */
         readonly IngestTaskStatus: {
-            /** Completed At */
-            readonly completed_at?: string | null;
+            /** Task Id */
+            readonly task_id: string;
+            /** User */
+            readonly user: string;
+            /** Week */
+            readonly week: string;
+            /** Repository */
+            readonly repository: string;
+            readonly status: components["schemas"]["TaskStatus"];
+            /** Total Contributions */
+            readonly total_contributions: number;
+            /** Ingested Count */
+            readonly ingested_count: number;
+            /** Failed Count */
+            readonly failed_count: number;
+            /** Embedding Job Id */
+            readonly embedding_job_id?: string | null;
+            readonly summary?: components["schemas"]["SummaryResponse"] | null;
+            /** Error Message */
+            readonly error_message?: string | null;
             /**
              * Created At
              * Format: date-time
              */
             readonly created_at: string;
-            /** Embedding Job Id */
-            readonly embedding_job_id?: string | null;
-            /** Error Message */
-            readonly error_message?: string | null;
-            /** Failed Count */
-            readonly failed_count: number;
-            /** Ingested Count */
-            readonly ingested_count: number;
-            /** Processing Time Ms */
-            readonly processing_time_ms?: number | null;
-            /** Repository */
-            readonly repository: string;
             /** Started At */
             readonly started_at?: string | null;
-            readonly status: components["schemas"]["TaskStatus"];
-            readonly summary?: components["schemas"]["SummaryResponse"] | null;
-            /** Task Id */
-            readonly task_id: string;
-            /** Total Contributions */
-            readonly total_contributions: number;
-            /** User */
-            readonly user: string;
-            /** Week */
-            readonly week: string;
+            /** Completed At */
+            readonly completed_at?: string | null;
+            /** Processing Time Ms */
+            readonly processing_time_ms?: number | null;
         };
         /**
          * QuestionContext
@@ -180,19 +180,21 @@ export type components = {
              * @default true
              */
             readonly include_evidence: boolean;
+            /** @default detailed */
+            readonly reasoning_depth: components["schemas"]["ReasoningDepth"];
             /**
              * Max Evidence Items
              * @default 10
              */
             readonly max_evidence_items: number;
-            /** @default detailed */
-            readonly reasoning_depth: components["schemas"]["ReasoningDepth"];
         };
         /**
          * QuestionEvidence
          * @description Evidence supporting a question answer.
          */
         readonly QuestionEvidence: {
+            /** Title */
+            readonly title: string;
             /** Contribution Id */
             readonly contribution_id: string;
             readonly contribution_type: components["schemas"]["ContributionType"];
@@ -205,54 +207,54 @@ export type components = {
              * Format: date-time
              */
             readonly timestamp: string;
-            /** Title */
-            readonly title: string;
         };
         /**
          * QuestionRequest
          * @description Request to ask a question about a user's week.
          */
         readonly QuestionRequest: {
+            /** Question */
+            readonly question: string;
+            /** Repository */
+            readonly repository: string;
+            /** Summary */
+            readonly summary?: string | null;
             readonly context?: components["schemas"]["QuestionContext"];
             /** Github Pat */
             readonly github_pat: string;
-            /** Question */
-            readonly question: string;
-            /** Summary */
-            readonly summary?: string | null;
         };
         /**
          * QuestionResponse
          * @description Response to a question about a user's week.
          */
         readonly QuestionResponse: {
+            /** Question Id */
+            readonly question_id: string;
+            /** User */
+            readonly user: string;
+            /** Week */
+            readonly week: string;
+            /** Question */
+            readonly question: string;
             /** Answer */
             readonly answer: string;
+            /** Confidence */
+            readonly confidence: number;
+            /** Evidence */
+            readonly evidence?: readonly components["schemas"]["QuestionEvidence"][];
+            /** Reasoning Steps */
+            readonly reasoning_steps?: readonly string[];
+            /** Suggested Actions */
+            readonly suggested_actions?: readonly string[];
             /**
              * Asked At
              * Format: date-time
              */
             readonly asked_at: string;
-            /** Confidence */
-            readonly confidence: number;
-            /** Conversation Id */
-            readonly conversation_id?: string | null;
-            /** Evidence */
-            readonly evidence?: readonly components["schemas"]["QuestionEvidence"][];
-            /** Question */
-            readonly question: string;
-            /** Question Id */
-            readonly question_id: string;
-            /** Reasoning Steps */
-            readonly reasoning_steps?: readonly string[];
             /** Response Time Ms */
             readonly response_time_ms: number;
-            /** Suggested Actions */
-            readonly suggested_actions?: readonly string[];
-            /** User */
-            readonly user: string;
-            /** Week */
-            readonly week: string;
+            /** Conversation Id */
+            readonly conversation_id?: string | null;
         };
         /**
          * ReasoningDepth
@@ -265,59 +267,59 @@ export type components = {
          * @description Metadata about a generated summary.
          */
         readonly SummaryMetadata: {
+            /** Total Contributions */
+            readonly total_contributions: number;
             /** Commits Count */
             readonly commits_count: number;
-            /**
-             * Generated At
-             * Format: date-time
-             */
-            readonly generated_at: string;
-            /** Issues Count */
-            readonly issues_count: number;
             /** Pull Requests Count */
             readonly pull_requests_count: number;
+            /** Issues Count */
+            readonly issues_count: number;
             /** Releases Count */
             readonly releases_count: number;
             /** Repositories */
             readonly repositories: readonly string[];
             /** Time Period */
             readonly time_period: string;
-            /** Total Contributions */
-            readonly total_contributions: number;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            readonly generated_at: string;
         };
         /**
          * SummaryResponse
          * @description Complete summary response (non-streaming).
          */
         readonly SummaryResponse: {
-            /** Analysis */
-            readonly analysis: string;
-            /** Areas For Improvement */
-            readonly areas_for_improvement: readonly string[];
-            /** Commits Summary */
-            readonly commits_summary: string;
-            /**
-             * Generated At
-             * Format: date-time
-             */
-            readonly generated_at: string;
-            /** Issues Summary */
-            readonly issues_summary: string;
-            /** Key Achievements */
-            readonly key_achievements: readonly string[];
-            readonly metadata: components["schemas"]["SummaryMetadata"];
-            /** Overview */
-            readonly overview: string;
-            /** Pull Requests Summary */
-            readonly pull_requests_summary: string;
-            /** Releases Summary */
-            readonly releases_summary: string;
             /** Summary Id */
             readonly summary_id: string;
             /** User */
             readonly user: string;
             /** Week */
             readonly week: string;
+            /** Overview */
+            readonly overview: string;
+            /** Commits Summary */
+            readonly commits_summary: string;
+            /** Pull Requests Summary */
+            readonly pull_requests_summary: string;
+            /** Issues Summary */
+            readonly issues_summary: string;
+            /** Releases Summary */
+            readonly releases_summary: string;
+            /** Analysis */
+            readonly analysis: string;
+            /** Key Achievements */
+            readonly key_achievements: readonly string[];
+            /** Areas For Improvement */
+            readonly areas_for_improvement: readonly string[];
+            readonly metadata: components["schemas"]["SummaryMetadata"];
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            readonly generated_at: string;
         };
         /**
          * TaskStatus

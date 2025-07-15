@@ -19,6 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { Markdown } from "@/components/ui/markdown";
 import { useUser } from "@/contexts/user-context";
 import { useCreateQuestion, useGitRepoInformation } from "@/lib/api/server";
 
@@ -292,11 +293,7 @@ export default function QAPage() {
                               Auto-generated
                             </Badge>
                           </div>
-                          <div className="prose prose-sm max-w-none">
-                            <p className="text-sm text-slate-700 whitespace-pre-wrap">
-                              {item.answer}
-                            </p>
-                          </div>
+                          <Markdown variant="default">{item.answer}</Markdown>
                         </div>
                       </div>
 
