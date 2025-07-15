@@ -26,16 +26,16 @@ export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
         readonly SearchResult: {
-            readonly facetHits?: readonly {
-                readonly [key: string]: unknown;
-            }[];
-            readonly facetQuery?: string;
             readonly hits?: readonly {
                 readonly [key: string]: unknown;
             }[];
             /** Format: int32 */
             readonly processingTimeMs?: number;
             readonly query?: string;
+            readonly facetHits?: readonly {
+                readonly [key: string]: unknown;
+            }[];
+            readonly facetQuery?: string;
         };
     };
     responses: never;
