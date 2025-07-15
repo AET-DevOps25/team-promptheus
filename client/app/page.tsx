@@ -2,13 +2,15 @@
 
 import { BarChart3, ExternalLink, Github, Loader2, Search, Zap } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useUser } from "@/contexts/user-context";
 import { useCreateFromPAT } from "@/lib/api/server";
 
 export default function HomePage() {
@@ -22,6 +24,32 @@ export default function HomePage() {
 
   const { mutate, isError, error: mutationError } = useCreateFromPAT();
   const [isLoading, _setIsLoading] = useState(false);
+  const router = useRouter();
+  const { isAuthenticated, isLoading: userLoading } = useUser();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!userLoading && isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, userLoading, router]);
+
+  // Show loading while checking authentication
+  if (userLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span className="text-sm text-muted-foreground">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render landing page if user is authenticated (will redirect)
+  if (isAuthenticated) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

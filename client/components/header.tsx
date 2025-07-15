@@ -37,7 +37,10 @@ export function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Link className="flex items-center gap-2 hover:opacity-80 transition-opacity" href="/">
+            <Link 
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity" 
+              href={isAuthenticated ? "/dashboard" : "/"}
+            >
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900">
                 <Zap className="h-5 w-5 text-white" />
               </div>
