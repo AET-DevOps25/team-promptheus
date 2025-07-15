@@ -61,16 +61,13 @@ export function useContributions(
 
       const response = await apiClient.get<Page>(`/api/contributions?${searchParams.toString()}`);
 
-      return response.data;
+      return response.data as Page & { content?: ContributionDto[] };
     },
     queryKey: CONTRIBUTION_KEYS.list(params),
     staleTime: 5 * 60 * 1000, // 5 minutes - contributions don't change very frequently
   });
 }
 
-/**
- * Hook to update contribution selection status
- */
 export function useUpdateContributions() {
   const queryClient = useQueryClient();
 
@@ -79,8 +76,42 @@ export function useUpdateContributions() {
       const response = await apiClient.put<string>("/api/contributions", contributions);
       return response.data;
     },
-    onSuccess: () => {
-      // Invalidate all contribution queries to refetch updated data
+    onMutate: async (newContributions) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: CONTRIBUTION_KEYS.all });
+
+      // Snapshot the previous value
+      const previousContributions = queryClient.getQueriesData({ queryKey: CONTRIBUTION_KEYS.all });
+
+      // Optimistically update to the new value
+      queryClient.setQueriesData({ queryKey: CONTRIBUTION_KEYS.all }, (old: any) => {
+        if (!old?.content) return old;
+
+        // Create a map for quick lookup of updated contributions
+        const updateMap = new Map(newContributions.map(contrib => [contrib.id, contrib]));
+
+        return {
+          ...old,
+          content: old.content.map((contrib: ContributionDto) =>
+            updateMap.has(contrib.id) ? updateMap.get(contrib.id) : contrib
+          )
+        };
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousContributions };
+    },
+    onError: (err, newContributions, context) => {
+      console.error('PUT /api/contributions - Error:', err);
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousContributions) {
+        context.previousContributions.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we have the latest data
       queryClient.invalidateQueries({ queryKey: CONTRIBUTION_KEYS.all });
     },
   });

@@ -80,7 +80,7 @@ const typeIcons = {
 // Type labels mapping
 const typeLabels = {
   commit: "Commit",
-  pullrequest: "Pull Request", 
+  pullrequest: "Pull Request",
   issue: "Issue",
   comment: "Comment",
 } as const;
@@ -152,8 +152,10 @@ export default function DeveloperPage() {
     return [];
   }, [allContributionsData]);
 
+
   // Handle individual contribution selection
   const handleContributionToggle = (contribution: ContributionDto) => {
+    // Send only the changed contribution
     const updatedContribution = {
       ...contribution,
       isSelected: !contribution.isSelected,
@@ -163,6 +165,7 @@ export default function DeveloperPage() {
 
   // Handle select all / deselect all
   const handleSelectAll = (selected: boolean) => {
+    // Send all contributions with the new selection state
     const updatedContributions = contributions.map((contrib) => ({
       ...contrib,
       isSelected: selected,
@@ -239,7 +242,7 @@ export default function DeveloperPage() {
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
-              
+
               {/* Quick Week Presets */}
               <div className="flex items-center gap-1">
                 <Button
@@ -305,7 +308,7 @@ export default function DeveloperPage() {
                     disabled={updateContributions.isPending}
                   >
                     <CheckSquare className="h-4 w-4 mr-1" />
-                    Select All
+                    {updateContributions.isPending ? "Saving..." : "Select All"}
                   </Button>
                   <Button
                     onClick={() => handleSelectAll(false)}
@@ -314,15 +317,20 @@ export default function DeveloperPage() {
                     disabled={updateContributions.isPending}
                   >
                     <Square className="h-4 w-4 mr-1" />
-                    Deselect All
+                    {updateContributions.isPending ? "Saving..." : "Deselect All"}
                   </Button>
                 </div>
               </CardTitle>
               <CardDescription>
-                Select contributions to include in your summary for {weekRange.weekLabel.toLowerCase()}. 
+                Select contributions to include in your summary for {weekRange.weekLabel.toLowerCase()}.
                 {selectedCount > 0 && (
                   <span className="font-medium text-primary ml-1">
                     {selectedCount} of {totalCount} selected
+                  </span>
+                )}
+                {updateContributions.isPending && (
+                  <span className="text-orange-600 ml-2">
+                    ⏳ Saving changes...
                   </span>
                 )}
               </CardDescription>
@@ -430,4 +438,4 @@ export default function DeveloperPage() {
       </main>
     </>
   );
-} 
+}
