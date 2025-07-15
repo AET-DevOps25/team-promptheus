@@ -79,11 +79,12 @@
     "lint-fix": "biome check --write",
     "start": "next start",
     "type-check": "tsc --noEmit",
-    "type-refresh": "pnpm run type-refresh-genai && pnpm run type-refresh-contributions && pnpm run type-refresh-server && pnpm run type-refresh-search",
+    "type-refresh": "pnpm run type-refresh-genai && pnpm run type-refresh-contributions && pnpm run type-refresh-server && pnpm run type-refresh-search && pnpm run type-refresh-summary",
     "type-refresh-contributions": "npx openapi-typescript ../contributions/openapi.json --output lib/api/types/contributions.ts --export-type --immutable --array-length",
     "type-refresh-genai": "npx openapi-typescript ../genai/openapi.json --output lib/api/types/genai.ts --export-type --immutable --array-length",
     "type-refresh-search": "npx openapi-typescript ../server/openapi.json --output lib/api/types/search.ts --export-type --immutable --array-length",
-    "type-refresh-server": "npx openapi-typescript ../server/openapi.json --output lib/api/types/server.ts --export-type --immutable --array-length"
+    "type-refresh-server": "npx openapi-typescript ../server/openapi.json --output lib/api/types/server.ts --export-type --immutable --array-length",
+    "type-refresh-summary": "npx openapi-typescript ../summary/openapi.json --output lib/api/types/summary.ts --export-type --immutable --array-length"
   },
   "version": "0.1.0"
 }

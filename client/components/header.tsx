@@ -75,6 +75,12 @@ export function Header() {
                 </Link>
                 <Link
                   className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                  href="/summaries"
+                >
+                  Summaries
+                </Link>
+                <Link
+                  className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
                   href="/qa"
                 >
                   Q&A
