@@ -334,9 +334,17 @@ services:
         - action: rebuild
           path: ./client/components.json
         - action: rebuild
-          path: ./client/src
+          path: ./client/app
+        - action: rebuild
+          path: ./client/components
+        - action: rebuild
+          path: ./client/hooks
+        - action: rebuild
+          path: ./client/lib
         - action: rebuild
           path: ./client/public
+        - action: rebuild
+          path: ./client/styles
         - action: rebuild
           path: ./client/next.config.mjs
   monitoring:
