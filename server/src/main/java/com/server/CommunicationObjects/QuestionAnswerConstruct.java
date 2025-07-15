@@ -30,13 +30,85 @@ public record QuestionAnswerConstruct(
         requiredMode = Schema.RequiredMode.REQUIRED,
         nullable = false
     )
-    Instant createdAt
+    Instant createdAt,
+
+    @Schema(
+        description = "UUIDv7 identifier from GenAI service response",
+        example = "018d1234-5678-7abc-def0-123456789abc",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
+        nullable = true
+    )
+    String genaiQuestionId,
+
+    @Schema(
+        description = "GitHub username - denormalized for performance",
+        example = "john.doe",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
+        nullable = true
+    )
+    String userName,
+
+    @Schema(
+        description = "ISO week format (YYYY-WXX) - denormalized for performance",
+        example = "2025-W29",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
+        nullable = true
+    )
+    String weekId,
+
+    @Schema(
+        description = "Question text - denormalized for easy access",
+        example = "How does the authentication system work?",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
+        nullable = true
+    )
+    String questionText,
+
+    @Schema(
+        description = "Complete GenAI response including evidence, reasoning steps, and suggested actions",
+        example = "{\"question_id\":\"018d1234-5678-7abc-def0-123456789abc\",\"evidence\":[...],\"reasoning_steps\":[...]}",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
+        nullable = true
+    )
+    String fullResponse,
+
+    @Schema(
+        description = "When question was asked (from GenAI)",
+        example = "2023-01-16T09:15:30.456Z",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
+        nullable = true
+    )
+    Instant askedAt,
+
+    @Schema(
+        description = "Response time from GenAI service in milliseconds",
+        example = "1420",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
+        nullable = true
+    )
+    Integer responseTimeMs,
+
+    @Schema(
+        description = "Session ID for conversation context",
+        example = "john.doe:2025-W29",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
+        nullable = true
+    )
+    String conversationId
 ) {
     public static QuestionAnswerConstruct from(QuestionAnswer a) {
         return QuestionAnswerConstruct.builder()
             .answer(a.getAnswer())
             .confidence(a.getConfidence())
             .createdAt(a.getCreatedAt())
+            .genaiQuestionId(a.getGenaiQuestionId())
+            .userName(a.getUserName())
+            .weekId(a.getWeekId())
+            .questionText(a.getQuestionText())
+            .fullResponse(a.getFullResponse())
+            .askedAt(a.getAskedAt())
+            .responseTimeMs(a.getResponseTimeMs())
+            .conversationId(a.getConversationId())
             .build();
     }
 }

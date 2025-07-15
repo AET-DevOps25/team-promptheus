@@ -82,15 +82,17 @@ class QuestionAnsweringService:
         self.checkpointer = MemorySaver()
 
     def _create_context_message(
-        self, user: str, week: str, evidence: list[QuestionEvidence], tools: list[Any] | None = None
+        self, user: str, week: str, repository: str, evidence: list[QuestionEvidence], tools: list[Any] | None = None
     ) -> str:
         """Create a context message for the agent."""
         tool_descriptions = get_tool_descriptions(tools) if tools else ""
-        return f"""You are analyzing contributions for developer \"{user}\" during week \"{week}\".
+        return f"""You are analyzing contributions for developer \"{user}\" during week \"{week}\" in repository \"{repository}\".
 
 You have access to the following tools:
 
 {tool_descriptions}
+
+IMPORTANT: When using GitHub API tools, always use the repository "{repository}" as the repository parameter.
 
 Your task is to answer questions about their work by:
 1. Analyzing the provided evidence from their contributions
@@ -102,7 +104,7 @@ Evidence from {user}'s contributions in week {week}:
 {self._format_evidence_as_xml(evidence) if evidence else "<evidence>No evidence available</evidence>"}
 
 Use the available GitHub API tools whenever they can provide better or more current
-information than the static evidence alone."""
+information than the static evidence alone. Remember to use "{repository}" as the repository parameter in all tool calls."""
 
     @time_operation(question_answering_duration, {"user": "unknown", "week": "unknown"})
     async def answer_question(self, user: str, week: str, request: QuestionRequest) -> QuestionResponse:
@@ -137,7 +139,7 @@ information than the static evidence alone."""
 
             tools = create_agent_tools(request.github_pat)
 
-            context_message = self._create_context_message(user, week, evidence, tools)
+            context_message = self._create_context_message(user, week, request.repository, evidence, tools)
 
             agent = create_react_agent(model=self.llm, tools=tools, checkpointer=self.checkpointer)
 

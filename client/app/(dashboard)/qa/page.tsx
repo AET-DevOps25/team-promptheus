@@ -76,9 +76,14 @@ export default function QAPage() {
   const handleSubmitQuestion = async () => {
     if (!question.trim() || !userId) return;
 
+    // Extract username from repository content or use a default value
+    const username = repoData?.contents?.[0]?.user || "User";
+
     try {
       await createQuestionMutation.mutateAsync({
         question: question.trim(),
+        username: username,
+        gitRepositoryId: undefined // Let server use repository from usercode
       });
       setQuestion("");
     } catch (error) {

@@ -10,8 +10,24 @@ export {
   useQueryClient,
 } from "@tanstack/react-query";
 
-// Export API services and types
-export * from "./contributions";
-export * from "./search";
-export * from "./server";
-export * from "./summary";
+// Export search functionality
+export { useSearch } from "./search";
+
+// Export summary functionality
+export { useSummaries, useGenerateSummary } from "./summary";
+
+// Export server functionality
+export { 
+  useGitRepoInformation, 
+  useCreateQuestion, 
+  useCreateFromPAT,
+  useQuestionsAndAnswers,
+  type GitRepoInformation,
+  type QuestionSubmission,
+  type QuestionAnswerConstruct,
+  type PATConstruct,
+  type LinkConstruct,
+} from "./server";
+
+// Export contributions functionality
+export { useContributions, useUpdateContributions, useTriggerContributionFetch } from "./contributions";

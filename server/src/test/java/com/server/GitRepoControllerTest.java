@@ -98,8 +98,17 @@ class GitRepoControllerTest {
     void createQuestion_ValidRequest_ReturnsSuccess() throws Exception {
         // Arrange
         UUID usercode = UUID.randomUUID();
-        QuestionSubmission question = new QuestionSubmission("What are the recent changes?");
+        QuestionSubmission question = new QuestionSubmission("What are the recent changes?", "testuser", 123L, "2025-W04");
 
+        QuestionAnswerConstruct mockResponse = QuestionAnswerConstruct.builder()
+                .answer("This is a test answer")
+                .confidence(0.9f)
+                .createdAt(java.time.Instant.now())
+                .build();
+        
+        when(gitRepoService.createQuestion(any(UUID.class), any(String.class), any(String.class), any(Long.class), any(String.class)))
+                .thenReturn(mockResponse);
+        
         Counter question_creation_total = mock(Counter.class);
         when(meterRegistry.counter("question_creation_total")).thenReturn(question_creation_total);
         // Act & Assert
@@ -107,26 +116,25 @@ class GitRepoControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(question)))
                 .andExpect(status().isOk());
-        verify(meterRegistry,only()).counter("question_creation_total");
-        verify(question_creation_total,only()).increment();
-        verify(gitRepoService,only()).createQuestion(any(UUID.class), any(String.class));
+        verify(meterRegistry).counter("question_creation_total");
+        verify(question_creation_total).increment();
+        verify(gitRepoService).createQuestion(any(UUID.class), any(String.class), any(String.class), any(Long.class), any(String.class));
     }
 
     @Test
     void createQuestion_InvalidUsercode_ReturnsForbidden() throws Exception {
         // Arrange
         UUID invalidUsercode = UUID.randomUUID();
-        QuestionSubmission question = new QuestionSubmission("Test question");
+        QuestionSubmission question = new QuestionSubmission("Test question", "testuser", 123L, "2025-W04");
 
-        doThrow(new ResponseStatusException(HttpStatus.FORBIDDEN, "link is not a valid access id"))
-                .when(gitRepoService)
-                .createQuestion(any(UUID.class), any(String.class));
+        when(gitRepoService.createQuestion(any(UUID.class), any(String.class), any(String.class), any(Long.class), any(String.class)))
+                .thenThrow(new ResponseStatusException(HttpStatus.FORBIDDEN, "link is not a valid access id"));
 
         // Act & Assert
         mockMvc.perform(post("/api/repositories/{usercode}/question", invalidUsercode)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(question)))
                 .andExpect(status().isForbidden());
-        verify(gitRepoService,only()).createQuestion(invalidUsercode, question.question());
+        verify(gitRepoService).createQuestion(invalidUsercode, question.question(), question.username(), question.gitRepositoryId(), question.weekId());
     }
 }

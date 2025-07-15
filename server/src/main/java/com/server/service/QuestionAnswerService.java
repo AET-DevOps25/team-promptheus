@@ -108,9 +108,13 @@ public class QuestionAnswerService {
                     .maxEvidenceItems(10)
                     .focusAreas(new ArrayList<>());
 
+            // Convert repository URL to owner/repo format for GenAI service
+            String repositoryFormat = owner + "/" + repo;
+            
             // Create question request for GenAI
             QuestionRequest questionRequest = new QuestionRequest()
                     .question(question.getQuestion())
+                    .repository(repositoryFormat)
                     .summary(combinedSummary)
                     .context(questionContext)
                     .githubPat(githubPat);

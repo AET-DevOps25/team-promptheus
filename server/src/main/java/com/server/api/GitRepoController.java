@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -158,23 +159,31 @@ public class GitRepoController {
         return ResponseEntity.ok(gitRepository);
     }
 
-    @Operation(summary = "Create a question to be answered asynchronously by the AI service")
+    @Operation(summary = "Create a question and get the AI-powered answer")
     @ApiResponses(
         value = {
             @ApiResponse(
                 responseCode = "200",
-                description = "Question successfully submitted for AI processing",
+                description = "Question processed successfully with AI-generated answer",
                 content = {
                     @Content(
                         mediaType = "application/json",
-                        schema = @Schema(
-                            implementation = String.class,
-                            description = "Success confirmation message",
-                            nullable = false,
-                            example = "Created Successfully"
-                        ),
+                        schema = @Schema(implementation = QuestionAnswerConstruct.class),
                         examples = @ExampleObject(
-                            value = "\"Created Successfull\""
+                            value = """
+                            {
+                              "answer": "Based on the contributions, the main technical challenges included...",
+                              "confidence": 0.95,
+                              "createdAt": "2023-01-16T09:15:30.456Z",
+                              "genaiQuestionId": "018d1234-5678-7abc-def0-123456789abc",
+                              "userName": "john.doe",
+                              "weekId": "2025-W29",
+                              "questionText": "What were the main technical challenges this week?",
+                              "askedAt": "2023-01-16T09:15:30.456Z",
+                              "responseTimeMs": 1420,
+                              "conversationId": "john.doe:2025-W29"
+                            }
+                            """
                         )
                     ),
                 }
@@ -193,7 +202,7 @@ public class GitRepoController {
         }
     )
     @PostMapping("/{usercode}/question")
-    public ResponseEntity<String> createQuestion(
+    public ResponseEntity<QuestionAnswerConstruct> createQuestion(
         @PathVariable @NotNull @Schema(
             description = "UUID access token for repository authentication",
             example = "123e4567-e89b-12d3-a456-426614174000",
@@ -205,13 +214,67 @@ public class GitRepoController {
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = QuestionSubmission.class),
-                examples = @ExampleObject(value = "{ \"question\": \"Why are these developer raving about 42?\", \"username\": \"john.doe\" }")
+                examples = @ExampleObject(value = "{ \"question\": \"Why are these developer raving about 42?\", \"username\": \"john.doe\", \"gitRepositoryId\": 123 }")
             )
         ) @RequestBody @NotNull QuestionSubmission question
     ) {
-        gitRepoService.createQuestion(usercode, question.question(), question.username());
+        QuestionAnswerConstruct result = gitRepoService.createQuestion(usercode, question.question(), question.username(), question.gitRepositoryId(), question.weekId());
         meterRegistry.counter("question_creation_total").increment();
 
-        return ResponseEntity.ok("Created Successfully");
+        return ResponseEntity.ok(result);
+    }
+
+    @Operation(summary = "Get questions and answers for a specific user and week")
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Questions and answers for the specified user and week",
+                content = {
+                    @Content(
+                        mediaType = "application/json",
+                        schema = @Schema(
+                            implementation = QuestionAnswerConstruct.class,
+                            type = "array",
+                            description = "List of questions and answers with rich metadata"
+                        ),
+                        examples = @ExampleObject(
+                            value = """
+                            [
+                              {
+                                "answer": "You worked on implementing the Q/A API system...",
+                                "confidence": 0.95,
+                                "createdAt": "2023-01-16T09:15:30.456Z",
+                                "genaiQuestionId": "018d1234-5678-7abc-def0-123456789abc",
+                                "userName": "john.doe",
+                                "weekId": "2025-W29",
+                                "questionText": "What did I work on this week?",
+                                "askedAt": "2023-01-16T09:15:30.456Z",
+                                "responseTimeMs": 1420,
+                                "conversationId": "john.doe:2025-W29"
+                              }
+                            ]
+                            """
+                        )
+                    )
+                }
+            )
+        }
+    )
+    @GetMapping("/questions/{username}/{weekId}")
+    public ResponseEntity<List<QuestionAnswerConstruct>> getQuestionsForUserWeek(
+        @PathVariable @NotNull @Schema(
+            description = "GitHub username to get questions for",
+            example = "john.doe",
+            nullable = false
+        ) String username,
+        @PathVariable @NotNull @Schema(
+            description = "ISO week format (YYYY-WXX) to get questions for",
+            example = "2025-W29",
+            nullable = false
+        ) String weekId
+    ) {
+        List<QuestionAnswerConstruct> questionsAndAnswers = gitRepoService.getQuestionsAndAnswersForUserWeek(username, weekId);
+        return ResponseEntity.ok(questionsAndAnswers);
     }
 }

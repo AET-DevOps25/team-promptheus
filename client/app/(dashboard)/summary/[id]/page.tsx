@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSummaries } from "@/lib/api";
+import { QuestionAnswerSection } from "@/components/ui/question-answer";
+import { useSummaries, useQuestionsAndAnswers, useCreateQuestion, useQueryClient } from "@/lib/api";
+import { useUser } from "@/contexts/user-context";
 
 function SummaryLoading() {
   return (
@@ -60,8 +62,46 @@ export default function SingleSummaryPage() {
   const router = useRouter();
   const summaryId = params.id as string;
 
+  // Get user context for usercode
+  const { userId } = useUser();
+
   // Fetch all summaries and find the one with matching ID
   const { data: summaries, isLoading, error } = useSummaries();
+
+  // Get the summary data
+  const summary = summaries?.find(s => s.id?.toString() === summaryId);
+
+  // Fetch Q&A data if we have the summary
+  const { data: questionsAndAnswers, isLoading: qaLoading } = useQuestionsAndAnswers(
+    summary?.username || "", 
+    summary?.week || "", 
+    !!summary?.username && !!summary?.week
+  );
+
+  // Question submission mutation
+  const createQuestionMutation = useCreateQuestion(userId || "");
+  const queryClient = useQueryClient();
+
+  const handleSubmitQuestion = async (question: string) => {
+    if (!userId || !summary?.username) return;
+    
+    try {
+      await createQuestionMutation.mutateAsync({
+        question,
+        username: summary.username,
+        gitRepositoryId: summary.gitRepositoryId,
+        weekId: summary.week
+      });
+      // Manually invalidate the Q&A queries for this specific user/week
+      if (summary.week) {
+        queryClient.invalidateQueries({ 
+          queryKey: ['server', 'qa', summary.username, summary.week] 
+        });
+      }
+    } catch (error) {
+      console.error("Failed to submit question:", error);
+    }
+  };
 
   if (isLoading) {
     return <SummaryLoading />;
@@ -78,8 +118,6 @@ export default function SingleSummaryPage() {
       </div>
     );
   }
-
-  const summary = summaries?.find(s => s.id?.toString() === summaryId);
 
   if (!summary) {
     return (
@@ -321,6 +359,16 @@ export default function SingleSummaryPage() {
             </Card>
           )}
         </div>
+
+        {/* Q&A Section - Moved to bottom */}
+        <QuestionAnswerSection 
+          questionsAndAnswers={questionsAndAnswers || []} 
+          isLoading={qaLoading}
+          onSubmitQuestion={userId ? handleSubmitQuestion : undefined}
+          isSubmitting={createQuestionMutation.isPending}
+          username={summary.username}
+          weekId={summary.week}
+        />
       </div>
     </div>
   );

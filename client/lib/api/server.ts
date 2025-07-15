@@ -8,7 +8,26 @@ import type { components } from "./types/server";
 
 // Types
 export type GitRepoInformation = components["schemas"]["GitRepoInformationConstruct"];
-export type QuestionSubmission = components["schemas"]["QuestionSubmission"];
+
+// Extend QuestionSubmission with username and optional gitRepositoryId fields that the server expects
+export type QuestionSubmission = components["schemas"]["QuestionSubmission"] & {
+  username: string;
+  gitRepositoryId?: number;
+};
+
+// Extend QuestionAnswerConstruct with rich fields from V9 migration
+export type QuestionAnswerConstruct = components["schemas"]["QuestionAnswerConstruct"] & {
+  confidence?: number;
+  genaiQuestionId?: string;
+  userName?: string;
+  weekId?: string;
+  questionText?: string;
+  fullResponse?: string;
+  askedAt?: string;
+  responseTimeMs?: number;
+  conversationId?: string;
+};
+
 export type PATConstruct = components["schemas"]["PATConstruct"];
 export type LinkConstruct = components["schemas"]["LinkConstruct"];
 
@@ -16,6 +35,7 @@ export type LinkConstruct = components["schemas"]["LinkConstruct"];
 export const SERVER_KEYS = {
   all: ["server"] as const,
   repo: (usercode: string) => [...SERVER_KEYS.all, "repo", usercode] as const,
+  qa: (username: string, weekId: string) => [...SERVER_KEYS.all, "qa", username, weekId] as const,
 };
 
 // Get repository info
@@ -36,7 +56,7 @@ export function useCreateQuestion(usercode: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (question: QuestionSubmission) => {
-      const response = await apiClient.post<string>(
+      const response = await apiClient.post<QuestionAnswerConstruct>(
         `/api/repositories/${usercode}/question`,
         question,
       );
@@ -45,7 +65,25 @@ export function useCreateQuestion(usercode: string) {
     onSuccess: () => {
       // Invalidate repo info to refresh questions
       queryClient.invalidateQueries({ queryKey: SERVER_KEYS.repo(usercode) });
+      
+      // Invalidate all Q&A queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: SERVER_KEYS.all });
     },
+  });
+}
+
+// Get Q&A for specific user and week
+export function useQuestionsAndAnswers(username: string, weekId: string, enabled = true) {
+  return useQuery({
+    enabled: enabled && !!username && !!weekId,
+    queryFn: async () => {
+      const response = await apiClient.get<QuestionAnswerConstruct[]>(
+        `/api/repositories/questions/${username}/${weekId}`
+      );
+      return response.data;
+    },
+    queryKey: SERVER_KEYS.qa(username, weekId),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
