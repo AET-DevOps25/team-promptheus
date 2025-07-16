@@ -61,34 +61,33 @@ export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
         readonly ContributionDto: {
-            readonly id: string;
-            /** Format: int64 */
-            readonly gitRepositoryId: number;
-            readonly type: string;
-            readonly username: string;
-            readonly summary: string;
-            readonly isSelected: boolean;
             /** Format: date-time */
             readonly createdAt?: string;
-        };
-        readonly TriggerResponse: {
-            readonly status?: string;
-            readonly message?: string;
-            /** Format: date-time */
-            readonly triggeredAt?: string;
-            /** Format: int32 */
-            readonly repositoriesProcessed?: number;
-            /** Format: int32 */
-            readonly contributionsFetched?: number;
-            /** Format: int32 */
-            readonly contributionsUpserted?: number;
-            readonly processedRepositories?: readonly string[];
-            readonly errors?: readonly string[];
             /** Format: int64 */
-            readonly processingTimeMs?: number;
+            readonly gitRepositoryId: number;
+            readonly id: string;
+            readonly isSelected: boolean;
+            readonly summary: string;
+            readonly type: string;
+            readonly username: string;
         };
-        readonly TriggerRequest: {
-            readonly repositoryUrl: string;
+        readonly Page: {
+            readonly content?: readonly unknown[];
+            readonly empty?: boolean;
+            readonly first?: boolean;
+            readonly last?: boolean;
+            /** Format: int32 */
+            readonly number?: number;
+            /** Format: int32 */
+            readonly numberOfElements?: number;
+            readonly pageable?: components["schemas"]["PageableObject"];
+            /** Format: int32 */
+            readonly size?: number;
+            readonly sort?: components["schemas"]["SortObject"];
+            /** Format: int64 */
+            readonly totalElements?: number;
+            /** Format: int32 */
+            readonly totalPages?: number;
         };
         readonly Pageable: {
             /** Format: int32 */
@@ -97,57 +96,58 @@ export type components = {
             readonly size?: number;
             readonly sort?: readonly string[];
         };
-        readonly Page: {
-            /** Format: int64 */
-            readonly totalElements?: number;
-            /** Format: int32 */
-            readonly totalPages?: number;
-            /** Format: int32 */
-            readonly size?: number;
-            readonly content?: readonly unknown[];
-            /** Format: int32 */
-            readonly number?: number;
-            readonly sort?: components["schemas"]["SortObject"];
-            /** Format: int32 */
-            readonly numberOfElements?: number;
-            readonly pageable?: components["schemas"]["PageableObject"];
-            readonly first?: boolean;
-            readonly last?: boolean;
-            readonly empty?: boolean;
-        };
         readonly PageableObject: {
             /** Format: int64 */
             readonly offset?: number;
-            readonly sort?: components["schemas"]["SortObject"];
             readonly paged?: boolean;
             /** Format: int32 */
             readonly pageNumber?: number;
             /** Format: int32 */
             readonly pageSize?: number;
+            readonly sort?: components["schemas"]["SortObject"];
             readonly unpaged?: boolean;
+        };
+        readonly PageContributionDto: {
+            readonly content?: readonly components["schemas"]["ContributionDto"][];
+            readonly empty?: boolean;
+            readonly first?: boolean;
+            readonly last?: boolean;
+            /** Format: int32 */
+            readonly number?: number;
+            /** Format: int32 */
+            readonly numberOfElements?: number;
+            readonly pageable?: components["schemas"]["PageableObject"];
+            /** Format: int32 */
+            readonly size?: number;
+            readonly sort?: components["schemas"]["SortObject"];
+            /** Format: int64 */
+            readonly totalElements?: number;
+            /** Format: int32 */
+            readonly totalPages?: number;
         };
         readonly SortObject: {
             readonly empty?: boolean;
             readonly sorted?: boolean;
             readonly unsorted?: boolean;
         };
-        readonly PageContributionDto: {
+        readonly TriggerRequest: {
+            readonly repositoryUrl: string;
+        };
+        readonly TriggerResponse: {
+            /** Format: int32 */
+            readonly contributionsFetched?: number;
+            /** Format: int32 */
+            readonly contributionsUpserted?: number;
+            readonly errors?: readonly string[];
+            readonly message?: string;
+            readonly processedRepositories?: readonly string[];
             /** Format: int64 */
-            readonly totalElements?: number;
+            readonly processingTimeMs?: number;
             /** Format: int32 */
-            readonly totalPages?: number;
-            /** Format: int32 */
-            readonly size?: number;
-            readonly content?: readonly components["schemas"]["ContributionDto"][];
-            /** Format: int32 */
-            readonly number?: number;
-            readonly sort?: components["schemas"]["SortObject"];
-            /** Format: int32 */
-            readonly numberOfElements?: number;
-            readonly pageable?: components["schemas"]["PageableObject"];
-            readonly first?: boolean;
-            readonly last?: boolean;
-            readonly empty?: boolean;
+            readonly repositoriesProcessed?: number;
+            readonly status?: string;
+            /** Format: date-time */
+            readonly triggeredAt?: string;
         };
     };
     responses: never;

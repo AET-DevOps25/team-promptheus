@@ -227,6 +227,14 @@ services:
       management.otlp.tracing.endpoint: http://monitoring:4318/v1/traces
       management.otlp.metrics.export.url: http://monitoring:4318/v1/metrics
       management.otlp.logging.endpoint: http://monitoring:4318/v1/logs
+    develop:
+      watch:
+        - action: rebuild
+          path: ./contribution/build.gradle
+        - action: rebuild
+          path: ./contribution/settings.gradle
+        - action: rebuild
+          path: ./contribution/src
     healthcheck:
       test:
         [
@@ -268,6 +276,14 @@ services:
       management.otlp.tracing.endpoint: http://monitoring:4318/v1/traces
       management.otlp.metrics.export.url: http://monitoring:4318/v1/metrics
       management.otlp.logging.endpoint: http://monitoring:4318/v1/logs
+    develop:
+      watch:
+        - action: rebuild
+          path: ./summary/build.gradle
+        - action: rebuild
+          path: ./summary/settings.gradle
+        - action: rebuild
+          path: ./summary/src
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
       interval: 10s
@@ -318,9 +334,17 @@ services:
         - action: rebuild
           path: ./client/components.json
         - action: rebuild
-          path: ./client/src
+          path: ./client/app
+        - action: rebuild
+          path: ./client/components
+        - action: rebuild
+          path: ./client/hooks
+        - action: rebuild
+          path: ./client/lib
         - action: rebuild
           path: ./client/public
+        - action: rebuild
+          path: ./client/styles
         - action: rebuild
           path: ./client/next.config.mjs
   monitoring:

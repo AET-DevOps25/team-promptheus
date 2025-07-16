@@ -65,7 +65,7 @@ class ApiClient {
 
   async post<T>(
     url: string,
-    body?: Record<string, unknown>,
+    body?: Record<string, unknown> | unknown[],
     options?: RequestInit,
   ): Promise<ApiResponse<T>> {
     const response = await fetch(url, {
@@ -83,7 +83,7 @@ class ApiClient {
 
   async patch<T>(
     url: string,
-    body?: Record<string, unknown>,
+    body?: Record<string, unknown> | unknown[],
     options?: RequestInit,
   ): Promise<ApiResponse<T>> {
     const response = await fetch(url, {
@@ -101,7 +101,7 @@ class ApiClient {
 
   async put<T>(
     url: string,
-    body?: Record<string, unknown>,
+    body?: Record<string, unknown> | unknown[],
     options?: RequestInit,
   ): Promise<ApiResponse<T>> {
     const response = await fetch(url, {
