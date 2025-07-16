@@ -11,15 +11,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npm i --frozen-lockfile --strict-peer-dependencies
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+          cache-dependency-path: client/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
         working-directory: client
-      - run: npm run type-check
+      - run: pnpm run type-check
         working-directory: client
   client-linting:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npx @biomejs/biome ci
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+          cache-dependency-path: client/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+        working-directory: client
+      - run: pnpm run lint
+        working-directory: client
   client-build:
     uses: ./.github/workflows/_docker-build.yml
     #needs:

@@ -45,8 +45,8 @@ jobs:
       - server-checks
     with:
       image_suffix: server
-      context: ./server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: server/Dockerfile
       openapi_url: http://localhost:8080/openapi
       healthcheck_url: http://localhost:8080/actuator/health
     permissions:

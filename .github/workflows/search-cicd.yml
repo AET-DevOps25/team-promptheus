@@ -41,7 +41,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
-          java-version: 17
+          java-version: 21
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: ${{ matrix.gradleCommand }} with Gradle
@@ -59,7 +59,7 @@ jobs:
       - search-checks
     with:
       image_suffix: search
-      context: ./search
+      context: search
       dockerfile: Dockerfile
       openapi_url: http://localhost:8070/openapi
       healthcheck_url: http://localhost:8070/actuator/health
