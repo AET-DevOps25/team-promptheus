@@ -39,10 +39,10 @@ public class ApiClientConfig {
     public SummaryControllerApi summaryApi() {
         com.server.summary.ApiClient summaryApiClient = new com.server.summary.ApiClient();
         summaryApiClient.setBasePath(summaryServiceUrl);
-        
+
         // Configure ObjectMapper to handle LocalDateTime strings as UTC OffsetDateTime
         ObjectMapper objectMapper = summaryApiClient.getObjectMapper();
-        
+
         // Add custom deserializer for OffsetDateTime that handles LocalDateTime strings
         SimpleModule module = new SimpleModule();
         module.addDeserializer(OffsetDateTime.class, new JsonDeserializer<OffsetDateTime>() {
@@ -63,11 +63,11 @@ public class ApiClientConfig {
                 }
             }
         });
-        
+
         objectMapper.registerModule(module);
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        
+
         return new SummaryControllerApi(summaryApiClient);
     }
 }

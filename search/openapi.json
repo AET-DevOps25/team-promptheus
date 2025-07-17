@@ -1,184 +1,184 @@
 {
-  "components": {
-    "schemas": {
-      "SearchResult": {
-        "properties": {
-          "facetHits": {
-            "items": {
-              "additionalProperties": {},
-              "type": "object"
-            },
-            "type": "array"
-          },
-          "facetQuery": {
-            "type": "string"
-          },
-          "hits": {
-            "items": {
-              "additionalProperties": {},
-              "type": "object"
-            },
-            "type": "array"
-          },
-          "processingTimeMs": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "query": {
-            "type": "string"
-          }
-        },
-        "type": "object"
-      }
-    }
-  },
-  "info": {
-    "license": {
-      "name": "MIT",
-      "url": "https://opensource.org/licenses/MIT"
-    },
-    "title": "Prompteus Search",
-    "version": "1.0.0"
-  },
-  "openapi": "3.1.0",
-  "paths": {
-    "/api/search/{usercode}": {
-      "get": {
-        "operationId": "search",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "usercode",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "query",
-            "required": true,
-            "schema": {
-              "minLength": 1,
-              "type": "string"
-            }
-          },
-          {
-            "description": "Filter by user",
-            "in": "query",
-            "name": "user",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "Filter by week",
-            "in": "query",
-            "name": "week",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "Filter by contribution type",
-            "in": "query",
-            "name": "contribution_type",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "Filter by author",
-            "in": "query",
-            "name": "author",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "Filter by timestamp (exact or range like '1640995200 TO 1672531200')",
-            "in": "query",
-            "name": "created_at_timestamp",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "Filter by selection status",
-            "in": "query",
-            "name": "is_selected",
-            "required": false,
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "description": "Sort fields (comma-separated, prefix with - for descending, e.g., '-created_at_timestamp,relevance_score')",
-            "in": "query",
-            "name": "sort",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "Maximum number of Search responses",
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "format": "int32",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Offset of Search responses",
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "format": "int32",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SearchResult"
-                }
-              }
-            },
-            "description": "Search results"
-          },
-          "403": {
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Forbidden - Requested code does not exist"
-          }
-        },
-        "summary": "Search repository content with filtering and sorting",
-        "tags": ["search-controller"]
-      }
-    }
-  },
-  "servers": [
-    {
-      "description": "Production server",
-      "url": "https://prompteus.ai"
-    }
-  ]
+	"components": {
+		"schemas": {
+			"SearchResult": {
+				"properties": {
+					"facetHits": {
+						"items": {
+							"additionalProperties": {},
+							"type": "object"
+						},
+						"type": "array"
+					},
+					"facetQuery": {
+						"type": "string"
+					},
+					"hits": {
+						"items": {
+							"additionalProperties": {},
+							"type": "object"
+						},
+						"type": "array"
+					},
+					"processingTimeMs": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"query": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			}
+		}
+	},
+	"info": {
+		"license": {
+			"name": "MIT",
+			"url": "https://opensource.org/licenses/MIT"
+		},
+		"title": "Prompteus Search",
+		"version": "1.0.0"
+	},
+	"openapi": "3.1.0",
+	"paths": {
+		"/api/search/{usercode}": {
+			"get": {
+				"operationId": "search",
+				"parameters": [
+					{
+						"in": "path",
+						"name": "usercode",
+						"required": true,
+						"schema": {
+							"format": "uuid",
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "query",
+						"required": true,
+						"schema": {
+							"minLength": 1,
+							"type": "string"
+						}
+					},
+					{
+						"description": "Filter by user",
+						"in": "query",
+						"name": "user",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Filter by week",
+						"in": "query",
+						"name": "week",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Filter by contribution type",
+						"in": "query",
+						"name": "contribution_type",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Filter by author",
+						"in": "query",
+						"name": "author",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Filter by timestamp (exact or range like '1640995200 TO 1672531200')",
+						"in": "query",
+						"name": "created_at_timestamp",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Filter by selection status",
+						"in": "query",
+						"name": "is_selected",
+						"required": false,
+						"schema": {
+							"type": "boolean"
+						}
+					},
+					{
+						"description": "Sort fields (comma-separated, prefix with - for descending, e.g., '-created_at_timestamp,relevance_score')",
+						"in": "query",
+						"name": "sort",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Maximum number of Search responses",
+						"in": "query",
+						"name": "limit",
+						"required": false,
+						"schema": {
+							"format": "int32",
+							"type": "integer"
+						}
+					},
+					{
+						"description": "Offset of Search responses",
+						"in": "query",
+						"name": "offset",
+						"required": false,
+						"schema": {
+							"format": "int32",
+							"type": "integer"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SearchResult"
+								}
+							}
+						},
+						"description": "Search results"
+					},
+					"403": {
+						"content": {
+							"text/plain": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						},
+						"description": "Forbidden - Requested code does not exist"
+					}
+				},
+				"summary": "Search repository content with filtering and sorting",
+				"tags": ["search-controller"]
+			}
+		}
+	},
+	"servers": [
+		{
+			"description": "Production server",
+			"url": "https://prompteus.ai"
+		}
+	]
 }

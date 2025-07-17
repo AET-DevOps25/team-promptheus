@@ -1,1258 +1,1283 @@
 {
-  "description": "Your auto-generated version for sharing",
-  "id": "dc639675-90e9-4bae-84c1-163a48785b51",
-  "lastUpdate": "2025-05-09T12:52:05.407Z",
-  "model": {
-    "assessments": {},
-    "elements": {
-      "1a18d552-d808-4e8c-af87-9594ba22b5d8": {
-        "bounds": { "height": 100, "width": 180, "x": 550, "y": -320 },
-        "displayStereotype": true,
-        "id": "1a18d552-d808-4e8c-af87-9594ba22b5d8",
-        "name": "Scheduler",
-        "owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-        "type": "Component"
-      },
-      "1b5f4fd3-b4d7-407b-999d-05099a3340f8": {
-        "bounds": { "height": 20, "width": 20, "x": 1760, "y": 150 },
-        "id": "1b5f4fd3-b4d7-407b-999d-05099a3340f8",
-        "name": "Create Summary",
-        "owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
-        "type": "ComponentInterface"
-      },
-      "2d6fcdce-9f75-4cc9-a5c6-586a66fd9504": {
-        "bounds": { "height": 20, "width": 20, "x": -860, "y": -440 },
-        "id": "2d6fcdce-9f75-4cc9-a5c6-586a66fd9504",
-        "name": "Provide Contribution Collection",
-        "owner": null,
-        "type": "ComponentInterface"
-      },
-      "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2": {
-        "bounds": { "height": 750, "width": 600, "x": -1450, "y": -740 },
-        "displayStereotype": true,
-        "id": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
-        "name": "Control Subsystem",
-        "owner": null,
-        "stereotype": "subsystem",
-        "type": "Subsystem"
-      },
-      "3e8c4bf4-5ec4-4e35-ab69-e62e79c4653e": {
-        "bounds": { "height": 20, "width": 20, "x": -370, "y": -530 },
-        "id": "3e8c4bf4-5ec4-4e35-ab69-e62e79c4653e",
-        "name": "provide PATs",
-        "owner": "59adc18b-e561-4826-92e2-c7e3c54273dc",
-        "type": "ComponentInterface"
-      },
-      "6cae7ba0-5af5-4355-9d80-51d0a1494987": {
-        "bounds": { "height": 310, "width": 690, "x": 820, "y": -770 },
-        "displayStereotype": true,
-        "id": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
-        "name": "Contribution Collector",
-        "owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-        "stereotype": "subsystem",
-        "type": "Subsystem"
-      },
-      "8bbfd6b5-3797-492c-b1b4-004a96a9bbde": {
-        "bounds": { "height": 2470, "width": 2890, "x": -510, "y": -1020 },
-        "displayStereotype": true,
-        "id": "8bbfd6b5-3797-492c-b1b4-004a96a9bbde",
-        "name": "Backend",
-        "owner": null,
-        "stereotype": "subsystem",
-        "type": "Subsystem"
-      },
-      "9c492549-c72f-414d-aa4c-1cc24e868a65": {
-        "bounds": { "height": 100, "width": 170, "x": 480, "y": 360 },
-        "displayStereotype": true,
-        "id": "9c492549-c72f-414d-aa4c-1cc24e868a65",
-        "name": "Link2RepoMapping",
-        "owner": "c6568499-1666-49ae-ab37-42841fc76815",
-        "type": "Component"
-      },
-      "9d90f908-8d82-4ed1-bae5-81a05bd1a7eb": {
-        "bounds": { "height": 80, "width": 160, "x": 870, "y": -730 },
-        "displayStereotype": true,
-        "id": "9d90f908-8d82-4ed1-bae5-81a05bd1a7eb",
-        "name": "Issue Collector",
-        "owner": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
-        "type": "Component"
-      },
-      "35de5104-4d58-4ece-8d70-d6c721d9f719": {
-        "bounds": { "height": 100, "width": 160, "x": 940, "y": 680 },
-        "displayStereotype": true,
-        "id": "35de5104-4d58-4ece-8d70-d6c721d9f719",
-        "name": "PAT Checker",
-        "owner": "316c0b87-1ba6-4668-9eaf-4deeb65ae282",
-        "type": "Component"
-      },
-      "39d644de-f2d0-4fb0-a033-84894a8958bd": {
-        "bounds": { "height": 20, "width": 20, "x": -370, "y": -480 },
-        "id": "39d644de-f2d0-4fb0-a033-84894a8958bd",
-        "name": "Create summaries",
-        "owner": "59adc18b-e561-4826-92e2-c7e3c54273dc",
-        "type": "ComponentInterface"
-      },
-      "42c764ce-f988-4244-b6fd-1e20019485a0": {
-        "bounds": { "height": 90, "width": 160, "x": 1260, "y": -720 },
-        "displayStereotype": true,
-        "id": "42c764ce-f988-4244-b6fd-1e20019485a0",
-        "name": "Commit Collector",
-        "owner": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
-        "type": "Component"
-      },
-      "45fa11b5-965c-4578-8ebf-e8f6bb49190c": {
-        "bounds": { "height": 100, "width": 230, "x": -390, "y": 1060 },
-        "displayStereotype": true,
-        "id": "45fa11b5-965c-4578-8ebf-e8f6bb49190c",
-        "name": "Meilisearch",
-        "owner": "8bbfd6b5-3797-492c-b1b4-004a96a9bbde",
-        "stereotype": "subsystem",
-        "type": "Subsystem"
-      },
-      "59adc18b-e561-4826-92e2-c7e3c54273dc": {
-        "bounds": { "height": 360, "width": 210, "x": -380, "y": -600 },
-        "displayStereotype": true,
-        "id": "59adc18b-e561-4826-92e2-c7e3c54273dc",
-        "name": "Spring Boot Routing",
-        "owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-        "stereotype": "subsystem",
-        "type": "Subsystem"
-      },
-      "76ebdc0a-d0c5-4a11-bf10-a92df1535502": {
-        "bounds": { "height": 20, "width": 20, "x": 520, "y": 310 },
-        "id": "76ebdc0a-d0c5-4a11-bf10-a92df1535502",
-        "name": "View Summary",
-        "owner": "c6568499-1666-49ae-ab37-42841fc76815",
-        "type": "ComponentInterface"
-      },
-      "84dd249b-1dfb-4b64-869b-4c137cb37c3f": {
-        "bounds": { "height": 100, "width": 160, "x": 590, "y": 680 },
-        "displayStereotype": true,
-        "id": "84dd249b-1dfb-4b64-869b-4c137cb37c3f",
-        "name": "PAT Manager",
-        "owner": "316c0b87-1ba6-4668-9eaf-4deeb65ae282",
-        "type": "Component"
-      },
-      "93ac837d-dfab-4ce7-94b0-fdf3d176343f": {
-        "bounds": { "height": 100, "width": 160, "x": -1160, "y": -630 },
-        "displayStereotype": true,
-        "id": "93ac837d-dfab-4ce7-94b0-fdf3d176343f",
-        "name": "Search",
-        "owner": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
-        "type": "Component"
-      },
-      "151a54e2-1d69-4625-9e02-1ce443c656fa": {
-        "bounds": { "height": 1960, "width": 2030, "x": -420, "y": -930 },
-        "displayStereotype": true,
-        "id": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-        "name": "Spring Boot",
-        "owner": "8bbfd6b5-3797-492c-b1b4-004a96a9bbde",
-        "stereotype": "subsystem",
-        "type": "Subsystem"
-      },
-      "198f28c0-233a-414f-af09-72d9a8c77afd": {
-        "bounds": { "height": 360, "width": 520, "x": 1750, "y": -40 },
-        "displayStereotype": true,
-        "id": "198f28c0-233a-414f-af09-72d9a8c77afd",
-        "name": "AI service",
-        "owner": "8bbfd6b5-3797-492c-b1b4-004a96a9bbde",
-        "stereotype": "subsystem",
-        "type": "Subsystem"
-      },
-      "316c0b87-1ba6-4668-9eaf-4deeb65ae282": {
-        "bounds": { "height": 360, "width": 700, "x": 460, "y": 560 },
-        "displayStereotype": true,
-        "id": "316c0b87-1ba6-4668-9eaf-4deeb65ae282",
-        "name": "PAT Handler",
-        "owner": "c6568499-1666-49ae-ab37-42841fc76815",
-        "stereotype": "subsystem",
-        "type": "Subsystem"
-      },
-      "380c72e4-a9fa-402f-850c-120501c52f1a": {
-        "bounds": { "height": 20, "width": 20, "x": -370, "y": -270 },
-        "id": "380c72e4-a9fa-402f-850c-120501c52f1a",
-        "name": "Search Content",
-        "owner": "59adc18b-e561-4826-92e2-c7e3c54273dc",
-        "type": "ComponentInterface"
-      },
-      "784c2ecc-7880-468c-87aa-6ba7ef3d0c5c": {
-        "bounds": { "height": 100, "width": 160, "x": 1120, "y": 360 },
-        "displayStereotype": true,
-        "id": "784c2ecc-7880-468c-87aa-6ba7ef3d0c5c",
-        "name": "Link Creator",
-        "owner": "c6568499-1666-49ae-ab37-42841fc76815",
-        "type": "Component"
-      },
-      "53264d2b-9335-47cc-ba11-de82a8084338": {
-        "bounds": { "height": 100, "width": 160, "x": 370, "y": -1180 },
-        "displayStereotype": true,
-        "id": "53264d2b-9335-47cc-ba11-de82a8084338",
-        "name": "Github API",
-        "owner": null,
-        "type": "Component"
-      },
-      "39662503-e482-4ea3-bcbc-6b45148aff29": {
-        "bounds": { "height": 100, "width": 160, "x": 1780, "y": 200 },
-        "displayStereotype": true,
-        "id": "39662503-e482-4ea3-bcbc-6b45148aff29",
-        "name": "Summariser",
-        "owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
-        "type": "Component"
-      },
-      "a7cbc6b6-fd4c-419c-ab73-2402378f5375": {
-        "bounds": { "height": 240, "width": 130, "x": -1070, "y": -310 },
-        "displayStereotype": true,
-        "id": "a7cbc6b6-fd4c-419c-ab73-2402378f5375",
-        "name": "EnterPAT",
-        "owner": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
-        "type": "Component"
-      },
-      "c0aee8a6-31dc-4621-8fa7-ad81c74b4c42": {
-        "bounds": { "height": 20, "width": 20, "x": 2000, "y": 180 },
-        "id": "c0aee8a6-31dc-4621-8fa7-ad81c74b4c42",
-        "name": "",
-        "owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
-        "type": "ComponentInterface"
-      },
-      "c8e91874-a6b2-4328-8e26-31f911e37ba1": {
-        "bounds": { "height": 20, "width": 20, "x": 840, "y": -600 },
-        "id": "c8e91874-a6b2-4328-8e26-31f911e37ba1",
-        "name": "Collect collection",
-        "owner": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
-        "type": "ComponentInterface"
-      },
-      "c9ce19e4-321d-424b-ac6a-3a2360681608": {
-        "bounds": { "height": 20, "width": 20, "x": -370, "y": -430 },
-        "id": "c9ce19e4-321d-424b-ac6a-3a2360681608",
-        "name": "Get summaries",
-        "owner": "59adc18b-e561-4826-92e2-c7e3c54273dc",
-        "type": "ComponentInterface"
-      },
-      "c08a6d27-1077-40c6-ad74-1e218147b3b7": {
-        "bounds": { "height": 20, "width": 20, "x": -370, "y": -380 },
-        "id": "c08a6d27-1077-40c6-ad74-1e218147b3b7",
-        "name": "Ask question",
-        "owner": "59adc18b-e561-4826-92e2-c7e3c54273dc",
-        "type": "ComponentInterface"
-      },
-      "c6568499-1666-49ae-ab37-42841fc76815": {
-        "bounds": { "height": 750, "width": 840, "x": 440, "y": 240 },
-        "displayStereotype": true,
-        "id": "c6568499-1666-49ae-ab37-42841fc76815",
-        "name": "Access Handling",
-        "owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-        "stereotype": "subsystem",
-        "type": "Subsystem"
-      },
-      "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21": {
-        "bounds": { "height": 100, "width": 210, "x": 2030, "y": 140 },
-        "displayStereotype": true,
-        "id": "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21",
-        "name": "Context Generator",
-        "owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
-        "type": "Component"
-      },
-      "d2e624fb-0f86-499f-9223-e467945fa906": {
-        "bounds": { "height": 100, "width": 160, "x": -1390, "y": -490 },
-        "displayStereotype": true,
-        "id": "d2e624fb-0f86-499f-9223-e467945fa906",
-        "name": "Ask question",
-        "owner": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
-        "type": "Component"
-      },
-      "d4b30de5-661b-4303-bab5-b1a0a9755064": {
-        "bounds": { "height": 20, "width": 20, "x": 920, "y": 720 },
-        "id": "d4b30de5-661b-4303-bab5-b1a0a9755064",
-        "name": "",
-        "owner": "316c0b87-1ba6-4668-9eaf-4deeb65ae282",
-        "type": "ComponentInterface"
-      },
-      "d1177b3e-5f17-406a-b71c-19e39ab31cef": {
-        "bounds": { "height": 20, "width": 20, "x": 520, "y": 270 },
-        "id": "d1177b3e-5f17-406a-b71c-19e39ab31cef",
-        "name": "Provide PAT",
-        "owner": "c6568499-1666-49ae-ab37-42841fc76815",
-        "type": "ComponentInterface"
-      },
-      "d1772888-d0ab-4474-895e-1183c3bfaef9": {
-        "bounds": { "height": 100, "width": 230, "x": -20, "y": 1250 },
-        "displayStereotype": true,
-        "id": "d1772888-d0ab-4474-895e-1183c3bfaef9",
-        "name": "Database / Postgres",
-        "owner": "8bbfd6b5-3797-492c-b1b4-004a96a9bbde",
-        "stereotype": "subsystem",
-        "type": "Subsystem"
-      },
-      "f3c7edf8-0f40-4509-9d29-a7990a3c2986": {
-        "bounds": { "height": 140, "width": 180, "x": -1080, "y": -500 },
-        "displayStereotype": true,
-        "id": "f3c7edf8-0f40-4509-9d29-a7990a3c2986",
-        "name": "Contribution Filter",
-        "owner": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
-        "type": "Component"
-      },
-      "f9d57b63-56c9-495f-8b6f-174051e41d86": {
-        "bounds": { "height": 100, "width": 160, "x": 1990, "y": 10 },
-        "displayStereotype": true,
-        "id": "f9d57b63-56c9-495f-8b6f-174051e41d86",
-        "name": "LangChain",
-        "owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
-        "type": "Component"
-      },
-      "fd73adb0-6cb4-4e06-b7c0-67f51a676cf6": {
-        "bounds": { "height": 20, "width": 20, "x": -370, "y": -320 },
-        "id": "fd73adb0-6cb4-4e06-b7c0-67f51a676cf6",
-        "name": "Get PAT overview",
-        "owner": "59adc18b-e561-4826-92e2-c7e3c54273dc",
-        "type": "ComponentInterface"
-      }
-    },
-    "interactive": { "elements": {}, "relationships": {} },
-    "relationships": {
-      "5b89deb6-44b6-44fe-a02c-b182e2a60568": {
-        "bounds": { "height": 1760, "width": 570, "x": 450, "y": -1080 },
-        "id": "5b89deb6-44b6-44fe-a02c-b182e2a60568",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [
-          { "x": 570, "y": 1760 },
-          { "x": 570, "y": 880 },
-          { "x": 0, "y": 880 },
-          { "x": 0, "y": 0 }
-        ],
-        "source": {
-          "direction": "Up",
-          "element": "35de5104-4d58-4ece-8d70-d6c721d9f719"
-        },
-        "target": {
-          "direction": "Down",
-          "element": "53264d2b-9335-47cc-ba11-de82a8084338"
-        },
-        "type": "ComponentInterfaceProvided"
-      },
-      "5e10dfc7-2cc9-4160-8cff-a0a5476f7dc8": {
-        "bounds": { "height": 1, "width": 40, "x": -900, "y": -430 },
-        "id": "5e10dfc7-2cc9-4160-8cff-a0a5476f7dc8",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [{ "x": 40, "y": 0 }, { "x": 0, "y": 0 }, { "x": 40, "y": 0 }, { "x": 0, "y": 0 }],
-        "source": {
-          "direction": "Left",
-          "element": "2d6fcdce-9f75-4cc9-a5c6-586a66fd9504"
-        },
-        "target": {
-          "direction": "Right",
-          "element": "f3c7edf8-0f40-4509-9d29-a7990a3c2986"
-        },
-        "type": "ComponentInterfaceProvided"
-      },
-      "8f6527f1-3d4c-4acc-8ac3-0cac4257a4fa": {
-        "bounds": { "height": 90, "width": 370, "x": -275, "y": 1160 },
-        "id": "8f6527f1-3d4c-4acc-8ac3-0cac4257a4fa",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [
-          { "x": 0, "y": 0 },
-          { "x": 0, "y": 45 },
-          { "x": 370, "y": 45 },
-          { "x": 370, "y": 90 }
-        ],
-        "source": {
-          "direction": "Down",
-          "element": "45fa11b5-965c-4578-8ebf-e8f6bb49190c"
-        },
-        "target": {
-          "direction": "Up",
-          "element": "d1772888-d0ab-4474-895e-1183c3bfaef9"
-        },
-        "type": "ComponentDependency"
-      },
-      "9e359679-1c85-4f8a-a528-1675e5024701": {
-        "bounds": { "height": 410, "width": 810, "x": 530, "y": -1130 },
-        "id": "9e359679-1c85-4f8a-a528-1675e5024701",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [{ "x": 810, "y": 410 }, { "x": 810, "y": 0 }, { "x": 0, "y": 0 }],
-        "source": {
-          "direction": "Up",
-          "element": "42c764ce-f988-4244-b6fd-1e20019485a0"
-        },
-        "target": {
-          "direction": "Right",
-          "element": "53264d2b-9335-47cc-ba11-de82a8084338"
-        },
-        "type": "ComponentInterfaceProvided"
-      },
-      "09ff97a7-e3fe-40cf-8e39-88e28c80e718": {
-        "bounds": { "height": 400, "width": 420, "x": 530, "y": -1130 },
-        "id": "09ff97a7-e3fe-40cf-8e39-88e28c80e718",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [{ "x": 420, "y": 400 }, { "x": 420, "y": 0 }, { "x": 0, "y": 0 }],
-        "source": {
-          "direction": "Up",
-          "element": "9d90f908-8d82-4ed1-bae5-81a05bd1a7eb"
-        },
-        "target": {
-          "direction": "Right",
-          "element": "53264d2b-9335-47cc-ba11-de82a8084338"
-        },
-        "type": "ComponentInterfaceProvided"
-      },
-      "40a1cd1e-520b-40aa-ad17-01afe157e029": {
-        "bounds": { "height": 1, "width": 190, "x": 750, "y": 730 },
-        "id": "40a1cd1e-520b-40aa-ad17-01afe157e029",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [{ "x": 0, "y": 0 }, { "x": 190, "y": 0 }],
-        "source": {
-          "direction": "Right",
-          "element": "84dd249b-1dfb-4b64-869b-4c137cb37c3f"
-        },
-        "target": {
-          "direction": "Left",
-          "element": "35de5104-4d58-4ece-8d70-d6c721d9f719"
-        },
-        "type": "ComponentInterfaceProvided"
-      },
-      "68cd7648-24bc-4bf1-90ff-0addb1a6c285": {
-        "bounds": { "height": 100, "width": 390, "x": 810, "y": 460 },
-        "id": "68cd7648-24bc-4bf1-90ff-0addb1a6c285",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [
-          { "x": 390, "y": 0 },
-          { "x": 390, "y": 50 },
-          { "x": 0, "y": 50 },
-          { "x": 0, "y": 100 }
-        ],
-        "source": {
-          "direction": "Down",
-          "element": "784c2ecc-7880-468c-87aa-6ba7ef3d0c5c"
-        },
-        "target": {
-          "direction": "Up",
-          "element": "316c0b87-1ba6-4668-9eaf-4deeb65ae282"
-        },
-        "type": "ComponentInterfaceProvided"
-      },
-      "71bed013-997c-4ec6-a31f-fad928ce8550": {
-        "bounds": { "height": 904, "width": 283, "x": 197, "y": 410 },
-        "id": "71bed013-997c-4ec6-a31f-fad928ce8550",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [
-          { "x": 283, "y": 0 },
-          { "x": 148, "y": 0 },
-          { "x": 148, "y": 890 },
-          { "x": 13, "y": 890 }
-        ],
-        "source": {
-          "direction": "Left",
-          "element": "9c492549-c72f-414d-aa4c-1cc24e868a65"
-        },
-        "target": {
-          "direction": "Right",
-          "element": "d1772888-d0ab-4474-895e-1183c3bfaef9"
-        },
-        "type": "ComponentInterfaceRequired"
-      },
-      "91a804eb-ab2f-4ed2-a9cc-d3751b5ef7a2": {
-        "bounds": { "height": 550, "width": 1210, "x": 800, "y": -590 },
-        "id": "91a804eb-ab2f-4ed2-a9cc-d3751b5ef7a2",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [
-          { "x": 1210, "y": 550 },
-          { "x": 1210, "y": 510 },
-          { "x": 0, "y": 510 },
-          { "x": 0, "y": 0 },
-          { "x": 40, "y": 0 }
-        ],
-        "source": {
-          "direction": "Up",
-          "element": "198f28c0-233a-414f-af09-72d9a8c77afd"
-        },
-        "target": {
-          "direction": "Left",
-          "element": "c8e91874-a6b2-4328-8e26-31f911e37ba1"
-        },
-        "type": "ComponentInterfaceProvided"
-      },
-      "477bd3ae-177e-48df-b4f8-b2e262df99e7": {
-        "bounds": { "height": 1314, "width": 27, "x": -288, "y": -240 },
-        "id": "477bd3ae-177e-48df-b4f8-b2e262df99e7",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [{ "x": 13, "y": 0 }, { "x": 13, "y": 1300 }],
-        "source": {
-          "direction": "Down",
-          "element": "59adc18b-e561-4826-92e2-c7e3c54273dc"
-        },
-        "target": {
-          "direction": "Up",
-          "element": "45fa11b5-965c-4578-8ebf-e8f6bb49190c"
-        },
-        "type": "ComponentInterfaceRequired"
-      },
-      "987d9a23-86c4-4842-bb75-edf9532da6f0": {
-        "bounds": { "height": 380, "width": 1120, "x": 640, "y": -220 },
-        "id": "987d9a23-86c4-4842-bb75-edf9532da6f0",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [{ "x": 0, "y": 0 }, { "x": 0, "y": 380 }, { "x": 1120, "y": 380 }],
-        "source": {
-          "direction": "Down",
-          "element": "1a18d552-d808-4e8c-af87-9594ba22b5d8"
-        },
-        "target": {
-          "direction": "Left",
-          "element": "1b5f4fd3-b4d7-407b-999d-05099a3340f8"
-        },
-        "type": "ComponentInterfaceProvided"
-      },
-      "a4e9e583-997b-4966-b6d1-22c50eb4ddf1": {
-        "bounds": { "height": 740, "width": 870, "x": -350, "y": -420 },
-        "id": "a4e9e583-997b-4966-b6d1-22c50eb4ddf1",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [
-          { "x": 870, "y": 740 },
-          { "x": 435, "y": 740 },
-          { "x": 435, "y": 0 },
-          { "x": 0, "y": 0 }
-        ],
-        "source": {
-          "direction": "Left",
-          "element": "76ebdc0a-d0c5-4a11-bf10-a92df1535502"
-        },
-        "target": {
-          "direction": "Right",
-          "element": "c9ce19e4-321d-424b-ac6a-3a2360681608"
-        },
-        "type": "ComponentInterfaceProvided"
-      },
-      "bcf95091-fb6d-4b19-a43d-b406e2518848": {
-        "bounds": { "height": 580, "width": 940, "x": -410, "y": -310 },
-        "id": "bcf95091-fb6d-4b19-a43d-b406e2518848",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [
-          { "x": 940, "y": 580 },
-          { "x": 940, "y": 540 },
-          { "x": 0, "y": 540 },
-          { "x": 0, "y": 0 },
-          { "x": 40, "y": 0 }
-        ],
-        "source": {
-          "direction": "Up",
-          "element": "d1177b3e-5f17-406a-b71c-19e39ab31cef"
-        },
-        "target": {
-          "direction": "Left",
-          "element": "fd73adb0-6cb4-4e06-b7c0-67f51a676cf6"
-        },
-        "type": "ComponentInterfaceProvided"
-      },
-      "c6147b80-b15f-4bc8-af64-f9f76020bc0e": {
-        "bounds": { "height": 40, "width": 470, "x": -840, "y": -470 },
-        "id": "c6147b80-b15f-4bc8-af64-f9f76020bc0e",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [
-          { "x": 0, "y": 40 },
-          { "x": 235, "y": 40 },
-          { "x": 235, "y": 0 },
-          { "x": 470, "y": 0 }
-        ],
-        "source": {
-          "direction": "Right",
-          "element": "2d6fcdce-9f75-4cc9-a5c6-586a66fd9504"
-        },
-        "target": {
-          "direction": "Left",
-          "element": "39d644de-f2d0-4fb0-a033-84894a8958bd"
-        },
-        "type": "ComponentInterfaceProvided"
-      },
-      "c0062450-c153-41f1-acf0-c84f7f6229b6": {
-        "bounds": { "height": 610, "width": 588, "x": 82, "y": 780 },
-        "id": "c0062450-c153-41f1-acf0-c84f7f6229b6",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [
-          { "x": 588, "y": 0 },
-          { "x": 588, "y": 610 },
-          { "x": 13, "y": 610 },
-          { "x": 13, "y": 570 }
-        ],
-        "source": {
-          "direction": "Down",
-          "element": "84dd249b-1dfb-4b64-869b-4c137cb37c3f"
-        },
-        "target": {
-          "direction": "Down",
-          "element": "d1772888-d0ab-4474-895e-1183c3bfaef9"
-        },
-        "type": "ComponentInterfaceRequired"
-      },
-      "d5235ee2-57cf-444c-b917-4de2d76bcc7f": {
-        "bounds": { "height": 170, "width": 1010, "x": -170, "y": -590 },
-        "id": "d5235ee2-57cf-444c-b917-4de2d76bcc7f",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [
-          { "x": 0, "y": 170 },
-          { "x": 40, "y": 170 },
-          { "x": 40, "y": 0 },
-          { "x": 1010, "y": 0 }
-        ],
-        "source": {
-          "direction": "Right",
-          "element": "59adc18b-e561-4826-92e2-c7e3c54273dc"
-        },
-        "target": {
-          "direction": "Left",
-          "element": "c8e91874-a6b2-4328-8e26-31f911e37ba1"
-        },
-        "type": "ComponentInterfaceProvided"
-      },
-      "ee850b71-078e-4b41-82b7-23b6a5ef0ccd": {
-        "bounds": { "height": 60, "width": 90, "x": 1940, "y": 190 },
-        "id": "ee850b71-078e-4b41-82b7-23b6a5ef0ccd",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [
-          { "x": 90, "y": 0 },
-          { "x": 45, "y": 0 },
-          { "x": 45, "y": 60 },
-          { "x": 0, "y": 60 }
-        ],
-        "source": {
-          "direction": "Left",
-          "element": "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21"
-        },
-        "target": {
-          "direction": "Right",
-          "element": "39662503-e482-4ea3-bcbc-6b45148aff29"
-        },
-        "type": "ComponentInterfaceProvided"
-      },
-      "f6bcc87d-5d0d-4d5d-a47d-7e7bf4a2c883": {
-        "bounds": { "height": 100, "width": 245, "x": 565, "y": 460 },
-        "id": "f6bcc87d-5d0d-4d5d-a47d-7e7bf4a2c883",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [
-          { "x": 0, "y": 0 },
-          { "x": 0, "y": 50 },
-          { "x": 245, "y": 50 },
-          { "x": 245, "y": 100 }
-        ],
-        "source": {
-          "direction": "Down",
-          "element": "9c492549-c72f-414d-aa4c-1cc24e868a65"
-        },
-        "target": {
-          "direction": "Up",
-          "element": "316c0b87-1ba6-4668-9eaf-4deeb65ae282"
-        },
-        "type": "ComponentInterfaceProvided"
-      },
-      "fefc38a4-dd5a-4e31-9695-612f742c5740": {
-        "bounds": { "height": 270, "width": 200, "x": 640, "y": -590 },
-        "id": "fefc38a4-dd5a-4e31-9695-612f742c5740",
-        "isManuallyLayouted": false,
-        "name": "",
-        "owner": null,
-        "path": [{ "x": 0, "y": 270 }, { "x": 0, "y": 0 }, { "x": 200, "y": 0 }],
-        "source": {
-          "direction": "Up",
-          "element": "1a18d552-d808-4e8c-af87-9594ba22b5d8"
-        },
-        "target": {
-          "direction": "Left",
-          "element": "c8e91874-a6b2-4328-8e26-31f911e37ba1"
-        },
-        "type": "ComponentInterfaceProvided"
-      }
-    },
-    "size": { "height": 2940, "width": 4800 },
-    "type": "ComponentDiagram",
-    "version": "3.0.0"
-  },
-  "title": "components",
-  "token": "7qMRf5AHsBfXJwx3Wzi9",
-  "versions": [
-    {
-      "description": "Your auto-generated version for sharing",
-      "id": "bbf88296-4f31-4563-a94a-902e2c569608",
-      "lastUpdate": "2025-05-09T13:07:47.885Z",
-      "model": {
-        "assessments": {},
-        "elements": {
-          "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2": {
-            "bounds": { "height": 550, "width": 680, "x": -810, "y": -470 },
-            "displayStereotype": true,
-            "id": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
-            "name": "Frontend",
-            "owner": null,
-            "stereotype": "subsystem",
-            "type": "Subsystem"
-          },
-          "6cae7ba0-5af5-4355-9d80-51d0a1494987": {
-            "bounds": { "height": 250, "width": 380, "x": 20, "y": 110 },
-            "displayStereotype": true,
-            "id": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
-            "name": "Contribution Collector",
-            "owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
-            "stereotype": "subsystem",
-            "type": "Subsystem"
-          },
-          "9d90f908-8d82-4ed1-bae5-81a05bd1a7eb": {
-            "bounds": { "height": 80, "width": 160, "x": 30, "y": 220 },
-            "displayStereotype": true,
-            "id": "9d90f908-8d82-4ed1-bae5-81a05bd1a7eb",
-            "name": "Issue Collector",
-            "owner": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
-            "type": "Component"
-          },
-          "25cbdbce-581c-4e12-aadc-3c0eca6a08c8": {
-            "bounds": { "height": 270, "width": 210, "x": 510, "y": -400 },
-            "displayStereotype": true,
-            "id": "25cbdbce-581c-4e12-aadc-3c0eca6a08c8",
-            "name": "Database",
-            "owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-            "type": "Component"
-          },
-          "42c764ce-f988-4244-b6fd-1e20019485a0": {
-            "bounds": { "height": 90, "width": 150, "x": 210, "y": 220 },
-            "displayStereotype": true,
-            "id": "42c764ce-f988-4244-b6fd-1e20019485a0",
-            "name": "Commit Collector",
-            "owner": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
-            "type": "Component"
-          },
-          "151a54e2-1d69-4625-9e02-1ce443c656fa": {
-            "bounds": { "height": 870, "width": 910, "x": -110, "y": -450 },
-            "displayStereotype": true,
-            "id": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-            "name": "Backend",
-            "owner": null,
-            "stereotype": "subsystem",
-            "type": "Subsystem"
-          },
-          "198f28c0-233a-414f-af09-72d9a8c77afd": {
-            "bounds": { "height": 690, "width": 530, "x": -60, "y": -320 },
-            "displayStereotype": true,
-            "id": "198f28c0-233a-414f-af09-72d9a8c77afd",
-            "name": "AI service",
-            "owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-            "stereotype": "subsystem",
-            "type": "Subsystem"
-          },
-          "39662503-e482-4ea3-bcbc-6b45148aff29": {
-            "bounds": { "height": 100, "width": 160, "x": -40, "y": -140 },
-            "displayStereotype": true,
-            "id": "39662503-e482-4ea3-bcbc-6b45148aff29",
-            "name": "Summariser",
-            "owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
-            "type": "Component"
-          },
-          "a7cbc6b6-fd4c-419c-ab73-2402378f5375": {
-            "bounds": { "height": 300, "width": 220, "x": -710, "y": -360 },
-            "displayStereotype": true,
-            "id": "a7cbc6b6-fd4c-419c-ab73-2402378f5375",
-            "name": "Client",
-            "owner": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
-            "type": "Component"
-          },
-          "c0aee8a6-31dc-4621-8fa7-ad81c74b4c42": {
-            "bounds": { "height": 20, "width": 20, "x": 190, "y": -100 },
-            "id": "c0aee8a6-31dc-4621-8fa7-ad81c74b4c42",
-            "name": "",
-            "owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
-            "type": "ComponentInterface"
-          },
-          "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21": {
-            "bounds": { "height": 100, "width": 210, "x": 200, "y": -140 },
-            "displayStereotype": true,
-            "id": "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21",
-            "name": "Context Generator",
-            "owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
-            "type": "Component"
-          },
-          "f9d57b63-56c9-495f-8b6f-174051e41d86": {
-            "bounds": { "height": 100, "width": 160, "x": 180, "y": -270 },
-            "displayStereotype": true,
-            "id": "f9d57b63-56c9-495f-8b6f-174051e41d86",
-            "name": "LangChain",
-            "owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
-            "type": "Component"
-          }
-        },
-        "interactive": { "elements": {}, "relationships": {} },
-        "relationships": {
-          "c1accd6a-b5b9-4a74-9a41-a6b6d59562e3": {
-            "bounds": { "height": 150, "width": 95, "x": 210, "y": -40 },
-            "id": "c1accd6a-b5b9-4a74-9a41-a6b6d59562e3",
-            "isManuallyLayouted": false,
-            "name": "",
-            "owner": null,
-            "path": [
-              { "x": 0, "y": 150 },
-              { "x": 0, "y": 75 },
-              { "x": 95, "y": 75 },
-              { "x": 95, "y": 0 }
-            ],
-            "source": {
-              "direction": "Up",
-              "element": "6cae7ba0-5af5-4355-9d80-51d0a1494987"
-            },
-            "target": {
-              "direction": "Down",
-              "element": "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21"
-            },
-            "type": "ComponentInterfaceProvided"
-          },
-          "ee850b71-078e-4b41-82b7-23b6a5ef0ccd": {
-            "bounds": { "height": 1, "width": 80, "x": 120, "y": -90 },
-            "id": "ee850b71-078e-4b41-82b7-23b6a5ef0ccd",
-            "isManuallyLayouted": false,
-            "name": "",
-            "owner": null,
-            "path": [{ "x": 80, "y": 0 }, { "x": 0, "y": 0 }],
-            "source": {
-              "direction": "Left",
-              "element": "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21"
-            },
-            "target": {
-              "direction": "Right",
-              "element": "39662503-e482-4ea3-bcbc-6b45148aff29"
-            },
-            "type": "ComponentInterfaceProvided"
-          }
-        },
-        "size": { "height": 980, "width": 1660 },
-        "type": "ComponentDiagram",
-        "version": "3.0.0"
-      },
-      "title": "New shared version "
-    },
-    {
-      "description": "Your auto-generated version for sharing",
-      "id": "bbf88296-4f31-4563-a94a-902e2c569608",
-      "lastUpdate": "2025-05-09T13:45:16.290Z",
-      "model": {
-        "assessments": {},
-        "elements": {
-          "1d153175-84d5-4050-b0d8-8c841dee5369": {
-            "bounds": { "height": 20, "width": 20, "x": -340, "y": -540 },
-            "id": "1d153175-84d5-4050-b0d8-8c841dee5369",
-            "name": "Collect",
-            "owner": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
-            "type": "ComponentInterface"
-          },
-          "2d6fcdce-9f75-4cc9-a5c6-586a66fd9504": {
-            "bounds": { "height": 20, "width": 20, "x": -860, "y": -440 },
-            "id": "2d6fcdce-9f75-4cc9-a5c6-586a66fd9504",
-            "name": "Provide Contribution Collection",
-            "owner": null,
-            "type": "ComponentInterface"
-          },
-          "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2": {
-            "bounds": { "height": 550, "width": 680, "x": -1530, "y": -740 },
-            "displayStereotype": true,
-            "id": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
-            "name": "Control Subsystem",
-            "owner": null,
-            "stereotype": "subsystem",
-            "type": "Subsystem"
-          },
-          "6cae7ba0-5af5-4355-9d80-51d0a1494987": {
-            "bounds": { "height": 330, "width": 520, "x": -340, "y": -600 },
-            "displayStereotype": true,
-            "id": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
-            "name": "Contribution Collector",
-            "owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-            "stereotype": "subsystem",
-            "type": "Subsystem"
-          },
-          "8b0960d0-ccea-42e0-9510-8cfa1673a5d0": {
-            "bounds": { "height": 300, "width": 420, "x": -430, "y": 410 },
-            "displayStereotype": true,
-            "id": "8b0960d0-ccea-42e0-9510-8cfa1673a5d0",
-            "name": "User ",
-            "owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-            "stereotype": "subsystem",
-            "type": "Subsystem"
-          },
-          "9d90f908-8d82-4ed1-bae5-81a05bd1a7eb": {
-            "bounds": { "height": 80, "width": 160, "x": -220, "y": -490 },
-            "displayStereotype": true,
-            "id": "9d90f908-8d82-4ed1-bae5-81a05bd1a7eb",
-            "name": "Issue Collector",
-            "owner": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
-            "type": "Component"
-          },
-          "25cbdbce-581c-4e12-aadc-3c0eca6a08c8": {
-            "bounds": { "height": 270, "width": 210, "x": 250, "y": -710 },
-            "displayStereotype": true,
-            "id": "25cbdbce-581c-4e12-aadc-3c0eca6a08c8",
-            "name": "Database",
-            "owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-            "type": "Component"
-          },
-          "35de5104-4d58-4ece-8d70-d6c721d9f719": {
-            "bounds": { "height": 100, "width": 160, "x": 1150, "y": 440 },
-            "displayStereotype": true,
-            "id": "35de5104-4d58-4ece-8d70-d6c721d9f719",
-            "name": "PAT Checker",
-            "owner": "316c0b87-1ba6-4668-9eaf-4deeb65ae282",
-            "type": "Component"
-          },
-          "42c764ce-f988-4244-b6fd-1e20019485a0": {
-            "bounds": { "height": 90, "width": 160, "x": -10, "y": -500 },
-            "displayStereotype": true,
-            "id": "42c764ce-f988-4244-b6fd-1e20019485a0",
-            "name": "Commit Collector",
-            "owner": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
-            "type": "Component"
-          },
-          "45ba5e83-dcfe-4fd0-ac8c-243a5456d8b2": {
-            "bounds": { "height": 290, "width": 310, "x": 800, "y": -740 },
-            "displayStereotype": true,
-            "id": "45ba5e83-dcfe-4fd0-ac8c-243a5456d8b2",
-            "name": "Subsystem",
-            "owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-            "stereotype": "subsystem",
-            "type": "Subsystem"
-          },
-          "59adc18b-e561-4826-92e2-c7e3c54273dc": {
-            "bounds": { "height": 350, "width": 180, "x": -580, "y": -180 },
-            "displayStereotype": true,
-            "id": "59adc18b-e561-4826-92e2-c7e3c54273dc",
-            "name": "Spring Boot Routing",
-            "owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-            "stereotype": "subsystem",
-            "type": "Subsystem"
-          },
-          "61f75f13-e47f-4d6b-bcb2-3b96e59401b6": {
-            "bounds": { "height": 100, "width": 190, "x": -280, "y": 90 },
-            "displayStereotype": true,
-            "id": "61f75f13-e47f-4d6b-bcb2-3b96e59401b6",
-            "name": "Authorisation Creator",
-            "owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-            "type": "Component"
-          },
-          "84dd249b-1dfb-4b64-869b-4c137cb37c3f": {
-            "bounds": { "height": 100, "width": 160, "x": 820, "y": 480 },
-            "displayStereotype": true,
-            "id": "84dd249b-1dfb-4b64-869b-4c137cb37c3f",
-            "name": "PAT Manager",
-            "owner": "316c0b87-1ba6-4668-9eaf-4deeb65ae282",
-            "type": "Component"
-          },
-          "151a54e2-1d69-4625-9e02-1ce443c656fa": {
-            "bounds": { "height": 1630, "width": 2300, "x": -630, "y": -780 },
-            "displayStereotype": true,
-            "id": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-            "name": "Backend",
-            "owner": null,
-            "stereotype": "subsystem",
-            "type": "Subsystem"
-          },
-          "198f28c0-233a-414f-af09-72d9a8c77afd": {
-            "bounds": { "height": 360, "width": 520, "x": 60, "y": 40 },
-            "displayStereotype": true,
-            "id": "198f28c0-233a-414f-af09-72d9a8c77afd",
-            "name": "AI service",
-            "owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-            "stereotype": "subsystem",
-            "type": "Subsystem"
-          },
-          "316c0b87-1ba6-4668-9eaf-4deeb65ae282": {
-            "bounds": { "height": 350, "width": 620, "x": 750, "y": 310 },
-            "displayStereotype": true,
-            "id": "316c0b87-1ba6-4668-9eaf-4deeb65ae282",
-            "name": "PAT Handler",
-            "owner": "adc3e04c-05b0-4afe-9c79-a57cdb82bd80",
-            "stereotype": "subsystem",
-            "type": "Subsystem"
-          },
-          "53264d2b-9335-47cc-ba11-de82a8084338": {
-            "bounds": { "height": 100, "width": 160, "x": -10, "y": -900 },
-            "displayStereotype": true,
-            "id": "53264d2b-9335-47cc-ba11-de82a8084338",
-            "name": "Github API",
-            "owner": null,
-            "type": "Component"
-          },
-          "39662503-e482-4ea3-bcbc-6b45148aff29": {
-            "bounds": { "height": 100, "width": 160, "x": 80, "y": 230 },
-            "displayStereotype": true,
-            "id": "39662503-e482-4ea3-bcbc-6b45148aff29",
-            "name": "Summariser",
-            "owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
-            "type": "Component"
-          },
-          "a7cbc6b6-fd4c-419c-ab73-2402378f5375": {
-            "bounds": { "height": 300, "width": 220, "x": -1440, "y": -650 },
-            "displayStereotype": true,
-            "id": "a7cbc6b6-fd4c-419c-ab73-2402378f5375",
-            "name": "Client",
-            "owner": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
-            "type": "Component"
-          },
-          "a69126f2-364a-4911-9940-b29d4986f8ce": {
-            "bounds": { "height": 20, "width": 20, "x": -470, "y": 300 },
-            "id": "a69126f2-364a-4911-9940-b29d4986f8ce",
-            "name": "Interface",
-            "owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-            "type": "ComponentInterface"
-          },
-          "adc3e04c-05b0-4afe-9c79-a57cdb82bd80": {
-            "bounds": { "height": 1020, "width": 760, "x": 700, "y": -330 },
-            "displayStereotype": true,
-            "id": "adc3e04c-05b0-4afe-9c79-a57cdb82bd80",
-            "name": "User Handling",
-            "owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-            "stereotype": "subsystem",
-            "type": "Subsystem"
-          },
-          "c0aee8a6-31dc-4621-8fa7-ad81c74b4c42": {
-            "bounds": { "height": 20, "width": 20, "x": 310, "y": 260 },
-            "id": "c0aee8a6-31dc-4621-8fa7-ad81c74b4c42",
-            "name": "",
-            "owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
-            "type": "ComponentInterface"
-          },
-          "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21": {
-            "bounds": { "height": 100, "width": 210, "x": 320, "y": 220 },
-            "displayStereotype": true,
-            "id": "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21",
-            "name": "Context Generator",
-            "owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
-            "type": "Component"
-          },
-          "d4b30de5-661b-4303-bab5-b1a0a9755064": {
-            "bounds": { "height": 20, "width": 20, "x": 1140, "y": 480 },
-            "id": "d4b30de5-661b-4303-bab5-b1a0a9755064",
-            "name": "",
-            "owner": "316c0b87-1ba6-4668-9eaf-4deeb65ae282",
-            "type": "ComponentInterface"
-          },
-          "d4f895ed-26f9-44be-924d-529671dc79ee": {
-            "bounds": { "height": 100, "width": 190, "x": -270, "y": 260 },
-            "displayStereotype": true,
-            "id": "d4f895ed-26f9-44be-924d-529671dc79ee",
-            "name": "AuthorizationChecker",
-            "owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
-            "type": "Component"
-          },
-          "e098fc28-4cc5-4f70-935b-f22fc09b3088": {
-            "bounds": { "height": 100, "width": 160, "x": 920, "y": -70 },
-            "displayStereotype": true,
-            "id": "e098fc28-4cc5-4f70-935b-f22fc09b3088",
-            "name": "Component",
-            "owner": "f9d906db-513c-42b0-93a3-419ef18dbd23",
-            "type": "Component"
-          },
-          "f3c7edf8-0f40-4509-9d29-a7990a3c2986": {
-            "bounds": { "height": 140, "width": 180, "x": -1170, "y": -500 },
-            "displayStereotype": true,
-            "id": "f3c7edf8-0f40-4509-9d29-a7990a3c2986",
-            "name": "Contribution Filter",
-            "owner": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
-            "type": "Component"
-          },
-          "f9d57b63-56c9-495f-8b6f-174051e41d86": {
-            "bounds": { "height": 100, "width": 160, "x": 300, "y": 90 },
-            "displayStereotype": true,
-            "id": "f9d57b63-56c9-495f-8b6f-174051e41d86",
-            "name": "LangChain",
-            "owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
-            "type": "Component"
-          },
-          "f9d906db-513c-42b0-93a3-419ef18dbd23": {
-            "bounds": { "height": 520, "width": 520, "x": 770, "y": -270 },
-            "displayStereotype": true,
-            "id": "f9d906db-513c-42b0-93a3-419ef18dbd23",
-            "name": "Administrator Side",
-            "owner": "adc3e04c-05b0-4afe-9c79-a57cdb82bd80",
-            "stereotype": "subsystem",
-            "type": "Subsystem"
-          }
-        },
-        "interactive": { "elements": {}, "relationships": {} },
-        "relationships": {
-          "5e10dfc7-2cc9-4160-8cff-a0a5476f7dc8": {
-            "bounds": { "height": 1, "width": 130, "x": -990, "y": -430 },
-            "id": "5e10dfc7-2cc9-4160-8cff-a0a5476f7dc8",
-            "isManuallyLayouted": false,
-            "name": "",
-            "owner": null,
-            "path": [{ "x": 130, "y": 0 }, { "x": 0, "y": 0 }],
-            "source": {
-              "direction": "Left",
-              "element": "2d6fcdce-9f75-4cc9-a5c6-586a66fd9504"
-            },
-            "target": {
-              "direction": "Right",
-              "element": "f3c7edf8-0f40-4509-9d29-a7990a3c2986"
-            },
-            "type": "ComponentInterfaceProvided"
-          },
-          "9e359679-1c85-4f8a-a528-1675e5024701": {
-            "bounds": { "height": 300, "width": 1, "x": 70, "y": -800 },
-            "id": "9e359679-1c85-4f8a-a528-1675e5024701",
-            "isManuallyLayouted": false,
-            "name": "",
-            "owner": null,
-            "path": [{ "x": 0, "y": 300 }, { "x": 0, "y": 0 }],
-            "source": {
-              "direction": "Up",
-              "element": "42c764ce-f988-4244-b6fd-1e20019485a0"
-            },
-            "target": {
-              "direction": "Down",
-              "element": "53264d2b-9335-47cc-ba11-de82a8084338"
-            },
-            "type": "ComponentInterfaceProvided"
-          },
-          "09ff97a7-e3fe-40cf-8e39-88e28c80e718": {
-            "bounds": { "height": 360, "width": 130, "x": -140, "y": -850 },
-            "id": "09ff97a7-e3fe-40cf-8e39-88e28c80e718",
-            "isManuallyLayouted": false,
-            "name": "",
-            "owner": null,
-            "path": [{ "x": 0, "y": 360 }, { "x": 0, "y": 0 }, { "x": 130, "y": 0 }],
-            "source": {
-              "direction": "Up",
-              "element": "9d90f908-8d82-4ed1-bae5-81a05bd1a7eb"
-            },
-            "target": {
-              "direction": "Left",
-              "element": "53264d2b-9335-47cc-ba11-de82a8084338"
-            },
-            "type": "ComponentInterfaceProvided"
-          },
-          "40a1cd1e-520b-40aa-ad17-01afe157e029": {
-            "bounds": { "height": 40, "width": 170, "x": 980, "y": 490 },
-            "id": "40a1cd1e-520b-40aa-ad17-01afe157e029",
-            "isManuallyLayouted": false,
-            "name": "",
-            "owner": null,
-            "path": [
-              { "x": 0, "y": 40 },
-              { "x": 85, "y": 40 },
-              { "x": 85, "y": 0 },
-              { "x": 170, "y": 0 }
-            ],
-            "source": {
-              "direction": "Right",
-              "element": "84dd249b-1dfb-4b64-869b-4c137cb37c3f"
-            },
-            "target": {
-              "direction": "Left",
-              "element": "35de5104-4d58-4ece-8d70-d6c721d9f719"
-            },
-            "type": "ComponentInterfaceProvided"
-          },
-          "91a804eb-ab2f-4ed2-a9cc-d3751b5ef7a2": {
-            "bounds": { "height": 655, "width": 1000, "x": -380, "y": -435 },
-            "id": "91a804eb-ab2f-4ed2-a9cc-d3751b5ef7a2",
-            "isManuallyLayouted": false,
-            "name": "",
-            "owner": null,
-            "path": [
-              { "x": 960, "y": 655 },
-              { "x": 1000, "y": 655 },
-              { "x": 1000, "y": 435 },
-              { "x": 0, "y": 435 },
-              { "x": 0, "y": 0 },
-              { "x": 40, "y": 0 }
-            ],
-            "source": {
-              "direction": "Right",
-              "element": "198f28c0-233a-414f-af09-72d9a8c77afd"
-            },
-            "target": {
-              "direction": "Left",
-              "element": "6cae7ba0-5af5-4355-9d80-51d0a1494987"
-            },
-            "type": "ComponentInterfaceProvided"
-          },
-          "ee850b71-078e-4b41-82b7-23b6a5ef0ccd": {
-            "bounds": { "height": 10, "width": 80, "x": 240, "y": 270 },
-            "id": "ee850b71-078e-4b41-82b7-23b6a5ef0ccd",
-            "isManuallyLayouted": false,
-            "name": "",
-            "owner": null,
-            "path": [
-              { "x": 80, "y": 0 },
-              { "x": 40, "y": 0 },
-              { "x": 40, "y": 10 },
-              { "x": 0, "y": 10 }
-            ],
-            "source": {
-              "direction": "Left",
-              "element": "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21"
-            },
-            "target": {
-              "direction": "Right",
-              "element": "39662503-e482-4ea3-bcbc-6b45148aff29"
-            },
-            "type": "ComponentInterfaceProvided"
-          },
-          "fa4be4b9-adce-4a2a-8d3c-63ba8aa9bc65": {
-            "bounds": { "height": 220, "width": 520, "x": -850, "y": -680 },
-            "id": "fa4be4b9-adce-4a2a-8d3c-63ba8aa9bc65",
-            "isManuallyLayouted": true,
-            "name": "",
-            "owner": null,
-            "path": [
-              { "x": 0, "y": 215 },
-              { "x": 40, "y": 215 },
-              { "x": 40, "y": 0 },
-              { "x": 434.449951171875, "y": 0 },
-              { "x": 434.449951171875, "y": 155 },
-              { "x": 520, "y": 155 }
-            ],
-            "source": {
-              "direction": "Right",
-              "element": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2"
-            },
-            "target": {
-              "direction": "Downright",
-              "element": "1d153175-84d5-4050-b0d8-8c841dee5369"
-            },
-            "type": "ComponentInterfaceProvided"
-          }
-        },
-        "size": { "height": 1840, "width": 3380 },
-        "type": "ComponentDiagram",
-        "version": "3.0.0"
-      },
-      "title": "New shared version "
-    }
-  ]
+	"description": "Your auto-generated version for sharing",
+	"id": "dc639675-90e9-4bae-84c1-163a48785b51",
+	"lastUpdate": "2025-05-09T12:52:05.407Z",
+	"model": {
+		"assessments": {},
+		"elements": {
+			"1a18d552-d808-4e8c-af87-9594ba22b5d8": {
+				"bounds": { "height": 100, "width": 180, "x": 550, "y": -320 },
+				"displayStereotype": true,
+				"id": "1a18d552-d808-4e8c-af87-9594ba22b5d8",
+				"name": "Scheduler",
+				"owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+				"type": "Component"
+			},
+			"1b5f4fd3-b4d7-407b-999d-05099a3340f8": {
+				"bounds": { "height": 20, "width": 20, "x": 1760, "y": 150 },
+				"id": "1b5f4fd3-b4d7-407b-999d-05099a3340f8",
+				"name": "Create Summary",
+				"owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
+				"type": "ComponentInterface"
+			},
+			"2d6fcdce-9f75-4cc9-a5c6-586a66fd9504": {
+				"bounds": { "height": 20, "width": 20, "x": -860, "y": -440 },
+				"id": "2d6fcdce-9f75-4cc9-a5c6-586a66fd9504",
+				"name": "Provide Contribution Collection",
+				"owner": null,
+				"type": "ComponentInterface"
+			},
+			"3df6ccd1-689d-4d63-b140-6f7e4f5df5e2": {
+				"bounds": { "height": 750, "width": 600, "x": -1450, "y": -740 },
+				"displayStereotype": true,
+				"id": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
+				"name": "Control Subsystem",
+				"owner": null,
+				"stereotype": "subsystem",
+				"type": "Subsystem"
+			},
+			"3e8c4bf4-5ec4-4e35-ab69-e62e79c4653e": {
+				"bounds": { "height": 20, "width": 20, "x": -370, "y": -530 },
+				"id": "3e8c4bf4-5ec4-4e35-ab69-e62e79c4653e",
+				"name": "provide PATs",
+				"owner": "59adc18b-e561-4826-92e2-c7e3c54273dc",
+				"type": "ComponentInterface"
+			},
+			"6cae7ba0-5af5-4355-9d80-51d0a1494987": {
+				"bounds": { "height": 310, "width": 690, "x": 820, "y": -770 },
+				"displayStereotype": true,
+				"id": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
+				"name": "Contribution Collector",
+				"owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+				"stereotype": "subsystem",
+				"type": "Subsystem"
+			},
+			"8bbfd6b5-3797-492c-b1b4-004a96a9bbde": {
+				"bounds": { "height": 2470, "width": 2890, "x": -510, "y": -1020 },
+				"displayStereotype": true,
+				"id": "8bbfd6b5-3797-492c-b1b4-004a96a9bbde",
+				"name": "Backend",
+				"owner": null,
+				"stereotype": "subsystem",
+				"type": "Subsystem"
+			},
+			"9c492549-c72f-414d-aa4c-1cc24e868a65": {
+				"bounds": { "height": 100, "width": 170, "x": 480, "y": 360 },
+				"displayStereotype": true,
+				"id": "9c492549-c72f-414d-aa4c-1cc24e868a65",
+				"name": "Link2RepoMapping",
+				"owner": "c6568499-1666-49ae-ab37-42841fc76815",
+				"type": "Component"
+			},
+			"9d90f908-8d82-4ed1-bae5-81a05bd1a7eb": {
+				"bounds": { "height": 80, "width": 160, "x": 870, "y": -730 },
+				"displayStereotype": true,
+				"id": "9d90f908-8d82-4ed1-bae5-81a05bd1a7eb",
+				"name": "Issue Collector",
+				"owner": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
+				"type": "Component"
+			},
+			"35de5104-4d58-4ece-8d70-d6c721d9f719": {
+				"bounds": { "height": 100, "width": 160, "x": 940, "y": 680 },
+				"displayStereotype": true,
+				"id": "35de5104-4d58-4ece-8d70-d6c721d9f719",
+				"name": "PAT Checker",
+				"owner": "316c0b87-1ba6-4668-9eaf-4deeb65ae282",
+				"type": "Component"
+			},
+			"39d644de-f2d0-4fb0-a033-84894a8958bd": {
+				"bounds": { "height": 20, "width": 20, "x": -370, "y": -480 },
+				"id": "39d644de-f2d0-4fb0-a033-84894a8958bd",
+				"name": "Create summaries",
+				"owner": "59adc18b-e561-4826-92e2-c7e3c54273dc",
+				"type": "ComponentInterface"
+			},
+			"42c764ce-f988-4244-b6fd-1e20019485a0": {
+				"bounds": { "height": 90, "width": 160, "x": 1260, "y": -720 },
+				"displayStereotype": true,
+				"id": "42c764ce-f988-4244-b6fd-1e20019485a0",
+				"name": "Commit Collector",
+				"owner": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
+				"type": "Component"
+			},
+			"45fa11b5-965c-4578-8ebf-e8f6bb49190c": {
+				"bounds": { "height": 100, "width": 230, "x": -390, "y": 1060 },
+				"displayStereotype": true,
+				"id": "45fa11b5-965c-4578-8ebf-e8f6bb49190c",
+				"name": "Meilisearch",
+				"owner": "8bbfd6b5-3797-492c-b1b4-004a96a9bbde",
+				"stereotype": "subsystem",
+				"type": "Subsystem"
+			},
+			"59adc18b-e561-4826-92e2-c7e3c54273dc": {
+				"bounds": { "height": 360, "width": 210, "x": -380, "y": -600 },
+				"displayStereotype": true,
+				"id": "59adc18b-e561-4826-92e2-c7e3c54273dc",
+				"name": "Spring Boot Routing",
+				"owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+				"stereotype": "subsystem",
+				"type": "Subsystem"
+			},
+			"76ebdc0a-d0c5-4a11-bf10-a92df1535502": {
+				"bounds": { "height": 20, "width": 20, "x": 520, "y": 310 },
+				"id": "76ebdc0a-d0c5-4a11-bf10-a92df1535502",
+				"name": "View Summary",
+				"owner": "c6568499-1666-49ae-ab37-42841fc76815",
+				"type": "ComponentInterface"
+			},
+			"84dd249b-1dfb-4b64-869b-4c137cb37c3f": {
+				"bounds": { "height": 100, "width": 160, "x": 590, "y": 680 },
+				"displayStereotype": true,
+				"id": "84dd249b-1dfb-4b64-869b-4c137cb37c3f",
+				"name": "PAT Manager",
+				"owner": "316c0b87-1ba6-4668-9eaf-4deeb65ae282",
+				"type": "Component"
+			},
+			"93ac837d-dfab-4ce7-94b0-fdf3d176343f": {
+				"bounds": { "height": 100, "width": 160, "x": -1160, "y": -630 },
+				"displayStereotype": true,
+				"id": "93ac837d-dfab-4ce7-94b0-fdf3d176343f",
+				"name": "Search",
+				"owner": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
+				"type": "Component"
+			},
+			"151a54e2-1d69-4625-9e02-1ce443c656fa": {
+				"bounds": { "height": 1960, "width": 2030, "x": -420, "y": -930 },
+				"displayStereotype": true,
+				"id": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+				"name": "Spring Boot",
+				"owner": "8bbfd6b5-3797-492c-b1b4-004a96a9bbde",
+				"stereotype": "subsystem",
+				"type": "Subsystem"
+			},
+			"198f28c0-233a-414f-af09-72d9a8c77afd": {
+				"bounds": { "height": 360, "width": 520, "x": 1750, "y": -40 },
+				"displayStereotype": true,
+				"id": "198f28c0-233a-414f-af09-72d9a8c77afd",
+				"name": "AI service",
+				"owner": "8bbfd6b5-3797-492c-b1b4-004a96a9bbde",
+				"stereotype": "subsystem",
+				"type": "Subsystem"
+			},
+			"316c0b87-1ba6-4668-9eaf-4deeb65ae282": {
+				"bounds": { "height": 360, "width": 700, "x": 460, "y": 560 },
+				"displayStereotype": true,
+				"id": "316c0b87-1ba6-4668-9eaf-4deeb65ae282",
+				"name": "PAT Handler",
+				"owner": "c6568499-1666-49ae-ab37-42841fc76815",
+				"stereotype": "subsystem",
+				"type": "Subsystem"
+			},
+			"380c72e4-a9fa-402f-850c-120501c52f1a": {
+				"bounds": { "height": 20, "width": 20, "x": -370, "y": -270 },
+				"id": "380c72e4-a9fa-402f-850c-120501c52f1a",
+				"name": "Search Content",
+				"owner": "59adc18b-e561-4826-92e2-c7e3c54273dc",
+				"type": "ComponentInterface"
+			},
+			"784c2ecc-7880-468c-87aa-6ba7ef3d0c5c": {
+				"bounds": { "height": 100, "width": 160, "x": 1120, "y": 360 },
+				"displayStereotype": true,
+				"id": "784c2ecc-7880-468c-87aa-6ba7ef3d0c5c",
+				"name": "Link Creator",
+				"owner": "c6568499-1666-49ae-ab37-42841fc76815",
+				"type": "Component"
+			},
+			"53264d2b-9335-47cc-ba11-de82a8084338": {
+				"bounds": { "height": 100, "width": 160, "x": 370, "y": -1180 },
+				"displayStereotype": true,
+				"id": "53264d2b-9335-47cc-ba11-de82a8084338",
+				"name": "Github API",
+				"owner": null,
+				"type": "Component"
+			},
+			"39662503-e482-4ea3-bcbc-6b45148aff29": {
+				"bounds": { "height": 100, "width": 160, "x": 1780, "y": 200 },
+				"displayStereotype": true,
+				"id": "39662503-e482-4ea3-bcbc-6b45148aff29",
+				"name": "Summariser",
+				"owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
+				"type": "Component"
+			},
+			"a7cbc6b6-fd4c-419c-ab73-2402378f5375": {
+				"bounds": { "height": 240, "width": 130, "x": -1070, "y": -310 },
+				"displayStereotype": true,
+				"id": "a7cbc6b6-fd4c-419c-ab73-2402378f5375",
+				"name": "EnterPAT",
+				"owner": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
+				"type": "Component"
+			},
+			"c0aee8a6-31dc-4621-8fa7-ad81c74b4c42": {
+				"bounds": { "height": 20, "width": 20, "x": 2000, "y": 180 },
+				"id": "c0aee8a6-31dc-4621-8fa7-ad81c74b4c42",
+				"name": "",
+				"owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
+				"type": "ComponentInterface"
+			},
+			"c8e91874-a6b2-4328-8e26-31f911e37ba1": {
+				"bounds": { "height": 20, "width": 20, "x": 840, "y": -600 },
+				"id": "c8e91874-a6b2-4328-8e26-31f911e37ba1",
+				"name": "Collect collection",
+				"owner": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
+				"type": "ComponentInterface"
+			},
+			"c9ce19e4-321d-424b-ac6a-3a2360681608": {
+				"bounds": { "height": 20, "width": 20, "x": -370, "y": -430 },
+				"id": "c9ce19e4-321d-424b-ac6a-3a2360681608",
+				"name": "Get summaries",
+				"owner": "59adc18b-e561-4826-92e2-c7e3c54273dc",
+				"type": "ComponentInterface"
+			},
+			"c08a6d27-1077-40c6-ad74-1e218147b3b7": {
+				"bounds": { "height": 20, "width": 20, "x": -370, "y": -380 },
+				"id": "c08a6d27-1077-40c6-ad74-1e218147b3b7",
+				"name": "Ask question",
+				"owner": "59adc18b-e561-4826-92e2-c7e3c54273dc",
+				"type": "ComponentInterface"
+			},
+			"c6568499-1666-49ae-ab37-42841fc76815": {
+				"bounds": { "height": 750, "width": 840, "x": 440, "y": 240 },
+				"displayStereotype": true,
+				"id": "c6568499-1666-49ae-ab37-42841fc76815",
+				"name": "Access Handling",
+				"owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+				"stereotype": "subsystem",
+				"type": "Subsystem"
+			},
+			"ca2c28b2-3f28-4057-8ef3-86ec5bc48b21": {
+				"bounds": { "height": 100, "width": 210, "x": 2030, "y": 140 },
+				"displayStereotype": true,
+				"id": "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21",
+				"name": "Context Generator",
+				"owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
+				"type": "Component"
+			},
+			"d2e624fb-0f86-499f-9223-e467945fa906": {
+				"bounds": { "height": 100, "width": 160, "x": -1390, "y": -490 },
+				"displayStereotype": true,
+				"id": "d2e624fb-0f86-499f-9223-e467945fa906",
+				"name": "Ask question",
+				"owner": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
+				"type": "Component"
+			},
+			"d4b30de5-661b-4303-bab5-b1a0a9755064": {
+				"bounds": { "height": 20, "width": 20, "x": 920, "y": 720 },
+				"id": "d4b30de5-661b-4303-bab5-b1a0a9755064",
+				"name": "",
+				"owner": "316c0b87-1ba6-4668-9eaf-4deeb65ae282",
+				"type": "ComponentInterface"
+			},
+			"d1177b3e-5f17-406a-b71c-19e39ab31cef": {
+				"bounds": { "height": 20, "width": 20, "x": 520, "y": 270 },
+				"id": "d1177b3e-5f17-406a-b71c-19e39ab31cef",
+				"name": "Provide PAT",
+				"owner": "c6568499-1666-49ae-ab37-42841fc76815",
+				"type": "ComponentInterface"
+			},
+			"d1772888-d0ab-4474-895e-1183c3bfaef9": {
+				"bounds": { "height": 100, "width": 230, "x": -20, "y": 1250 },
+				"displayStereotype": true,
+				"id": "d1772888-d0ab-4474-895e-1183c3bfaef9",
+				"name": "Database / Postgres",
+				"owner": "8bbfd6b5-3797-492c-b1b4-004a96a9bbde",
+				"stereotype": "subsystem",
+				"type": "Subsystem"
+			},
+			"f3c7edf8-0f40-4509-9d29-a7990a3c2986": {
+				"bounds": { "height": 140, "width": 180, "x": -1080, "y": -500 },
+				"displayStereotype": true,
+				"id": "f3c7edf8-0f40-4509-9d29-a7990a3c2986",
+				"name": "Contribution Filter",
+				"owner": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
+				"type": "Component"
+			},
+			"f9d57b63-56c9-495f-8b6f-174051e41d86": {
+				"bounds": { "height": 100, "width": 160, "x": 1990, "y": 10 },
+				"displayStereotype": true,
+				"id": "f9d57b63-56c9-495f-8b6f-174051e41d86",
+				"name": "LangChain",
+				"owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
+				"type": "Component"
+			},
+			"fd73adb0-6cb4-4e06-b7c0-67f51a676cf6": {
+				"bounds": { "height": 20, "width": 20, "x": -370, "y": -320 },
+				"id": "fd73adb0-6cb4-4e06-b7c0-67f51a676cf6",
+				"name": "Get PAT overview",
+				"owner": "59adc18b-e561-4826-92e2-c7e3c54273dc",
+				"type": "ComponentInterface"
+			}
+		},
+		"interactive": { "elements": {}, "relationships": {} },
+		"relationships": {
+			"5b89deb6-44b6-44fe-a02c-b182e2a60568": {
+				"bounds": { "height": 1760, "width": 570, "x": 450, "y": -1080 },
+				"id": "5b89deb6-44b6-44fe-a02c-b182e2a60568",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 570, "y": 1760 },
+					{ "x": 570, "y": 880 },
+					{ "x": 0, "y": 880 },
+					{ "x": 0, "y": 0 }
+				],
+				"source": {
+					"direction": "Up",
+					"element": "35de5104-4d58-4ece-8d70-d6c721d9f719"
+				},
+				"target": {
+					"direction": "Down",
+					"element": "53264d2b-9335-47cc-ba11-de82a8084338"
+				},
+				"type": "ComponentInterfaceProvided"
+			},
+			"5e10dfc7-2cc9-4160-8cff-a0a5476f7dc8": {
+				"bounds": { "height": 1, "width": 40, "x": -900, "y": -430 },
+				"id": "5e10dfc7-2cc9-4160-8cff-a0a5476f7dc8",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 40, "y": 0 },
+					{ "x": 0, "y": 0 },
+					{ "x": 40, "y": 0 },
+					{ "x": 0, "y": 0 }
+				],
+				"source": {
+					"direction": "Left",
+					"element": "2d6fcdce-9f75-4cc9-a5c6-586a66fd9504"
+				},
+				"target": {
+					"direction": "Right",
+					"element": "f3c7edf8-0f40-4509-9d29-a7990a3c2986"
+				},
+				"type": "ComponentInterfaceProvided"
+			},
+			"8f6527f1-3d4c-4acc-8ac3-0cac4257a4fa": {
+				"bounds": { "height": 90, "width": 370, "x": -275, "y": 1160 },
+				"id": "8f6527f1-3d4c-4acc-8ac3-0cac4257a4fa",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 0, "y": 0 },
+					{ "x": 0, "y": 45 },
+					{ "x": 370, "y": 45 },
+					{ "x": 370, "y": 90 }
+				],
+				"source": {
+					"direction": "Down",
+					"element": "45fa11b5-965c-4578-8ebf-e8f6bb49190c"
+				},
+				"target": {
+					"direction": "Up",
+					"element": "d1772888-d0ab-4474-895e-1183c3bfaef9"
+				},
+				"type": "ComponentDependency"
+			},
+			"9e359679-1c85-4f8a-a528-1675e5024701": {
+				"bounds": { "height": 410, "width": 810, "x": 530, "y": -1130 },
+				"id": "9e359679-1c85-4f8a-a528-1675e5024701",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 810, "y": 410 },
+					{ "x": 810, "y": 0 },
+					{ "x": 0, "y": 0 }
+				],
+				"source": {
+					"direction": "Up",
+					"element": "42c764ce-f988-4244-b6fd-1e20019485a0"
+				},
+				"target": {
+					"direction": "Right",
+					"element": "53264d2b-9335-47cc-ba11-de82a8084338"
+				},
+				"type": "ComponentInterfaceProvided"
+			},
+			"09ff97a7-e3fe-40cf-8e39-88e28c80e718": {
+				"bounds": { "height": 400, "width": 420, "x": 530, "y": -1130 },
+				"id": "09ff97a7-e3fe-40cf-8e39-88e28c80e718",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 420, "y": 400 },
+					{ "x": 420, "y": 0 },
+					{ "x": 0, "y": 0 }
+				],
+				"source": {
+					"direction": "Up",
+					"element": "9d90f908-8d82-4ed1-bae5-81a05bd1a7eb"
+				},
+				"target": {
+					"direction": "Right",
+					"element": "53264d2b-9335-47cc-ba11-de82a8084338"
+				},
+				"type": "ComponentInterfaceProvided"
+			},
+			"40a1cd1e-520b-40aa-ad17-01afe157e029": {
+				"bounds": { "height": 1, "width": 190, "x": 750, "y": 730 },
+				"id": "40a1cd1e-520b-40aa-ad17-01afe157e029",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [{ "x": 0, "y": 0 }, { "x": 190, "y": 0 }],
+				"source": {
+					"direction": "Right",
+					"element": "84dd249b-1dfb-4b64-869b-4c137cb37c3f"
+				},
+				"target": {
+					"direction": "Left",
+					"element": "35de5104-4d58-4ece-8d70-d6c721d9f719"
+				},
+				"type": "ComponentInterfaceProvided"
+			},
+			"68cd7648-24bc-4bf1-90ff-0addb1a6c285": {
+				"bounds": { "height": 100, "width": 390, "x": 810, "y": 460 },
+				"id": "68cd7648-24bc-4bf1-90ff-0addb1a6c285",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 390, "y": 0 },
+					{ "x": 390, "y": 50 },
+					{ "x": 0, "y": 50 },
+					{ "x": 0, "y": 100 }
+				],
+				"source": {
+					"direction": "Down",
+					"element": "784c2ecc-7880-468c-87aa-6ba7ef3d0c5c"
+				},
+				"target": {
+					"direction": "Up",
+					"element": "316c0b87-1ba6-4668-9eaf-4deeb65ae282"
+				},
+				"type": "ComponentInterfaceProvided"
+			},
+			"71bed013-997c-4ec6-a31f-fad928ce8550": {
+				"bounds": { "height": 904, "width": 283, "x": 197, "y": 410 },
+				"id": "71bed013-997c-4ec6-a31f-fad928ce8550",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 283, "y": 0 },
+					{ "x": 148, "y": 0 },
+					{ "x": 148, "y": 890 },
+					{ "x": 13, "y": 890 }
+				],
+				"source": {
+					"direction": "Left",
+					"element": "9c492549-c72f-414d-aa4c-1cc24e868a65"
+				},
+				"target": {
+					"direction": "Right",
+					"element": "d1772888-d0ab-4474-895e-1183c3bfaef9"
+				},
+				"type": "ComponentInterfaceRequired"
+			},
+			"91a804eb-ab2f-4ed2-a9cc-d3751b5ef7a2": {
+				"bounds": { "height": 550, "width": 1210, "x": 800, "y": -590 },
+				"id": "91a804eb-ab2f-4ed2-a9cc-d3751b5ef7a2",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 1210, "y": 550 },
+					{ "x": 1210, "y": 510 },
+					{ "x": 0, "y": 510 },
+					{ "x": 0, "y": 0 },
+					{ "x": 40, "y": 0 }
+				],
+				"source": {
+					"direction": "Up",
+					"element": "198f28c0-233a-414f-af09-72d9a8c77afd"
+				},
+				"target": {
+					"direction": "Left",
+					"element": "c8e91874-a6b2-4328-8e26-31f911e37ba1"
+				},
+				"type": "ComponentInterfaceProvided"
+			},
+			"477bd3ae-177e-48df-b4f8-b2e262df99e7": {
+				"bounds": { "height": 1314, "width": 27, "x": -288, "y": -240 },
+				"id": "477bd3ae-177e-48df-b4f8-b2e262df99e7",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [{ "x": 13, "y": 0 }, { "x": 13, "y": 1300 }],
+				"source": {
+					"direction": "Down",
+					"element": "59adc18b-e561-4826-92e2-c7e3c54273dc"
+				},
+				"target": {
+					"direction": "Up",
+					"element": "45fa11b5-965c-4578-8ebf-e8f6bb49190c"
+				},
+				"type": "ComponentInterfaceRequired"
+			},
+			"987d9a23-86c4-4842-bb75-edf9532da6f0": {
+				"bounds": { "height": 380, "width": 1120, "x": 640, "y": -220 },
+				"id": "987d9a23-86c4-4842-bb75-edf9532da6f0",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 0, "y": 0 },
+					{ "x": 0, "y": 380 },
+					{ "x": 1120, "y": 380 }
+				],
+				"source": {
+					"direction": "Down",
+					"element": "1a18d552-d808-4e8c-af87-9594ba22b5d8"
+				},
+				"target": {
+					"direction": "Left",
+					"element": "1b5f4fd3-b4d7-407b-999d-05099a3340f8"
+				},
+				"type": "ComponentInterfaceProvided"
+			},
+			"a4e9e583-997b-4966-b6d1-22c50eb4ddf1": {
+				"bounds": { "height": 740, "width": 870, "x": -350, "y": -420 },
+				"id": "a4e9e583-997b-4966-b6d1-22c50eb4ddf1",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 870, "y": 740 },
+					{ "x": 435, "y": 740 },
+					{ "x": 435, "y": 0 },
+					{ "x": 0, "y": 0 }
+				],
+				"source": {
+					"direction": "Left",
+					"element": "76ebdc0a-d0c5-4a11-bf10-a92df1535502"
+				},
+				"target": {
+					"direction": "Right",
+					"element": "c9ce19e4-321d-424b-ac6a-3a2360681608"
+				},
+				"type": "ComponentInterfaceProvided"
+			},
+			"bcf95091-fb6d-4b19-a43d-b406e2518848": {
+				"bounds": { "height": 580, "width": 940, "x": -410, "y": -310 },
+				"id": "bcf95091-fb6d-4b19-a43d-b406e2518848",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 940, "y": 580 },
+					{ "x": 940, "y": 540 },
+					{ "x": 0, "y": 540 },
+					{ "x": 0, "y": 0 },
+					{ "x": 40, "y": 0 }
+				],
+				"source": {
+					"direction": "Up",
+					"element": "d1177b3e-5f17-406a-b71c-19e39ab31cef"
+				},
+				"target": {
+					"direction": "Left",
+					"element": "fd73adb0-6cb4-4e06-b7c0-67f51a676cf6"
+				},
+				"type": "ComponentInterfaceProvided"
+			},
+			"c6147b80-b15f-4bc8-af64-f9f76020bc0e": {
+				"bounds": { "height": 40, "width": 470, "x": -840, "y": -470 },
+				"id": "c6147b80-b15f-4bc8-af64-f9f76020bc0e",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 0, "y": 40 },
+					{ "x": 235, "y": 40 },
+					{ "x": 235, "y": 0 },
+					{ "x": 470, "y": 0 }
+				],
+				"source": {
+					"direction": "Right",
+					"element": "2d6fcdce-9f75-4cc9-a5c6-586a66fd9504"
+				},
+				"target": {
+					"direction": "Left",
+					"element": "39d644de-f2d0-4fb0-a033-84894a8958bd"
+				},
+				"type": "ComponentInterfaceProvided"
+			},
+			"c0062450-c153-41f1-acf0-c84f7f6229b6": {
+				"bounds": { "height": 610, "width": 588, "x": 82, "y": 780 },
+				"id": "c0062450-c153-41f1-acf0-c84f7f6229b6",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 588, "y": 0 },
+					{ "x": 588, "y": 610 },
+					{ "x": 13, "y": 610 },
+					{ "x": 13, "y": 570 }
+				],
+				"source": {
+					"direction": "Down",
+					"element": "84dd249b-1dfb-4b64-869b-4c137cb37c3f"
+				},
+				"target": {
+					"direction": "Down",
+					"element": "d1772888-d0ab-4474-895e-1183c3bfaef9"
+				},
+				"type": "ComponentInterfaceRequired"
+			},
+			"d5235ee2-57cf-444c-b917-4de2d76bcc7f": {
+				"bounds": { "height": 170, "width": 1010, "x": -170, "y": -590 },
+				"id": "d5235ee2-57cf-444c-b917-4de2d76bcc7f",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 0, "y": 170 },
+					{ "x": 40, "y": 170 },
+					{ "x": 40, "y": 0 },
+					{ "x": 1010, "y": 0 }
+				],
+				"source": {
+					"direction": "Right",
+					"element": "59adc18b-e561-4826-92e2-c7e3c54273dc"
+				},
+				"target": {
+					"direction": "Left",
+					"element": "c8e91874-a6b2-4328-8e26-31f911e37ba1"
+				},
+				"type": "ComponentInterfaceProvided"
+			},
+			"ee850b71-078e-4b41-82b7-23b6a5ef0ccd": {
+				"bounds": { "height": 60, "width": 90, "x": 1940, "y": 190 },
+				"id": "ee850b71-078e-4b41-82b7-23b6a5ef0ccd",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 90, "y": 0 },
+					{ "x": 45, "y": 0 },
+					{ "x": 45, "y": 60 },
+					{ "x": 0, "y": 60 }
+				],
+				"source": {
+					"direction": "Left",
+					"element": "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21"
+				},
+				"target": {
+					"direction": "Right",
+					"element": "39662503-e482-4ea3-bcbc-6b45148aff29"
+				},
+				"type": "ComponentInterfaceProvided"
+			},
+			"f6bcc87d-5d0d-4d5d-a47d-7e7bf4a2c883": {
+				"bounds": { "height": 100, "width": 245, "x": 565, "y": 460 },
+				"id": "f6bcc87d-5d0d-4d5d-a47d-7e7bf4a2c883",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 0, "y": 0 },
+					{ "x": 0, "y": 50 },
+					{ "x": 245, "y": 50 },
+					{ "x": 245, "y": 100 }
+				],
+				"source": {
+					"direction": "Down",
+					"element": "9c492549-c72f-414d-aa4c-1cc24e868a65"
+				},
+				"target": {
+					"direction": "Up",
+					"element": "316c0b87-1ba6-4668-9eaf-4deeb65ae282"
+				},
+				"type": "ComponentInterfaceProvided"
+			},
+			"fefc38a4-dd5a-4e31-9695-612f742c5740": {
+				"bounds": { "height": 270, "width": 200, "x": 640, "y": -590 },
+				"id": "fefc38a4-dd5a-4e31-9695-612f742c5740",
+				"isManuallyLayouted": false,
+				"name": "",
+				"owner": null,
+				"path": [
+					{ "x": 0, "y": 270 },
+					{ "x": 0, "y": 0 },
+					{ "x": 200, "y": 0 }
+				],
+				"source": {
+					"direction": "Up",
+					"element": "1a18d552-d808-4e8c-af87-9594ba22b5d8"
+				},
+				"target": {
+					"direction": "Left",
+					"element": "c8e91874-a6b2-4328-8e26-31f911e37ba1"
+				},
+				"type": "ComponentInterfaceProvided"
+			}
+		},
+		"size": { "height": 2940, "width": 4800 },
+		"type": "ComponentDiagram",
+		"version": "3.0.0"
+	},
+	"title": "components",
+	"token": "7qMRf5AHsBfXJwx3Wzi9",
+	"versions": [
+		{
+			"description": "Your auto-generated version for sharing",
+			"id": "bbf88296-4f31-4563-a94a-902e2c569608",
+			"lastUpdate": "2025-05-09T13:07:47.885Z",
+			"model": {
+				"assessments": {},
+				"elements": {
+					"3df6ccd1-689d-4d63-b140-6f7e4f5df5e2": {
+						"bounds": { "height": 550, "width": 680, "x": -810, "y": -470 },
+						"displayStereotype": true,
+						"id": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
+						"name": "Frontend",
+						"owner": null,
+						"stereotype": "subsystem",
+						"type": "Subsystem"
+					},
+					"6cae7ba0-5af5-4355-9d80-51d0a1494987": {
+						"bounds": { "height": 250, "width": 380, "x": 20, "y": 110 },
+						"displayStereotype": true,
+						"id": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
+						"name": "Contribution Collector",
+						"owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
+						"stereotype": "subsystem",
+						"type": "Subsystem"
+					},
+					"9d90f908-8d82-4ed1-bae5-81a05bd1a7eb": {
+						"bounds": { "height": 80, "width": 160, "x": 30, "y": 220 },
+						"displayStereotype": true,
+						"id": "9d90f908-8d82-4ed1-bae5-81a05bd1a7eb",
+						"name": "Issue Collector",
+						"owner": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
+						"type": "Component"
+					},
+					"25cbdbce-581c-4e12-aadc-3c0eca6a08c8": {
+						"bounds": { "height": 270, "width": 210, "x": 510, "y": -400 },
+						"displayStereotype": true,
+						"id": "25cbdbce-581c-4e12-aadc-3c0eca6a08c8",
+						"name": "Database",
+						"owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+						"type": "Component"
+					},
+					"42c764ce-f988-4244-b6fd-1e20019485a0": {
+						"bounds": { "height": 90, "width": 150, "x": 210, "y": 220 },
+						"displayStereotype": true,
+						"id": "42c764ce-f988-4244-b6fd-1e20019485a0",
+						"name": "Commit Collector",
+						"owner": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
+						"type": "Component"
+					},
+					"151a54e2-1d69-4625-9e02-1ce443c656fa": {
+						"bounds": { "height": 870, "width": 910, "x": -110, "y": -450 },
+						"displayStereotype": true,
+						"id": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+						"name": "Backend",
+						"owner": null,
+						"stereotype": "subsystem",
+						"type": "Subsystem"
+					},
+					"198f28c0-233a-414f-af09-72d9a8c77afd": {
+						"bounds": { "height": 690, "width": 530, "x": -60, "y": -320 },
+						"displayStereotype": true,
+						"id": "198f28c0-233a-414f-af09-72d9a8c77afd",
+						"name": "AI service",
+						"owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+						"stereotype": "subsystem",
+						"type": "Subsystem"
+					},
+					"39662503-e482-4ea3-bcbc-6b45148aff29": {
+						"bounds": { "height": 100, "width": 160, "x": -40, "y": -140 },
+						"displayStereotype": true,
+						"id": "39662503-e482-4ea3-bcbc-6b45148aff29",
+						"name": "Summariser",
+						"owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
+						"type": "Component"
+					},
+					"a7cbc6b6-fd4c-419c-ab73-2402378f5375": {
+						"bounds": { "height": 300, "width": 220, "x": -710, "y": -360 },
+						"displayStereotype": true,
+						"id": "a7cbc6b6-fd4c-419c-ab73-2402378f5375",
+						"name": "Client",
+						"owner": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
+						"type": "Component"
+					},
+					"c0aee8a6-31dc-4621-8fa7-ad81c74b4c42": {
+						"bounds": { "height": 20, "width": 20, "x": 190, "y": -100 },
+						"id": "c0aee8a6-31dc-4621-8fa7-ad81c74b4c42",
+						"name": "",
+						"owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
+						"type": "ComponentInterface"
+					},
+					"ca2c28b2-3f28-4057-8ef3-86ec5bc48b21": {
+						"bounds": { "height": 100, "width": 210, "x": 200, "y": -140 },
+						"displayStereotype": true,
+						"id": "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21",
+						"name": "Context Generator",
+						"owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
+						"type": "Component"
+					},
+					"f9d57b63-56c9-495f-8b6f-174051e41d86": {
+						"bounds": { "height": 100, "width": 160, "x": 180, "y": -270 },
+						"displayStereotype": true,
+						"id": "f9d57b63-56c9-495f-8b6f-174051e41d86",
+						"name": "LangChain",
+						"owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
+						"type": "Component"
+					}
+				},
+				"interactive": { "elements": {}, "relationships": {} },
+				"relationships": {
+					"c1accd6a-b5b9-4a74-9a41-a6b6d59562e3": {
+						"bounds": { "height": 150, "width": 95, "x": 210, "y": -40 },
+						"id": "c1accd6a-b5b9-4a74-9a41-a6b6d59562e3",
+						"isManuallyLayouted": false,
+						"name": "",
+						"owner": null,
+						"path": [
+							{ "x": 0, "y": 150 },
+							{ "x": 0, "y": 75 },
+							{ "x": 95, "y": 75 },
+							{ "x": 95, "y": 0 }
+						],
+						"source": {
+							"direction": "Up",
+							"element": "6cae7ba0-5af5-4355-9d80-51d0a1494987"
+						},
+						"target": {
+							"direction": "Down",
+							"element": "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21"
+						},
+						"type": "ComponentInterfaceProvided"
+					},
+					"ee850b71-078e-4b41-82b7-23b6a5ef0ccd": {
+						"bounds": { "height": 1, "width": 80, "x": 120, "y": -90 },
+						"id": "ee850b71-078e-4b41-82b7-23b6a5ef0ccd",
+						"isManuallyLayouted": false,
+						"name": "",
+						"owner": null,
+						"path": [{ "x": 80, "y": 0 }, { "x": 0, "y": 0 }],
+						"source": {
+							"direction": "Left",
+							"element": "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21"
+						},
+						"target": {
+							"direction": "Right",
+							"element": "39662503-e482-4ea3-bcbc-6b45148aff29"
+						},
+						"type": "ComponentInterfaceProvided"
+					}
+				},
+				"size": { "height": 980, "width": 1660 },
+				"type": "ComponentDiagram",
+				"version": "3.0.0"
+			},
+			"title": "New shared version "
+		},
+		{
+			"description": "Your auto-generated version for sharing",
+			"id": "bbf88296-4f31-4563-a94a-902e2c569608",
+			"lastUpdate": "2025-05-09T13:45:16.290Z",
+			"model": {
+				"assessments": {},
+				"elements": {
+					"1d153175-84d5-4050-b0d8-8c841dee5369": {
+						"bounds": { "height": 20, "width": 20, "x": -340, "y": -540 },
+						"id": "1d153175-84d5-4050-b0d8-8c841dee5369",
+						"name": "Collect",
+						"owner": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
+						"type": "ComponentInterface"
+					},
+					"2d6fcdce-9f75-4cc9-a5c6-586a66fd9504": {
+						"bounds": { "height": 20, "width": 20, "x": -860, "y": -440 },
+						"id": "2d6fcdce-9f75-4cc9-a5c6-586a66fd9504",
+						"name": "Provide Contribution Collection",
+						"owner": null,
+						"type": "ComponentInterface"
+					},
+					"3df6ccd1-689d-4d63-b140-6f7e4f5df5e2": {
+						"bounds": { "height": 550, "width": 680, "x": -1530, "y": -740 },
+						"displayStereotype": true,
+						"id": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
+						"name": "Control Subsystem",
+						"owner": null,
+						"stereotype": "subsystem",
+						"type": "Subsystem"
+					},
+					"6cae7ba0-5af5-4355-9d80-51d0a1494987": {
+						"bounds": { "height": 330, "width": 520, "x": -340, "y": -600 },
+						"displayStereotype": true,
+						"id": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
+						"name": "Contribution Collector",
+						"owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+						"stereotype": "subsystem",
+						"type": "Subsystem"
+					},
+					"8b0960d0-ccea-42e0-9510-8cfa1673a5d0": {
+						"bounds": { "height": 300, "width": 420, "x": -430, "y": 410 },
+						"displayStereotype": true,
+						"id": "8b0960d0-ccea-42e0-9510-8cfa1673a5d0",
+						"name": "User ",
+						"owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+						"stereotype": "subsystem",
+						"type": "Subsystem"
+					},
+					"9d90f908-8d82-4ed1-bae5-81a05bd1a7eb": {
+						"bounds": { "height": 80, "width": 160, "x": -220, "y": -490 },
+						"displayStereotype": true,
+						"id": "9d90f908-8d82-4ed1-bae5-81a05bd1a7eb",
+						"name": "Issue Collector",
+						"owner": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
+						"type": "Component"
+					},
+					"25cbdbce-581c-4e12-aadc-3c0eca6a08c8": {
+						"bounds": { "height": 270, "width": 210, "x": 250, "y": -710 },
+						"displayStereotype": true,
+						"id": "25cbdbce-581c-4e12-aadc-3c0eca6a08c8",
+						"name": "Database",
+						"owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+						"type": "Component"
+					},
+					"35de5104-4d58-4ece-8d70-d6c721d9f719": {
+						"bounds": { "height": 100, "width": 160, "x": 1150, "y": 440 },
+						"displayStereotype": true,
+						"id": "35de5104-4d58-4ece-8d70-d6c721d9f719",
+						"name": "PAT Checker",
+						"owner": "316c0b87-1ba6-4668-9eaf-4deeb65ae282",
+						"type": "Component"
+					},
+					"42c764ce-f988-4244-b6fd-1e20019485a0": {
+						"bounds": { "height": 90, "width": 160, "x": -10, "y": -500 },
+						"displayStereotype": true,
+						"id": "42c764ce-f988-4244-b6fd-1e20019485a0",
+						"name": "Commit Collector",
+						"owner": "6cae7ba0-5af5-4355-9d80-51d0a1494987",
+						"type": "Component"
+					},
+					"45ba5e83-dcfe-4fd0-ac8c-243a5456d8b2": {
+						"bounds": { "height": 290, "width": 310, "x": 800, "y": -740 },
+						"displayStereotype": true,
+						"id": "45ba5e83-dcfe-4fd0-ac8c-243a5456d8b2",
+						"name": "Subsystem",
+						"owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+						"stereotype": "subsystem",
+						"type": "Subsystem"
+					},
+					"59adc18b-e561-4826-92e2-c7e3c54273dc": {
+						"bounds": { "height": 350, "width": 180, "x": -580, "y": -180 },
+						"displayStereotype": true,
+						"id": "59adc18b-e561-4826-92e2-c7e3c54273dc",
+						"name": "Spring Boot Routing",
+						"owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+						"stereotype": "subsystem",
+						"type": "Subsystem"
+					},
+					"61f75f13-e47f-4d6b-bcb2-3b96e59401b6": {
+						"bounds": { "height": 100, "width": 190, "x": -280, "y": 90 },
+						"displayStereotype": true,
+						"id": "61f75f13-e47f-4d6b-bcb2-3b96e59401b6",
+						"name": "Authorisation Creator",
+						"owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+						"type": "Component"
+					},
+					"84dd249b-1dfb-4b64-869b-4c137cb37c3f": {
+						"bounds": { "height": 100, "width": 160, "x": 820, "y": 480 },
+						"displayStereotype": true,
+						"id": "84dd249b-1dfb-4b64-869b-4c137cb37c3f",
+						"name": "PAT Manager",
+						"owner": "316c0b87-1ba6-4668-9eaf-4deeb65ae282",
+						"type": "Component"
+					},
+					"151a54e2-1d69-4625-9e02-1ce443c656fa": {
+						"bounds": { "height": 1630, "width": 2300, "x": -630, "y": -780 },
+						"displayStereotype": true,
+						"id": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+						"name": "Backend",
+						"owner": null,
+						"stereotype": "subsystem",
+						"type": "Subsystem"
+					},
+					"198f28c0-233a-414f-af09-72d9a8c77afd": {
+						"bounds": { "height": 360, "width": 520, "x": 60, "y": 40 },
+						"displayStereotype": true,
+						"id": "198f28c0-233a-414f-af09-72d9a8c77afd",
+						"name": "AI service",
+						"owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+						"stereotype": "subsystem",
+						"type": "Subsystem"
+					},
+					"316c0b87-1ba6-4668-9eaf-4deeb65ae282": {
+						"bounds": { "height": 350, "width": 620, "x": 750, "y": 310 },
+						"displayStereotype": true,
+						"id": "316c0b87-1ba6-4668-9eaf-4deeb65ae282",
+						"name": "PAT Handler",
+						"owner": "adc3e04c-05b0-4afe-9c79-a57cdb82bd80",
+						"stereotype": "subsystem",
+						"type": "Subsystem"
+					},
+					"53264d2b-9335-47cc-ba11-de82a8084338": {
+						"bounds": { "height": 100, "width": 160, "x": -10, "y": -900 },
+						"displayStereotype": true,
+						"id": "53264d2b-9335-47cc-ba11-de82a8084338",
+						"name": "Github API",
+						"owner": null,
+						"type": "Component"
+					},
+					"39662503-e482-4ea3-bcbc-6b45148aff29": {
+						"bounds": { "height": 100, "width": 160, "x": 80, "y": 230 },
+						"displayStereotype": true,
+						"id": "39662503-e482-4ea3-bcbc-6b45148aff29",
+						"name": "Summariser",
+						"owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
+						"type": "Component"
+					},
+					"a7cbc6b6-fd4c-419c-ab73-2402378f5375": {
+						"bounds": { "height": 300, "width": 220, "x": -1440, "y": -650 },
+						"displayStereotype": true,
+						"id": "a7cbc6b6-fd4c-419c-ab73-2402378f5375",
+						"name": "Client",
+						"owner": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
+						"type": "Component"
+					},
+					"a69126f2-364a-4911-9940-b29d4986f8ce": {
+						"bounds": { "height": 20, "width": 20, "x": -470, "y": 300 },
+						"id": "a69126f2-364a-4911-9940-b29d4986f8ce",
+						"name": "Interface",
+						"owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+						"type": "ComponentInterface"
+					},
+					"adc3e04c-05b0-4afe-9c79-a57cdb82bd80": {
+						"bounds": { "height": 1020, "width": 760, "x": 700, "y": -330 },
+						"displayStereotype": true,
+						"id": "adc3e04c-05b0-4afe-9c79-a57cdb82bd80",
+						"name": "User Handling",
+						"owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+						"stereotype": "subsystem",
+						"type": "Subsystem"
+					},
+					"c0aee8a6-31dc-4621-8fa7-ad81c74b4c42": {
+						"bounds": { "height": 20, "width": 20, "x": 310, "y": 260 },
+						"id": "c0aee8a6-31dc-4621-8fa7-ad81c74b4c42",
+						"name": "",
+						"owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
+						"type": "ComponentInterface"
+					},
+					"ca2c28b2-3f28-4057-8ef3-86ec5bc48b21": {
+						"bounds": { "height": 100, "width": 210, "x": 320, "y": 220 },
+						"displayStereotype": true,
+						"id": "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21",
+						"name": "Context Generator",
+						"owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
+						"type": "Component"
+					},
+					"d4b30de5-661b-4303-bab5-b1a0a9755064": {
+						"bounds": { "height": 20, "width": 20, "x": 1140, "y": 480 },
+						"id": "d4b30de5-661b-4303-bab5-b1a0a9755064",
+						"name": "",
+						"owner": "316c0b87-1ba6-4668-9eaf-4deeb65ae282",
+						"type": "ComponentInterface"
+					},
+					"d4f895ed-26f9-44be-924d-529671dc79ee": {
+						"bounds": { "height": 100, "width": 190, "x": -270, "y": 260 },
+						"displayStereotype": true,
+						"id": "d4f895ed-26f9-44be-924d-529671dc79ee",
+						"name": "AuthorizationChecker",
+						"owner": "151a54e2-1d69-4625-9e02-1ce443c656fa",
+						"type": "Component"
+					},
+					"e098fc28-4cc5-4f70-935b-f22fc09b3088": {
+						"bounds": { "height": 100, "width": 160, "x": 920, "y": -70 },
+						"displayStereotype": true,
+						"id": "e098fc28-4cc5-4f70-935b-f22fc09b3088",
+						"name": "Component",
+						"owner": "f9d906db-513c-42b0-93a3-419ef18dbd23",
+						"type": "Component"
+					},
+					"f3c7edf8-0f40-4509-9d29-a7990a3c2986": {
+						"bounds": { "height": 140, "width": 180, "x": -1170, "y": -500 },
+						"displayStereotype": true,
+						"id": "f3c7edf8-0f40-4509-9d29-a7990a3c2986",
+						"name": "Contribution Filter",
+						"owner": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2",
+						"type": "Component"
+					},
+					"f9d57b63-56c9-495f-8b6f-174051e41d86": {
+						"bounds": { "height": 100, "width": 160, "x": 300, "y": 90 },
+						"displayStereotype": true,
+						"id": "f9d57b63-56c9-495f-8b6f-174051e41d86",
+						"name": "LangChain",
+						"owner": "198f28c0-233a-414f-af09-72d9a8c77afd",
+						"type": "Component"
+					},
+					"f9d906db-513c-42b0-93a3-419ef18dbd23": {
+						"bounds": { "height": 520, "width": 520, "x": 770, "y": -270 },
+						"displayStereotype": true,
+						"id": "f9d906db-513c-42b0-93a3-419ef18dbd23",
+						"name": "Administrator Side",
+						"owner": "adc3e04c-05b0-4afe-9c79-a57cdb82bd80",
+						"stereotype": "subsystem",
+						"type": "Subsystem"
+					}
+				},
+				"interactive": { "elements": {}, "relationships": {} },
+				"relationships": {
+					"5e10dfc7-2cc9-4160-8cff-a0a5476f7dc8": {
+						"bounds": { "height": 1, "width": 130, "x": -990, "y": -430 },
+						"id": "5e10dfc7-2cc9-4160-8cff-a0a5476f7dc8",
+						"isManuallyLayouted": false,
+						"name": "",
+						"owner": null,
+						"path": [{ "x": 130, "y": 0 }, { "x": 0, "y": 0 }],
+						"source": {
+							"direction": "Left",
+							"element": "2d6fcdce-9f75-4cc9-a5c6-586a66fd9504"
+						},
+						"target": {
+							"direction": "Right",
+							"element": "f3c7edf8-0f40-4509-9d29-a7990a3c2986"
+						},
+						"type": "ComponentInterfaceProvided"
+					},
+					"9e359679-1c85-4f8a-a528-1675e5024701": {
+						"bounds": { "height": 300, "width": 1, "x": 70, "y": -800 },
+						"id": "9e359679-1c85-4f8a-a528-1675e5024701",
+						"isManuallyLayouted": false,
+						"name": "",
+						"owner": null,
+						"path": [{ "x": 0, "y": 300 }, { "x": 0, "y": 0 }],
+						"source": {
+							"direction": "Up",
+							"element": "42c764ce-f988-4244-b6fd-1e20019485a0"
+						},
+						"target": {
+							"direction": "Down",
+							"element": "53264d2b-9335-47cc-ba11-de82a8084338"
+						},
+						"type": "ComponentInterfaceProvided"
+					},
+					"09ff97a7-e3fe-40cf-8e39-88e28c80e718": {
+						"bounds": { "height": 360, "width": 130, "x": -140, "y": -850 },
+						"id": "09ff97a7-e3fe-40cf-8e39-88e28c80e718",
+						"isManuallyLayouted": false,
+						"name": "",
+						"owner": null,
+						"path": [
+							{ "x": 0, "y": 360 },
+							{ "x": 0, "y": 0 },
+							{ "x": 130, "y": 0 }
+						],
+						"source": {
+							"direction": "Up",
+							"element": "9d90f908-8d82-4ed1-bae5-81a05bd1a7eb"
+						},
+						"target": {
+							"direction": "Left",
+							"element": "53264d2b-9335-47cc-ba11-de82a8084338"
+						},
+						"type": "ComponentInterfaceProvided"
+					},
+					"40a1cd1e-520b-40aa-ad17-01afe157e029": {
+						"bounds": { "height": 40, "width": 170, "x": 980, "y": 490 },
+						"id": "40a1cd1e-520b-40aa-ad17-01afe157e029",
+						"isManuallyLayouted": false,
+						"name": "",
+						"owner": null,
+						"path": [
+							{ "x": 0, "y": 40 },
+							{ "x": 85, "y": 40 },
+							{ "x": 85, "y": 0 },
+							{ "x": 170, "y": 0 }
+						],
+						"source": {
+							"direction": "Right",
+							"element": "84dd249b-1dfb-4b64-869b-4c137cb37c3f"
+						},
+						"target": {
+							"direction": "Left",
+							"element": "35de5104-4d58-4ece-8d70-d6c721d9f719"
+						},
+						"type": "ComponentInterfaceProvided"
+					},
+					"91a804eb-ab2f-4ed2-a9cc-d3751b5ef7a2": {
+						"bounds": { "height": 655, "width": 1000, "x": -380, "y": -435 },
+						"id": "91a804eb-ab2f-4ed2-a9cc-d3751b5ef7a2",
+						"isManuallyLayouted": false,
+						"name": "",
+						"owner": null,
+						"path": [
+							{ "x": 960, "y": 655 },
+							{ "x": 1000, "y": 655 },
+							{ "x": 1000, "y": 435 },
+							{ "x": 0, "y": 435 },
+							{ "x": 0, "y": 0 },
+							{ "x": 40, "y": 0 }
+						],
+						"source": {
+							"direction": "Right",
+							"element": "198f28c0-233a-414f-af09-72d9a8c77afd"
+						},
+						"target": {
+							"direction": "Left",
+							"element": "6cae7ba0-5af5-4355-9d80-51d0a1494987"
+						},
+						"type": "ComponentInterfaceProvided"
+					},
+					"ee850b71-078e-4b41-82b7-23b6a5ef0ccd": {
+						"bounds": { "height": 10, "width": 80, "x": 240, "y": 270 },
+						"id": "ee850b71-078e-4b41-82b7-23b6a5ef0ccd",
+						"isManuallyLayouted": false,
+						"name": "",
+						"owner": null,
+						"path": [
+							{ "x": 80, "y": 0 },
+							{ "x": 40, "y": 0 },
+							{ "x": 40, "y": 10 },
+							{ "x": 0, "y": 10 }
+						],
+						"source": {
+							"direction": "Left",
+							"element": "ca2c28b2-3f28-4057-8ef3-86ec5bc48b21"
+						},
+						"target": {
+							"direction": "Right",
+							"element": "39662503-e482-4ea3-bcbc-6b45148aff29"
+						},
+						"type": "ComponentInterfaceProvided"
+					},
+					"fa4be4b9-adce-4a2a-8d3c-63ba8aa9bc65": {
+						"bounds": { "height": 220, "width": 520, "x": -850, "y": -680 },
+						"id": "fa4be4b9-adce-4a2a-8d3c-63ba8aa9bc65",
+						"isManuallyLayouted": true,
+						"name": "",
+						"owner": null,
+						"path": [
+							{ "x": 0, "y": 215 },
+							{ "x": 40, "y": 215 },
+							{ "x": 40, "y": 0 },
+							{ "x": 434.449951171875, "y": 0 },
+							{ "x": 434.449951171875, "y": 155 },
+							{ "x": 520, "y": 155 }
+						],
+						"source": {
+							"direction": "Right",
+							"element": "3df6ccd1-689d-4d63-b140-6f7e4f5df5e2"
+						},
+						"target": {
+							"direction": "Downright",
+							"element": "1d153175-84d5-4050-b0d8-8c841dee5369"
+						},
+						"type": "ComponentInterfaceProvided"
+					}
+				},
+				"size": { "height": 1840, "width": 3380 },
+				"type": "ComponentDiagram",
+				"version": "3.0.0"
+			},
+			"title": "New shared version "
+		}
+	]
 }

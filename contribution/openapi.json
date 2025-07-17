@@ -1,499 +1,506 @@
 {
-  "components": {
-    "schemas": {
-      "ContributionDto": {
-        "properties": {
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "gitRepositoryId": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "id": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "isSelected": {
-            "type": "boolean"
-          },
-          "summary": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "username": {
-            "type": "string"
-          }
-        },
-        "required": ["gitRepositoryId", "id", "isSelected", "summary", "type", "username"],
-        "type": "object"
-      },
-      "Page": {
-        "properties": {
-          "content": {
-            "items": {},
-            "type": "array"
-          },
-          "empty": {
-            "type": "boolean"
-          },
-          "first": {
-            "type": "boolean"
-          },
-          "last": {
-            "type": "boolean"
-          },
-          "number": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "numberOfElements": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "pageable": {
-            "$ref": "#/components/schemas/PageableObject"
-          },
-          "size": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject"
-          },
-          "totalElements": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "totalPages": {
-            "format": "int32",
-            "type": "integer"
-          }
-        },
-        "type": "object"
-      },
-      "Pageable": {
-        "properties": {
-          "page": {
-            "format": "int32",
-            "minimum": 0,
-            "type": "integer"
-          },
-          "size": {
-            "format": "int32",
-            "minimum": 1,
-            "type": "integer"
-          },
-          "sort": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          }
-        },
-        "type": "object"
-      },
-      "PageableObject": {
-        "properties": {
-          "offset": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "paged": {
-            "type": "boolean"
-          },
-          "pageNumber": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "pageSize": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject"
-          },
-          "unpaged": {
-            "type": "boolean"
-          }
-        },
-        "type": "object"
-      },
-      "PageContributionDto": {
-        "properties": {
-          "content": {
-            "items": {
-              "$ref": "#/components/schemas/ContributionDto"
-            },
-            "type": "array"
-          },
-          "empty": {
-            "type": "boolean"
-          },
-          "first": {
-            "type": "boolean"
-          },
-          "last": {
-            "type": "boolean"
-          },
-          "number": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "numberOfElements": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "pageable": {
-            "$ref": "#/components/schemas/PageableObject"
-          },
-          "size": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject"
-          },
-          "totalElements": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "totalPages": {
-            "format": "int32",
-            "type": "integer"
-          }
-        },
-        "type": "object"
-      },
-      "SortObject": {
-        "properties": {
-          "empty": {
-            "type": "boolean"
-          },
-          "sorted": {
-            "type": "boolean"
-          },
-          "unsorted": {
-            "type": "boolean"
-          }
-        },
-        "type": "object"
-      },
-      "TriggerRequest": {
-        "properties": {
-          "repositoryUrl": {
-            "minLength": 1,
-            "pattern": "^https://github\\.com/[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$",
-            "type": "string"
-          }
-        },
-        "required": ["repositoryUrl"],
-        "type": "object"
-      },
-      "TriggerResponse": {
-        "properties": {
-          "contributionsFetched": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "contributionsUpserted": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "errors": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          },
-          "message": {
-            "type": "string"
-          },
-          "processedRepositories": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          },
-          "processingTimeMs": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "repositoriesProcessed": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "status": {
-            "type": "string"
-          },
-          "triggeredAt": {
-            "format": "date-time",
-            "type": "string"
-          }
-        },
-        "type": "object"
-      }
-    }
-  },
-  "info": {
-    "license": {
-      "name": "MIT",
-      "url": "https://opensource.org/licenses/MIT"
-    },
-    "title": "Prompteus Contributions",
-    "version": "1.0.0"
-  },
-  "openapi": "3.1.0",
-  "paths": {
-    "/api/contributions": {
-      "get": {
-        "operationId": "getContributions",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "contributor",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "startDate",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "endDate",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "pageable",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/Pageable"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Page"
-                }
-              }
-            },
-            "description": "Contributions retrieved successfully"
-          },
-          "400": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/PageContributionDto"
-                }
-              }
-            },
-            "description": "Bad request"
-          },
-          "500": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/PageContributionDto"
-                }
-              }
-            },
-            "description": "Internal server error"
-          }
-        },
-        "summary": "Get all contributions",
-        "tags": ["contribution-controller"]
-      },
-      "put": {
-        "operationId": "updateContributions",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "items": {
-                  "$ref": "#/components/schemas/ContributionDto"
-                },
-                "type": "array"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Contribution selections updated successfully"
-          },
-          "400": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Bad request - Invalid input"
-          },
-          "500": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Internal server error"
-          }
-        },
-        "summary": "Update contribution selection status",
-        "tags": ["contribution-controller"]
-      }
-    },
-    "/api/contributions/trigger": {
-      "post": {
-        "operationId": "triggerContributionFetch",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TriggerResponse"
-                }
-              }
-            },
-            "description": "Contribution fetch triggered successfully"
-          },
-          "400": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Bad request"
-          },
-          "429": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            },
-            "description": "GitHub API rate limit exceeded"
-          },
-          "500": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Internal server error"
-          }
-        },
-        "summary": "Trigger contribution fetch for all repositories",
-        "tags": ["contribution-controller"]
-      }
-    },
-    "/api/contributions/trigger/repository": {
-      "post": {
-        "operationId": "triggerContributionFetchForRepository",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TriggerRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TriggerResponse"
-                }
-              }
-            },
-            "description": "Contribution fetch triggered successfully"
-          },
-          "400": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Bad request - Invalid repository"
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Repository not found"
-          },
-          "429": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            },
-            "description": "GitHub API rate limit exceeded"
-          },
-          "500": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Internal server error"
-          }
-        },
-        "summary": "Trigger contribution fetch for specific repository",
-        "tags": ["contribution-controller"]
-      }
-    }
-  },
-  "servers": [
-    {
-      "description": "Production server",
-      "url": "https://prompteus.ai"
-    }
-  ]
+	"components": {
+		"schemas": {
+			"ContributionDto": {
+				"properties": {
+					"createdAt": {
+						"format": "date-time",
+						"type": "string"
+					},
+					"gitRepositoryId": {
+						"format": "int64",
+						"type": "integer"
+					},
+					"id": {
+						"minLength": 1,
+						"type": "string"
+					},
+					"isSelected": {
+						"type": "boolean"
+					},
+					"summary": {
+						"type": "string"
+					},
+					"type": {
+						"type": "string"
+					},
+					"username": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"gitRepositoryId",
+					"id",
+					"isSelected",
+					"summary",
+					"type",
+					"username"
+				],
+				"type": "object"
+			},
+			"Page": {
+				"properties": {
+					"content": {
+						"items": {},
+						"type": "array"
+					},
+					"empty": {
+						"type": "boolean"
+					},
+					"first": {
+						"type": "boolean"
+					},
+					"last": {
+						"type": "boolean"
+					},
+					"number": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"numberOfElements": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"pageable": {
+						"$ref": "#/components/schemas/PageableObject"
+					},
+					"size": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"sort": {
+						"$ref": "#/components/schemas/SortObject"
+					},
+					"totalElements": {
+						"format": "int64",
+						"type": "integer"
+					},
+					"totalPages": {
+						"format": "int32",
+						"type": "integer"
+					}
+				},
+				"type": "object"
+			},
+			"Pageable": {
+				"properties": {
+					"page": {
+						"format": "int32",
+						"minimum": 0,
+						"type": "integer"
+					},
+					"size": {
+						"format": "int32",
+						"minimum": 1,
+						"type": "integer"
+					},
+					"sort": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					}
+				},
+				"type": "object"
+			},
+			"PageableObject": {
+				"properties": {
+					"offset": {
+						"format": "int64",
+						"type": "integer"
+					},
+					"paged": {
+						"type": "boolean"
+					},
+					"pageNumber": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"pageSize": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"sort": {
+						"$ref": "#/components/schemas/SortObject"
+					},
+					"unpaged": {
+						"type": "boolean"
+					}
+				},
+				"type": "object"
+			},
+			"PageContributionDto": {
+				"properties": {
+					"content": {
+						"items": {
+							"$ref": "#/components/schemas/ContributionDto"
+						},
+						"type": "array"
+					},
+					"empty": {
+						"type": "boolean"
+					},
+					"first": {
+						"type": "boolean"
+					},
+					"last": {
+						"type": "boolean"
+					},
+					"number": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"numberOfElements": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"pageable": {
+						"$ref": "#/components/schemas/PageableObject"
+					},
+					"size": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"sort": {
+						"$ref": "#/components/schemas/SortObject"
+					},
+					"totalElements": {
+						"format": "int64",
+						"type": "integer"
+					},
+					"totalPages": {
+						"format": "int32",
+						"type": "integer"
+					}
+				},
+				"type": "object"
+			},
+			"SortObject": {
+				"properties": {
+					"empty": {
+						"type": "boolean"
+					},
+					"sorted": {
+						"type": "boolean"
+					},
+					"unsorted": {
+						"type": "boolean"
+					}
+				},
+				"type": "object"
+			},
+			"TriggerRequest": {
+				"properties": {
+					"repositoryUrl": {
+						"minLength": 1,
+						"pattern": "^https://github\\.com/[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$",
+						"type": "string"
+					}
+				},
+				"required": ["repositoryUrl"],
+				"type": "object"
+			},
+			"TriggerResponse": {
+				"properties": {
+					"contributionsFetched": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"contributionsUpserted": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"errors": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"message": {
+						"type": "string"
+					},
+					"processedRepositories": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"processingTimeMs": {
+						"format": "int64",
+						"type": "integer"
+					},
+					"repositoriesProcessed": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"status": {
+						"type": "string"
+					},
+					"triggeredAt": {
+						"format": "date-time",
+						"type": "string"
+					}
+				},
+				"type": "object"
+			}
+		}
+	},
+	"info": {
+		"license": {
+			"name": "MIT",
+			"url": "https://opensource.org/licenses/MIT"
+		},
+		"title": "Prompteus Contributions",
+		"version": "1.0.0"
+	},
+	"openapi": "3.1.0",
+	"paths": {
+		"/api/contributions": {
+			"get": {
+				"operationId": "getContributions",
+				"parameters": [
+					{
+						"in": "query",
+						"name": "contributor",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "startDate",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "endDate",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "pageable",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/Pageable"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Page"
+								}
+							}
+						},
+						"description": "Contributions retrieved successfully"
+					},
+					"400": {
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/PageContributionDto"
+								}
+							}
+						},
+						"description": "Bad request"
+					},
+					"500": {
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/PageContributionDto"
+								}
+							}
+						},
+						"description": "Internal server error"
+					}
+				},
+				"summary": "Get all contributions",
+				"tags": ["contribution-controller"]
+			},
+			"put": {
+				"operationId": "updateContributions",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"items": {
+									"$ref": "#/components/schemas/ContributionDto"
+								},
+								"type": "array"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						},
+						"description": "Contribution selections updated successfully"
+					},
+					"400": {
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						},
+						"description": "Bad request - Invalid input"
+					},
+					"500": {
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						},
+						"description": "Internal server error"
+					}
+				},
+				"summary": "Update contribution selection status",
+				"tags": ["contribution-controller"]
+			}
+		},
+		"/api/contributions/trigger": {
+			"post": {
+				"operationId": "triggerContributionFetch",
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TriggerResponse"
+								}
+							}
+						},
+						"description": "Contribution fetch triggered successfully"
+					},
+					"400": {
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "object"
+								}
+							}
+						},
+						"description": "Bad request"
+					},
+					"429": {
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "object"
+								}
+							}
+						},
+						"description": "GitHub API rate limit exceeded"
+					},
+					"500": {
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "object"
+								}
+							}
+						},
+						"description": "Internal server error"
+					}
+				},
+				"summary": "Trigger contribution fetch for all repositories",
+				"tags": ["contribution-controller"]
+			}
+		},
+		"/api/contributions/trigger/repository": {
+			"post": {
+				"operationId": "triggerContributionFetchForRepository",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/TriggerRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TriggerResponse"
+								}
+							}
+						},
+						"description": "Contribution fetch triggered successfully"
+					},
+					"400": {
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "object"
+								}
+							}
+						},
+						"description": "Bad request - Invalid repository"
+					},
+					"404": {
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "object"
+								}
+							}
+						},
+						"description": "Repository not found"
+					},
+					"429": {
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "object"
+								}
+							}
+						},
+						"description": "GitHub API rate limit exceeded"
+					},
+					"500": {
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "object"
+								}
+							}
+						},
+						"description": "Internal server error"
+					}
+				},
+				"summary": "Trigger contribution fetch for specific repository",
+				"tags": ["contribution-controller"]
+			}
+		}
+	},
+	"servers": [
+		{
+			"description": "Production server",
+			"url": "https://prompteus.ai"
+		}
+	]
 }

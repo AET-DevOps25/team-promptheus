@@ -105,10 +105,10 @@ class GitRepoControllerTest {
                 .confidence(0.9f)
                 .createdAt(java.time.Instant.now())
                 .build();
-        
+
         when(gitRepoService.createQuestion(any(UUID.class), any(String.class), any(String.class), any(Long.class), any(String.class)))
                 .thenReturn(mockResponse);
-        
+
         Counter question_creation_total = mock(Counter.class);
         when(meterRegistry.counter("question_creation_total")).thenReturn(question_creation_total);
         // Act & Assert

@@ -110,7 +110,7 @@ public class QuestionAnswerService {
 
             // Convert repository URL to owner/repo format for GenAI service
             String repositoryFormat = owner + "/" + repo;
-            
+
             // Create question request for GenAI
             QuestionRequest questionRequest = new QuestionRequest()
                     .question(question.getQuestion())

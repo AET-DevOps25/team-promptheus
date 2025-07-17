@@ -1,544 +1,544 @@
 {
-  "openapi": "3.1.0",
-  "info": {
-    "title": "Prompteus GenAI Service",
-    "description": "AI-powered service for ingesting GitHub contributions and providing Q&A for user weekly summaries",
-    "license": { "name": "MIT", "url": "https://opensource.org/licenses/MIT" },
-    "version": "1.0.0"
-  },
-  "servers": [{ "url": "/api/genai" }],
-  "paths": {
-    "/contributions": {
-      "post": {
-        "summary": "Start Contributions Ingestion Task",
-        "description": "Start an asynchronous ingestion task for GitHub contributions.",
-        "operationId": "start_contributions_ingestion_task_contributions_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ContributionsIngestRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/IngestTaskResponse" }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/ingest/{task_id}": {
-      "get": {
-        "summary": "Get Ingestion Task Status",
-        "description": "Get the status of a contributions ingestion task.",
-        "operationId": "get_ingestion_task_status_ingest__task_id__get",
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Task ID returned from POST /contributions",
-              "title": "Task Id"
-            },
-            "description": "Task ID returned from POST /contributions"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/IngestTaskStatus" }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/users/{username}/weeks/{week_id}/questions": {
-      "post": {
-        "summary": "Ask Question About User Contributions",
-        "description": "Ask a question about a user's contributions for a specific week.",
-        "operationId": "ask_question_about_user_contributions_users__username__weeks__week_id__questions_post",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "GitHub username",
-              "title": "Username"
-            },
-            "description": "GitHub username"
-          },
-          {
-            "name": "week_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "ISO week format: 2024-W21",
-              "title": "Week Id"
-            },
-            "description": "ISO week format: 2024-W21"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/QuestionRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/QuestionResponse" }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "ContributionMetadata": {
-        "properties": {
-          "type": { "$ref": "#/components/schemas/ContributionType" },
-          "id": { "type": "string", "title": "Id" },
-          "selected": { "type": "boolean", "title": "Selected" }
-        },
-        "type": "object",
-        "required": ["type", "id", "selected"],
-        "title": "ContributionMetadata",
-        "description": "Metadata about a contribution to be fetched."
-      },
-      "ContributionType": {
-        "type": "string",
-        "enum": ["commit", "pull_request", "issue", "release"],
-        "title": "ContributionType",
-        "description": "Types of GitHub contributions supported by the system."
-      },
-      "ContributionsIngestRequest": {
-        "properties": {
-          "user": { "type": "string", "title": "User" },
-          "week": { "type": "string", "title": "Week" },
-          "repository": { "type": "string", "title": "Repository" },
-          "contributions": {
-            "items": { "$ref": "#/components/schemas/ContributionMetadata" },
-            "type": "array",
-            "title": "Contributions"
-          },
-          "github_pat": { "type": "string", "title": "Github Pat" }
-        },
-        "type": "object",
-        "required": [
-          "user",
-          "week",
-          "repository",
-          "contributions",
-          "github_pat"
-        ],
-        "title": "ContributionsIngestRequest",
-        "description": "Request to ingest contributions for a user's week (metadata only)."
-      },
-      "HTTPValidationError": {
-        "properties": {
-          "detail": {
-            "items": { "$ref": "#/components/schemas/ValidationError" },
-            "type": "array",
-            "title": "Detail"
-          }
-        },
-        "type": "object",
-        "title": "HTTPValidationError"
-      },
-      "IngestTaskResponse": {
-        "properties": {
-          "task_id": { "type": "string", "title": "Task Id" },
-          "user": { "type": "string", "title": "User" },
-          "week": { "type": "string", "title": "Week" },
-          "repository": { "type": "string", "title": "Repository" },
-          "status": {
-            "$ref": "#/components/schemas/TaskStatus",
-            "default": "queued"
-          },
-          "total_contributions": {
-            "type": "integer",
-            "title": "Total Contributions"
-          },
-          "summary_id": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
-            "title": "Summary Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          }
-        },
-        "type": "object",
-        "required": [
-          "task_id",
-          "user",
-          "week",
-          "repository",
-          "total_contributions",
-          "created_at"
-        ],
-        "title": "IngestTaskResponse",
-        "description": "Response from starting a contributions ingestion task."
-      },
-      "IngestTaskStatus": {
-        "properties": {
-          "task_id": { "type": "string", "title": "Task Id" },
-          "user": { "type": "string", "title": "User" },
-          "week": { "type": "string", "title": "Week" },
-          "repository": { "type": "string", "title": "Repository" },
-          "status": { "$ref": "#/components/schemas/TaskStatus" },
-          "total_contributions": {
-            "type": "integer",
-            "title": "Total Contributions"
-          },
-          "ingested_count": { "type": "integer", "title": "Ingested Count" },
-          "failed_count": { "type": "integer", "title": "Failed Count" },
-          "embedding_job_id": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
-            "title": "Embedding Job Id"
-          },
-          "summary": {
-            "anyOf": [
-              { "$ref": "#/components/schemas/SummaryResponse" },
-              { "type": "null" }
-            ]
-          },
-          "error_message": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
-            "title": "Error Message"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "started_at": {
-            "anyOf": [
-              { "type": "string", "format": "date-time" },
-              { "type": "null" }
-            ],
-            "title": "Started At"
-          },
-          "completed_at": {
-            "anyOf": [
-              { "type": "string", "format": "date-time" },
-              { "type": "null" }
-            ],
-            "title": "Completed At"
-          },
-          "processing_time_ms": {
-            "anyOf": [{ "type": "integer" }, { "type": "null" }],
-            "title": "Processing Time Ms"
-          }
-        },
-        "type": "object",
-        "required": [
-          "task_id",
-          "user",
-          "week",
-          "repository",
-          "status",
-          "total_contributions",
-          "ingested_count",
-          "failed_count",
-          "created_at"
-        ],
-        "title": "IngestTaskStatus",
-        "description": "Status of a contributions ingestion task."
-      },
-      "QuestionContext": {
-        "properties": {
-          "focus_areas": {
-            "items": { "type": "string" },
-            "type": "array",
-            "title": "Focus Areas"
-          },
-          "include_evidence": {
-            "type": "boolean",
-            "title": "Include Evidence",
-            "default": true
-          },
-          "reasoning_depth": {
-            "$ref": "#/components/schemas/ReasoningDepth",
-            "default": "detailed"
-          },
-          "max_evidence_items": {
-            "type": "integer",
-            "title": "Max Evidence Items",
-            "default": 10
-          }
-        },
-        "type": "object",
-        "title": "QuestionContext",
-        "description": "Context configuration for question answering."
-      },
-      "QuestionEvidence": {
-        "properties": {
-          "title": { "type": "string", "title": "Title" },
-          "contribution_id": { "type": "string", "title": "Contribution Id" },
-          "contribution_type": {
-            "$ref": "#/components/schemas/ContributionType"
-          },
-          "excerpt": { "type": "string", "title": "Excerpt" },
-          "relevance_score": {
-            "type": "number",
-            "maximum": 1.0,
-            "minimum": 0.0,
-            "title": "Relevance Score"
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Timestamp"
-          }
-        },
-        "type": "object",
-        "required": [
-          "title",
-          "contribution_id",
-          "contribution_type",
-          "excerpt",
-          "relevance_score",
-          "timestamp"
-        ],
-        "title": "QuestionEvidence",
-        "description": "Evidence supporting a question answer."
-      },
-      "QuestionRequest": {
-        "properties": {
-          "question": { "type": "string", "title": "Question" },
-          "repository": { "type": "string", "title": "Repository" },
-          "summary": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
-            "title": "Summary"
-          },
-          "context": { "$ref": "#/components/schemas/QuestionContext" },
-          "github_pat": { "type": "string", "title": "Github Pat" }
-        },
-        "type": "object",
-        "required": ["question", "repository", "github_pat"],
-        "title": "QuestionRequest",
-        "description": "Request to ask a question about a user's week."
-      },
-      "QuestionResponse": {
-        "properties": {
-          "question_id": { "type": "string", "title": "Question Id" },
-          "user": { "type": "string", "title": "User" },
-          "week": { "type": "string", "title": "Week" },
-          "question": { "type": "string", "title": "Question" },
-          "answer": { "type": "string", "title": "Answer" },
-          "confidence": {
-            "type": "number",
-            "maximum": 1.0,
-            "minimum": 0.0,
-            "title": "Confidence"
-          },
-          "evidence": {
-            "items": { "$ref": "#/components/schemas/QuestionEvidence" },
-            "type": "array",
-            "title": "Evidence"
-          },
-          "reasoning_steps": {
-            "items": { "type": "string" },
-            "type": "array",
-            "title": "Reasoning Steps"
-          },
-          "suggested_actions": {
-            "items": { "type": "string" },
-            "type": "array",
-            "title": "Suggested Actions"
-          },
-          "asked_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Asked At"
-          },
-          "response_time_ms": {
-            "type": "integer",
-            "title": "Response Time Ms"
-          },
-          "conversation_id": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
-            "title": "Conversation Id"
-          }
-        },
-        "type": "object",
-        "required": [
-          "question_id",
-          "user",
-          "week",
-          "question",
-          "answer",
-          "confidence",
-          "asked_at",
-          "response_time_ms"
-        ],
-        "title": "QuestionResponse",
-        "description": "Response to a question about a user's week."
-      },
-      "ReasoningDepth": {
-        "type": "string",
-        "enum": ["quick", "detailed", "deep"],
-        "title": "ReasoningDepth",
-        "description": "Depth levels for question answering reasoning."
-      },
-      "SummaryMetadata": {
-        "properties": {
-          "total_contributions": {
-            "type": "integer",
-            "title": "Total Contributions"
-          },
-          "commits_count": { "type": "integer", "title": "Commits Count" },
-          "pull_requests_count": {
-            "type": "integer",
-            "title": "Pull Requests Count"
-          },
-          "issues_count": { "type": "integer", "title": "Issues Count" },
-          "releases_count": { "type": "integer", "title": "Releases Count" },
-          "repositories": {
-            "items": { "type": "string" },
-            "type": "array",
-            "title": "Repositories"
-          },
-          "time_period": { "type": "string", "title": "Time Period" },
-          "generated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Generated At"
-          }
-        },
-        "type": "object",
-        "required": [
-          "total_contributions",
-          "commits_count",
-          "pull_requests_count",
-          "issues_count",
-          "releases_count",
-          "repositories",
-          "time_period",
-          "generated_at"
-        ],
-        "title": "SummaryMetadata",
-        "description": "Metadata about a generated summary."
-      },
-      "SummaryResponse": {
-        "properties": {
-          "summary_id": { "type": "string", "title": "Summary Id" },
-          "user": { "type": "string", "title": "User" },
-          "week": { "type": "string", "title": "Week" },
-          "overview": { "type": "string", "title": "Overview" },
-          "commits_summary": { "type": "string", "title": "Commits Summary" },
-          "pull_requests_summary": {
-            "type": "string",
-            "title": "Pull Requests Summary"
-          },
-          "issues_summary": { "type": "string", "title": "Issues Summary" },
-          "releases_summary": { "type": "string", "title": "Releases Summary" },
-          "analysis": { "type": "string", "title": "Analysis" },
-          "key_achievements": {
-            "items": { "type": "string" },
-            "type": "array",
-            "title": "Key Achievements"
-          },
-          "areas_for_improvement": {
-            "items": { "type": "string" },
-            "type": "array",
-            "title": "Areas For Improvement"
-          },
-          "metadata": { "$ref": "#/components/schemas/SummaryMetadata" },
-          "generated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Generated At"
-          }
-        },
-        "type": "object",
-        "required": [
-          "summary_id",
-          "user",
-          "week",
-          "overview",
-          "commits_summary",
-          "pull_requests_summary",
-          "issues_summary",
-          "releases_summary",
-          "analysis",
-          "key_achievements",
-          "areas_for_improvement",
-          "metadata",
-          "generated_at"
-        ],
-        "title": "SummaryResponse",
-        "description": "Complete summary response (non-streaming)."
-      },
-      "TaskStatus": {
-        "type": "string",
-        "enum": ["queued", "ingesting", "summarizing", "done", "failed"],
-        "title": "TaskStatus",
-        "description": "Status values for asynchronous tasks."
-      },
-      "ValidationError": {
-        "properties": {
-          "loc": {
-            "items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
-            "type": "array",
-            "title": "Location"
-          },
-          "msg": { "type": "string", "title": "Message" },
-          "type": { "type": "string", "title": "Error Type" }
-        },
-        "type": "object",
-        "required": ["loc", "msg", "type"],
-        "title": "ValidationError"
-      }
-    }
-  }
+	"openapi": "3.1.0",
+	"info": {
+		"title": "Prompteus GenAI Service",
+		"description": "AI-powered service for ingesting GitHub contributions and providing Q&A for user weekly summaries",
+		"license": { "name": "MIT", "url": "https://opensource.org/licenses/MIT" },
+		"version": "1.0.0"
+	},
+	"servers": [{ "url": "/api/genai" }],
+	"paths": {
+		"/contributions": {
+			"post": {
+				"summary": "Start Contributions Ingestion Task",
+				"description": "Start an asynchronous ingestion task for GitHub contributions.",
+				"operationId": "start_contributions_ingestion_task_contributions_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ContributionsIngestRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/IngestTaskResponse" }
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/ingest/{task_id}": {
+			"get": {
+				"summary": "Get Ingestion Task Status",
+				"description": "Get the status of a contributions ingestion task.",
+				"operationId": "get_ingestion_task_status_ingest__task_id__get",
+				"parameters": [
+					{
+						"name": "task_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "Task ID returned from POST /contributions",
+							"title": "Task Id"
+						},
+						"description": "Task ID returned from POST /contributions"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/IngestTaskStatus" }
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/users/{username}/weeks/{week_id}/questions": {
+			"post": {
+				"summary": "Ask Question About User Contributions",
+				"description": "Ask a question about a user's contributions for a specific week.",
+				"operationId": "ask_question_about_user_contributions_users__username__weeks__week_id__questions_post",
+				"parameters": [
+					{
+						"name": "username",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "GitHub username",
+							"title": "Username"
+						},
+						"description": "GitHub username"
+					},
+					{
+						"name": "week_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "ISO week format: 2024-W21",
+							"title": "Week Id"
+						},
+						"description": "ISO week format: 2024-W21"
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/QuestionRequest" }
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/QuestionResponse" }
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"ContributionMetadata": {
+				"properties": {
+					"type": { "$ref": "#/components/schemas/ContributionType" },
+					"id": { "type": "string", "title": "Id" },
+					"selected": { "type": "boolean", "title": "Selected" }
+				},
+				"type": "object",
+				"required": ["type", "id", "selected"],
+				"title": "ContributionMetadata",
+				"description": "Metadata about a contribution to be fetched."
+			},
+			"ContributionType": {
+				"type": "string",
+				"enum": ["commit", "pull_request", "issue", "release"],
+				"title": "ContributionType",
+				"description": "Types of GitHub contributions supported by the system."
+			},
+			"ContributionsIngestRequest": {
+				"properties": {
+					"user": { "type": "string", "title": "User" },
+					"week": { "type": "string", "title": "Week" },
+					"repository": { "type": "string", "title": "Repository" },
+					"contributions": {
+						"items": { "$ref": "#/components/schemas/ContributionMetadata" },
+						"type": "array",
+						"title": "Contributions"
+					},
+					"github_pat": { "type": "string", "title": "Github Pat" }
+				},
+				"type": "object",
+				"required": [
+					"user",
+					"week",
+					"repository",
+					"contributions",
+					"github_pat"
+				],
+				"title": "ContributionsIngestRequest",
+				"description": "Request to ingest contributions for a user's week (metadata only)."
+			},
+			"HTTPValidationError": {
+				"properties": {
+					"detail": {
+						"items": { "$ref": "#/components/schemas/ValidationError" },
+						"type": "array",
+						"title": "Detail"
+					}
+				},
+				"type": "object",
+				"title": "HTTPValidationError"
+			},
+			"IngestTaskResponse": {
+				"properties": {
+					"task_id": { "type": "string", "title": "Task Id" },
+					"user": { "type": "string", "title": "User" },
+					"week": { "type": "string", "title": "Week" },
+					"repository": { "type": "string", "title": "Repository" },
+					"status": {
+						"$ref": "#/components/schemas/TaskStatus",
+						"default": "queued"
+					},
+					"total_contributions": {
+						"type": "integer",
+						"title": "Total Contributions"
+					},
+					"summary_id": {
+						"anyOf": [{ "type": "string" }, { "type": "null" }],
+						"title": "Summary Id"
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Created At"
+					}
+				},
+				"type": "object",
+				"required": [
+					"task_id",
+					"user",
+					"week",
+					"repository",
+					"total_contributions",
+					"created_at"
+				],
+				"title": "IngestTaskResponse",
+				"description": "Response from starting a contributions ingestion task."
+			},
+			"IngestTaskStatus": {
+				"properties": {
+					"task_id": { "type": "string", "title": "Task Id" },
+					"user": { "type": "string", "title": "User" },
+					"week": { "type": "string", "title": "Week" },
+					"repository": { "type": "string", "title": "Repository" },
+					"status": { "$ref": "#/components/schemas/TaskStatus" },
+					"total_contributions": {
+						"type": "integer",
+						"title": "Total Contributions"
+					},
+					"ingested_count": { "type": "integer", "title": "Ingested Count" },
+					"failed_count": { "type": "integer", "title": "Failed Count" },
+					"embedding_job_id": {
+						"anyOf": [{ "type": "string" }, { "type": "null" }],
+						"title": "Embedding Job Id"
+					},
+					"summary": {
+						"anyOf": [
+							{ "$ref": "#/components/schemas/SummaryResponse" },
+							{ "type": "null" }
+						]
+					},
+					"error_message": {
+						"anyOf": [{ "type": "string" }, { "type": "null" }],
+						"title": "Error Message"
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Created At"
+					},
+					"started_at": {
+						"anyOf": [
+							{ "type": "string", "format": "date-time" },
+							{ "type": "null" }
+						],
+						"title": "Started At"
+					},
+					"completed_at": {
+						"anyOf": [
+							{ "type": "string", "format": "date-time" },
+							{ "type": "null" }
+						],
+						"title": "Completed At"
+					},
+					"processing_time_ms": {
+						"anyOf": [{ "type": "integer" }, { "type": "null" }],
+						"title": "Processing Time Ms"
+					}
+				},
+				"type": "object",
+				"required": [
+					"task_id",
+					"user",
+					"week",
+					"repository",
+					"status",
+					"total_contributions",
+					"ingested_count",
+					"failed_count",
+					"created_at"
+				],
+				"title": "IngestTaskStatus",
+				"description": "Status of a contributions ingestion task."
+			},
+			"QuestionContext": {
+				"properties": {
+					"focus_areas": {
+						"items": { "type": "string" },
+						"type": "array",
+						"title": "Focus Areas"
+					},
+					"include_evidence": {
+						"type": "boolean",
+						"title": "Include Evidence",
+						"default": true
+					},
+					"reasoning_depth": {
+						"$ref": "#/components/schemas/ReasoningDepth",
+						"default": "detailed"
+					},
+					"max_evidence_items": {
+						"type": "integer",
+						"title": "Max Evidence Items",
+						"default": 10
+					}
+				},
+				"type": "object",
+				"title": "QuestionContext",
+				"description": "Context configuration for question answering."
+			},
+			"QuestionEvidence": {
+				"properties": {
+					"title": { "type": "string", "title": "Title" },
+					"contribution_id": { "type": "string", "title": "Contribution Id" },
+					"contribution_type": {
+						"$ref": "#/components/schemas/ContributionType"
+					},
+					"excerpt": { "type": "string", "title": "Excerpt" },
+					"relevance_score": {
+						"type": "number",
+						"maximum": 1.0,
+						"minimum": 0.0,
+						"title": "Relevance Score"
+					},
+					"timestamp": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Timestamp"
+					}
+				},
+				"type": "object",
+				"required": [
+					"title",
+					"contribution_id",
+					"contribution_type",
+					"excerpt",
+					"relevance_score",
+					"timestamp"
+				],
+				"title": "QuestionEvidence",
+				"description": "Evidence supporting a question answer."
+			},
+			"QuestionRequest": {
+				"properties": {
+					"question": { "type": "string", "title": "Question" },
+					"repository": { "type": "string", "title": "Repository" },
+					"summary": {
+						"anyOf": [{ "type": "string" }, { "type": "null" }],
+						"title": "Summary"
+					},
+					"context": { "$ref": "#/components/schemas/QuestionContext" },
+					"github_pat": { "type": "string", "title": "Github Pat" }
+				},
+				"type": "object",
+				"required": ["question", "repository", "github_pat"],
+				"title": "QuestionRequest",
+				"description": "Request to ask a question about a user's week."
+			},
+			"QuestionResponse": {
+				"properties": {
+					"question_id": { "type": "string", "title": "Question Id" },
+					"user": { "type": "string", "title": "User" },
+					"week": { "type": "string", "title": "Week" },
+					"question": { "type": "string", "title": "Question" },
+					"answer": { "type": "string", "title": "Answer" },
+					"confidence": {
+						"type": "number",
+						"maximum": 1.0,
+						"minimum": 0.0,
+						"title": "Confidence"
+					},
+					"evidence": {
+						"items": { "$ref": "#/components/schemas/QuestionEvidence" },
+						"type": "array",
+						"title": "Evidence"
+					},
+					"reasoning_steps": {
+						"items": { "type": "string" },
+						"type": "array",
+						"title": "Reasoning Steps"
+					},
+					"suggested_actions": {
+						"items": { "type": "string" },
+						"type": "array",
+						"title": "Suggested Actions"
+					},
+					"asked_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Asked At"
+					},
+					"response_time_ms": {
+						"type": "integer",
+						"title": "Response Time Ms"
+					},
+					"conversation_id": {
+						"anyOf": [{ "type": "string" }, { "type": "null" }],
+						"title": "Conversation Id"
+					}
+				},
+				"type": "object",
+				"required": [
+					"question_id",
+					"user",
+					"week",
+					"question",
+					"answer",
+					"confidence",
+					"asked_at",
+					"response_time_ms"
+				],
+				"title": "QuestionResponse",
+				"description": "Response to a question about a user's week."
+			},
+			"ReasoningDepth": {
+				"type": "string",
+				"enum": ["quick", "detailed", "deep"],
+				"title": "ReasoningDepth",
+				"description": "Depth levels for question answering reasoning."
+			},
+			"SummaryMetadata": {
+				"properties": {
+					"total_contributions": {
+						"type": "integer",
+						"title": "Total Contributions"
+					},
+					"commits_count": { "type": "integer", "title": "Commits Count" },
+					"pull_requests_count": {
+						"type": "integer",
+						"title": "Pull Requests Count"
+					},
+					"issues_count": { "type": "integer", "title": "Issues Count" },
+					"releases_count": { "type": "integer", "title": "Releases Count" },
+					"repositories": {
+						"items": { "type": "string" },
+						"type": "array",
+						"title": "Repositories"
+					},
+					"time_period": { "type": "string", "title": "Time Period" },
+					"generated_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Generated At"
+					}
+				},
+				"type": "object",
+				"required": [
+					"total_contributions",
+					"commits_count",
+					"pull_requests_count",
+					"issues_count",
+					"releases_count",
+					"repositories",
+					"time_period",
+					"generated_at"
+				],
+				"title": "SummaryMetadata",
+				"description": "Metadata about a generated summary."
+			},
+			"SummaryResponse": {
+				"properties": {
+					"summary_id": { "type": "string", "title": "Summary Id" },
+					"user": { "type": "string", "title": "User" },
+					"week": { "type": "string", "title": "Week" },
+					"overview": { "type": "string", "title": "Overview" },
+					"commits_summary": { "type": "string", "title": "Commits Summary" },
+					"pull_requests_summary": {
+						"type": "string",
+						"title": "Pull Requests Summary"
+					},
+					"issues_summary": { "type": "string", "title": "Issues Summary" },
+					"releases_summary": { "type": "string", "title": "Releases Summary" },
+					"analysis": { "type": "string", "title": "Analysis" },
+					"key_achievements": {
+						"items": { "type": "string" },
+						"type": "array",
+						"title": "Key Achievements"
+					},
+					"areas_for_improvement": {
+						"items": { "type": "string" },
+						"type": "array",
+						"title": "Areas For Improvement"
+					},
+					"metadata": { "$ref": "#/components/schemas/SummaryMetadata" },
+					"generated_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Generated At"
+					}
+				},
+				"type": "object",
+				"required": [
+					"summary_id",
+					"user",
+					"week",
+					"overview",
+					"commits_summary",
+					"pull_requests_summary",
+					"issues_summary",
+					"releases_summary",
+					"analysis",
+					"key_achievements",
+					"areas_for_improvement",
+					"metadata",
+					"generated_at"
+				],
+				"title": "SummaryResponse",
+				"description": "Complete summary response (non-streaming)."
+			},
+			"TaskStatus": {
+				"type": "string",
+				"enum": ["queued", "ingesting", "summarizing", "done", "failed"],
+				"title": "TaskStatus",
+				"description": "Status values for asynchronous tasks."
+			},
+			"ValidationError": {
+				"properties": {
+					"loc": {
+						"items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
+						"type": "array",
+						"title": "Location"
+					},
+					"msg": { "type": "string", "title": "Message" },
+					"type": { "type": "string", "title": "Error Type" }
+				},
+				"type": "object",
+				"required": ["loc", "msg", "type"],
+				"title": "ValidationError"
+			}
+		}
+	}
 }

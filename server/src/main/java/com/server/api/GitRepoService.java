@@ -147,20 +147,20 @@ public class GitRepoService {
                 username,
                 finalWeekId
             );
-            
+
             // Wait for processing to complete (with timeout)
             processingFuture.get(30, java.util.concurrent.TimeUnit.SECONDS);
-            
+
             // Retrieve the processed answer
             List<QuestionAnswer> answers = questionAnswerRepository.findByQuestionIdIn(List.of(savedQuestion.getId()));
             Optional<QuestionAnswer> answerOpt = answers.stream().findFirst();
-                
+
             if (answerOpt.isPresent()) {
                 return QuestionAnswerConstruct.from(answerOpt.get());
             } else {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process question - no answer found");
             }
-            
+
         } catch (java.util.concurrent.TimeoutException e) {
             throw new ResponseStatusException(HttpStatus.REQUEST_TIMEOUT, "Question processing timed out");
         } catch (Exception e) {
