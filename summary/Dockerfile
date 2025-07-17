@@ -15,6 +15,6 @@ FROM gcr.io/distroless/java21-debian12
 WORKDIR /app
 COPY --from=busybox /bin/wget /bin/wget
 COPY --from=build /app/build/libs/*.jar app.jar
-EXPOSE 8082
-HEALTHCHECK --start-period=5s --interval=2s --timeout=3s --retries=2 CMD ["/bin/wget", "-qO-", "--tries=1", "http://localhost:8082/actuator/health"]
+EXPOSE 8084
+HEALTHCHECK --start-period=5s --interval=2s --timeout=3s --retries=2 CMD ["/bin/wget", "-qO-", "--tries=1", "http://localhost:8084/actuator/health"]
 ENTRYPOINT ["java", "-jar", "app.jar"]

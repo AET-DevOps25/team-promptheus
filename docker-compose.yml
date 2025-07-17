@@ -285,7 +285,14 @@ services:
         - action: rebuild
           path: ./summary/src
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      test:
+        [
+          "CMD",
+          "/bin/wget",
+          "-qO-",
+          "--tries=1",
+          "http://localhost:8084/actuator/health",
+        ]
       interval: 10s
       timeout: 3s
       retries: 10
