@@ -10,7 +10,6 @@ import de.promptheus.summary.service.SummaryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -25,6 +24,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 
 import de.promptheus.summary.genai.model.ContributionsIngestRequest;
 import de.promptheus.summary.genai.model.SummaryResponse;
@@ -45,12 +45,12 @@ class SummaryServiceInteractionTest {
     @Mock
     private GitRepositoryRepository gitRepositoryRepository;
 
-    @InjectMocks
     private SummaryService summaryService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        summaryService = new SummaryService(genAiClient, contributionClient, summaryRepository, gitRepositoryRepository);
         ReflectionTestUtils.setField(summaryService, "githubPat", "test-pat");
     }
 
@@ -59,8 +59,8 @@ class SummaryServiceInteractionTest {
         // Given
         String username = "testuser";
         String week = "2025-W26";
-        String summaryText = "This is a great summary.";
         SummaryResponse summaryResponse = new SummaryResponse();
+        summaryResponse.setOverview("Test overview");
 
         // Create a mock GitRepository
         GitRepository repository = new GitRepository();
@@ -68,18 +68,24 @@ class SummaryServiceInteractionTest {
         repository.setRepositoryLink("https://github.com/test/repo");
         repository.setCreatedAt(Instant.now());
 
+        // Create a properly configured ContributionDto
+        ContributionDto contributionDto = new ContributionDto();
+        contributionDto.setIsSelected(true);
+        contributionDto.setType("commit");
+        contributionDto.setId("test-id");
+
         // Mocks
         when(summaryRepository.findByUsernameAndWeek(eq(username), eq(week))).thenReturn(Collections.emptyList());
         when(contributionClient.getContributionsForUserAndWeek(eq(username), eq(week)))
-                .thenReturn(Mono.just(Collections.singletonList(new ContributionDto().isSelected(true).type("commit"))));
+                .thenReturn(Mono.just(Collections.singletonList(contributionDto)));
         when(genAiClient.generateSummaryAsync(any(ContributionsIngestRequest.class))).thenReturn(Mono.just(summaryResponse));
 
         // Execution
         summaryService.generateSummary(username, week, repository, "test-token");
 
-        // Verification
-        verify(genAiClient).generateSummaryAsync(any(ContributionsIngestRequest.class));
-        verify(summaryRepository).save(any(Summary.class));
+        // Verification with timeout to wait for async operations
+        verify(genAiClient, timeout(2000)).generateSummaryAsync(any(ContributionsIngestRequest.class));
+        verify(summaryRepository, timeout(2000)).save(any(Summary.class));
     }
 
     @Test
