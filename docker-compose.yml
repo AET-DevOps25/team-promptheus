@@ -86,8 +86,8 @@ services:
         ]
       interval: 10s
       timeout: 3s
-      retries: 5
-      start_period: 1s
+      retries: 10
+      start_period: 30s
       start_interval: 100ms
   db:
     image: postgres:17
@@ -154,8 +154,8 @@ services:
         ]
       interval: 10s
       timeout: 3s
-      retries: 5
-      start_period: 1s
+      retries: 10
+      start_period: 30s
       start_interval: 100ms
   genai:
     image: ghcr.io/aet-devops25/promptheus-genai:main
@@ -246,8 +246,8 @@ services:
         ]
       interval: 10s
       timeout: 3s
-      retries: 5
-      start_period: 1s
+      retries: 10
+      start_period: 30s
       start_interval: 100ms
     depends_on:
       db:
@@ -288,8 +288,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
       interval: 10s
       timeout: 3s
-      retries: 5
-      start_period: 1s
+      retries: 10
+      start_period: 30s
       start_interval: 100ms
     depends_on:
       db:
