@@ -276,7 +276,10 @@ export default function DashboardPage() {
                           <p className="text-sm font-medium">{qa.question}</p>
                           {qa.answers && qa.answers.length > 0 && (
                             <div className="mt-1">
-                              <Markdown variant="compact">{qa.answers[0].answer.substring(0, 200) + (qa.answers[0].answer.length > 200 ? "..." : "")}</Markdown>
+                              <Markdown variant="compact">
+                                {qa.answers[0].answer.substring(0, 200) +
+                                  (qa.answers[0].answer.length > 200 ? "..." : "")}
+                              </Markdown>
                             </div>
                           )}
                           <div className="flex items-center gap-2 mt-2">
@@ -334,7 +337,10 @@ export default function DashboardPage() {
                         <div>
                           <p className="font-medium">Repository Analysis</p>
                           <div className="mt-1">
-                            <Markdown variant="compact">{summary.summary.substring(0, 120) + (summary.summary.length > 120 ? "..." : "")}</Markdown>
+                            <Markdown variant="compact">
+                              {summary.summary.substring(0, 120) +
+                                (summary.summary.length > 120 ? "..." : "")}
+                            </Markdown>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
                             Generated on {new Date(summary.createdAt).toLocaleDateString()}

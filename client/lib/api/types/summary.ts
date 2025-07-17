@@ -4,122 +4,122 @@
  */
 
 export type paths = {
-    readonly "/api/summaries": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly get: operations["getSummaries"];
-        readonly put?: never;
-        readonly post?: never;
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
+  readonly "/api/summaries": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
     };
-    readonly "/api/summaries/{owner}/{repo}/{username}/{week}": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly get?: never;
-        readonly put?: never;
-        readonly post: operations["generateSummary"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
+    readonly get: operations["getSummaries"];
+    readonly put?: never;
+    readonly post?: never;
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
+  };
+  readonly "/api/summaries/{owner}/{repo}/{username}/{week}": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
     };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: operations["generateSummary"];
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
+  };
 };
 export type webhooks = Record<string, never>;
 export type components = {
-    schemas: {
-        readonly Summary: {
-            readonly analysis?: string;
-            readonly areasForImprovement?: readonly string[];
-            /** Format: int32 */
-            readonly commitsCount?: number;
-            readonly commitsSummary?: string;
-            /** Format: date-time */
-            readonly createdAt?: string;
-            /** Format: int64 */
-            readonly gitRepositoryId?: number;
-            /** Format: int64 */
-            readonly id?: number;
-            /** Format: int32 */
-            readonly issuesCount?: number;
-            readonly issuesSummary?: string;
-            readonly keyAchievements?: readonly string[];
-            readonly overview?: string;
-            /** Format: int32 */
-            readonly pullRequestsCount?: number;
-            readonly pullRequestsSummary?: string;
-            /** Format: int32 */
-            readonly releasesCount?: number;
-            readonly releasesSummary?: string;
-            /** Format: int32 */
-            readonly totalContributions?: number;
-            readonly username?: string;
-            readonly week?: string;
-        };
+  schemas: {
+    readonly Summary: {
+      readonly analysis?: string;
+      readonly areasForImprovement?: readonly string[];
+      /** Format: int32 */
+      readonly commitsCount?: number;
+      readonly commitsSummary?: string;
+      /** Format: date-time */
+      readonly createdAt?: string;
+      /** Format: int64 */
+      readonly gitRepositoryId?: number;
+      /** Format: int64 */
+      readonly id?: number;
+      /** Format: int32 */
+      readonly issuesCount?: number;
+      readonly issuesSummary?: string;
+      readonly keyAchievements?: readonly string[];
+      readonly overview?: string;
+      /** Format: int32 */
+      readonly pullRequestsCount?: number;
+      readonly pullRequestsSummary?: string;
+      /** Format: int32 */
+      readonly releasesCount?: number;
+      readonly releasesSummary?: string;
+      /** Format: int32 */
+      readonly totalContributions?: number;
+      readonly username?: string;
+      readonly week?: string;
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 };
 export type $defs = Record<string, never>;
 export interface operations {
-    readonly getSummaries: {
-        readonly parameters: {
-            readonly query?: {
-                readonly week?: string;
-            };
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            /** @description OK */
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "*/*": readonly components["schemas"]["Summary"][];
-                };
-            };
-        };
+  readonly getSummaries: {
+    readonly parameters: {
+      readonly query?: {
+        readonly week?: string;
+      };
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
     };
-    readonly generateSummary: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path: {
-                readonly owner: string;
-                readonly repo: string;
-                readonly username: string;
-                readonly week: string;
-            };
-            readonly cookie?: never;
+    readonly requestBody?: never;
+    readonly responses: {
+      /** @description OK */
+      readonly 200: {
+        headers: {
+          readonly [name: string]: unknown;
         };
-        readonly requestBody?: never;
-        readonly responses: {
-            /** @description OK */
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content?: never;
-            };
+        content: {
+          readonly "*/*": readonly components["schemas"]["Summary"][];
         };
+      };
     };
+  };
+  readonly generateSummary: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path: {
+        readonly owner: string;
+        readonly repo: string;
+        readonly username: string;
+        readonly week: string;
+      };
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+      /** @description OK */
+      readonly 200: {
+        headers: {
+          readonly [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
 }

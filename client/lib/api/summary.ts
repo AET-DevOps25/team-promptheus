@@ -14,9 +14,9 @@ type GenerateSummaryParams = operations["generateSummary"]["parameters"]["path"]
 // Query Keys
 const SUMMARY_KEYS = {
   all: ["summaries"] as const,
+  detail: (id: number) => [...SUMMARY_KEYS.all, "detail", id] as const,
   list: (params?: GetSummariesParams) => [...SUMMARY_KEYS.all, "list", params] as const,
   lists: () => [...SUMMARY_KEYS.all, "list"] as const,
-  detail: (id: number) => [...SUMMARY_KEYS.all, "detail", id] as const,
 };
 
 /**
@@ -63,4 +63,4 @@ export function useGenerateSummary() {
       queryClient.invalidateQueries({ queryKey: SUMMARY_KEYS.all });
     },
   });
-} 
+}

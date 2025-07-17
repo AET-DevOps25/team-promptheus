@@ -1,15 +1,28 @@
 "use client";
 
-import { Calendar, FileText, GitCommit, GitPullRequest, Bug, Package, Users, Eye } from "lucide-react";
+import {
+  Bug,
+  Calendar,
+  Eye,
+  FileText,
+  GitCommit,
+  GitPullRequest,
+  Package,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useSummaries } from "@/lib/api";
 
 function SummariesLoading() {
@@ -63,18 +76,24 @@ export default function SummariesPage() {
   const [weekFilter, setWeekFilter] = useState<string>("all");
   const [userFilter, setUserFilter] = useState<string>("");
 
-  const { data: summaries, isLoading, error } = useSummaries(
-    weekFilter && weekFilter !== "all" ? { week: weekFilter } : undefined
-  );
+  const {
+    data: summaries,
+    isLoading,
+    error,
+  } = useSummaries(weekFilter && weekFilter !== "all" ? { week: weekFilter } : undefined);
 
   // Filter summaries by user if user filter is set
-  const filteredSummaries = summaries?.filter(summary => 
-    !userFilter || summary.username?.toLowerCase().includes(userFilter.toLowerCase())
-  ) || [];
+  const filteredSummaries =
+    summaries?.filter(
+      (summary) =>
+        !userFilter || summary.username?.toLowerCase().includes(userFilter.toLowerCase()),
+    ) || [];
 
   // Get unique weeks and users for filter options
-  const availableWeeks = [...new Set(summaries?.map(s => s.week).filter(Boolean))].sort().reverse();
-  const availableUsers = [...new Set(summaries?.map(s => s.username).filter(Boolean))].sort();
+  const availableWeeks = [...new Set(summaries?.map((s) => s.week).filter(Boolean))]
+    .sort()
+    .reverse();
+  const _availableUsers = [...new Set(summaries?.map((s) => s.username).filter(Boolean))].sort();
 
   if (isLoading) {
     return <SummariesLoading />;
@@ -103,30 +122,32 @@ export default function SummariesPage() {
 
         {/* Filters */}
         <div className="flex gap-4 mb-6">
-          <Input 
+          <Input
+            className="max-w-64"
+            onChange={(e) => setUserFilter(e.target.value)}
             placeholder="Filter by user..."
             value={userFilter}
-            onChange={(e) => setUserFilter(e.target.value)}
-            className="max-w-64"
           />
-          <Select value={weekFilter} onValueChange={setWeekFilter}>
+          <Select onValueChange={setWeekFilter} value={weekFilter}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Filter by week" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All weeks</SelectItem>
-              {availableWeeks.map(week => (
-                <SelectItem key={week} value={week || "unknown"}>{week}</SelectItem>
+              {availableWeeks.map((week) => (
+                <SelectItem key={week} value={week || "unknown"}>
+                  {week}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {(weekFilter && weekFilter !== "all" || userFilter) && (
-            <Button 
-              variant="outline" 
+          {((weekFilter && weekFilter !== "all") || userFilter) && (
+            <Button
               onClick={() => {
                 setWeekFilter("all");
                 setUserFilter("");
               }}
+              variant="outline"
             >
               Clear Filters
             </Button>
@@ -147,18 +168,17 @@ export default function SummariesPage() {
                 <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No summaries found</h3>
                 <p className="text-gray-600">
-                  {(weekFilter && weekFilter !== "all") || userFilter 
+                  {(weekFilter && weekFilter !== "all") || userFilter
                     ? "No summaries match your current filters."
-                    : "No summaries have been generated yet."
-                  }
+                    : "No summaries have been generated yet."}
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
                 {filteredSummaries.map((summary) => (
                   <div
-                    key={summary.id}
                     className="flex items-center gap-4 p-4 border rounded-lg hover:bg-slate-50 transition-colors"
+                    key={summary.id}
                   >
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
                       <FileText className="h-5 w-5 text-blue-600" />
@@ -174,7 +194,10 @@ export default function SummariesPage() {
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
                         <span>
-                          Generated on {summary.createdAt ? new Date(summary.createdAt).toLocaleDateString() : 'Unknown date'}
+                          Generated on{" "}
+                          {summary.createdAt
+                            ? new Date(summary.createdAt).toLocaleDateString()
+                            : "Unknown date"}
                         </span>
                       </div>
                     </div>
@@ -217,4 +240,4 @@ export default function SummariesPage() {
       </div>
     </div>
   );
-} 
+}

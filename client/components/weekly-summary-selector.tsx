@@ -118,7 +118,7 @@ export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
     }
   };
 
-  const selectAllByStatus = (status: string) => {
+  const selectAllByStatus = (_status: string) => {
     // All items are "done" status in current implementation
     // Update the contribution selection status via API for all items
     const contributionsToUpdate = contributionsData?.content?.map((contribution) => ({

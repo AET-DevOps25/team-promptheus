@@ -34,8 +34,8 @@ export type LinkConstruct = components["schemas"]["LinkConstruct"];
 // Query Keys
 export const SERVER_KEYS = {
   all: ["server"] as const,
-  repo: (usercode: string) => [...SERVER_KEYS.all, "repo", usercode] as const,
   qa: (username: string, weekId: string) => [...SERVER_KEYS.all, "qa", username, weekId] as const,
+  repo: (usercode: string) => [...SERVER_KEYS.all, "repo", usercode] as const,
 };
 
 // Get repository info
@@ -65,7 +65,7 @@ export function useCreateQuestion(usercode: string) {
     onSuccess: () => {
       // Invalidate repo info to refresh questions
       queryClient.invalidateQueries({ queryKey: SERVER_KEYS.repo(usercode) });
-      
+
       // Invalidate all Q&A queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: SERVER_KEYS.all });
     },
@@ -78,7 +78,7 @@ export function useQuestionsAndAnswers(username: string, weekId: string, enabled
     enabled: enabled && !!username && !!weekId,
     queryFn: async () => {
       const response = await apiClient.get<QuestionAnswerConstruct[]>(
-        `/api/repositories/questions/${username}/${weekId}`
+        `/api/repositories/questions/${username}/${weekId}`,
       );
       return response.data;
     },

@@ -1,16 +1,29 @@
 "use client";
 
-import { MessageCircleQuestion, Brain, Clock, TrendingUp, Plus, Send, Loader2, ChevronDown, ChevronRight, Lightbulb, Search, CheckCircle } from "lucide-react";
+import { format } from "date-fns";
+import {
+  Brain,
+  CheckCircle,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Lightbulb,
+  Loader2,
+  MessageCircleQuestion,
+  Plus,
+  Search,
+  Send,
+  TrendingUp,
+} from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Markdown } from "@/components/ui/markdown";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import type { QuestionAnswerConstruct } from "@/lib/api";
-import { format } from "date-fns";
 
 interface QuestionAnswerProps {
   questionsAndAnswers: QuestionAnswerConstruct[];
@@ -43,13 +56,13 @@ interface ParsedFullResponse {
   conversation_id?: string;
 }
 
-export function QuestionAnswerSection({ 
-  questionsAndAnswers, 
-  isLoading, 
+export function QuestionAnswerSection({
+  questionsAndAnswers,
+  isLoading,
   onSubmitQuestion,
   isSubmitting = false,
   username,
-  weekId
+  weekId,
 }: QuestionAnswerProps) {
   const [question, setQuestion] = useState("");
 
@@ -70,7 +83,8 @@ export function QuestionAnswerSection({
               Ask a Question
             </CardTitle>
             <CardDescription>
-              Ask anything about {username ? `${username}'s` : "this"} contributions for week {weekId}
+              Ask anything about {username ? `${username}'s` : "this"} contributions for week{" "}
+              {weekId}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -86,10 +100,7 @@ export function QuestionAnswerSection({
                 <p className="text-xs text-muted-foreground">
                   AI will analyze the contributions to provide contextual answers
                 </p>
-                <Button
-                  disabled={isSubmitting || !question.trim()}
-                  onClick={handleSubmitQuestion}
-                >
+                <Button disabled={isSubmitting || !question.trim()} onClick={handleSubmitQuestion}>
                   {isSubmitting ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -115,7 +126,8 @@ export function QuestionAnswerSection({
             <div className="p-2 bg-purple-100 rounded-full">
               <MessageCircleQuestion className="h-4 w-4 text-purple-600" />
             </div>
-            Questions & Answers {questionsAndAnswers.length > 0 && `(${questionsAndAnswers.length})`}
+            Questions & Answers{" "}
+            {questionsAndAnswers.length > 0 && `(${questionsAndAnswers.length})`}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -213,27 +225,27 @@ function QuestionAnswerItem({ qa }: QuestionAnswerItemProps) {
         {/* Metadata */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t text-sm text-gray-500">
           {qa.confidence && (
-            <Badge variant="outline" className={getConfidenceColor(qa.confidence)}>
+            <Badge className={getConfidenceColor(qa.confidence)} variant="outline">
               <TrendingUp className="h-3 w-3 mr-1" />
               Confidence: {getConfidenceText(qa.confidence)}
             </Badge>
           )}
-          
+
           {qa.askedAt && (
-            <Badge variant="outline" className="bg-blue-50 text-blue-700">
+            <Badge className="bg-blue-50 text-blue-700" variant="outline">
               <Clock className="h-3 w-3 mr-1" />
               {formatDate(qa.askedAt)}
             </Badge>
           )}
 
           {qa.responseTimeMs && (
-            <Badge variant="outline" className="bg-gray-50 text-gray-600">
+            <Badge className="bg-gray-50 text-gray-600" variant="outline">
               ⚡ {qa.responseTimeMs}ms
             </Badge>
           )}
 
           {evidence.length > 0 && (
-            <Badge variant="outline" className="bg-purple-50 text-purple-700">
+            <Badge className="bg-purple-50 text-purple-700" variant="outline">
               <Search className="h-3 w-3 mr-1" />
               {evidence.length} evidence
             </Badge>
@@ -242,10 +254,10 @@ function QuestionAnswerItem({ qa }: QuestionAnswerItemProps) {
           {/* Expand/Collapse Button */}
           {(evidence.length > 0 || reasoningSteps.length > 0 || suggestedActions.length > 0) && (
             <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
               className="ml-auto"
+              onClick={() => setIsExpanded(!isExpanded)}
+              size="sm"
+              variant="ghost"
             >
               {isExpanded ? (
                 <>
@@ -269,11 +281,15 @@ function QuestionAnswerItem({ qa }: QuestionAnswerItemProps) {
           <div className="p-4 space-y-4">
             {/* Evidence Section */}
             {evidence.length > 0 && (
-              <Collapsible open={showEvidence} onOpenChange={setShowEvidence}>
+              <Collapsible onOpenChange={setShowEvidence} open={showEvidence}>
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-start p-0 h-auto">
+                  <Button className="w-full justify-start p-0 h-auto" variant="ghost">
                     <div className="flex items-center gap-2">
-                      {showEvidence ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      {showEvidence ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
                       <Search className="h-4 w-4 text-purple-600" />
                       <span className="font-medium">Evidence ({evidence.length})</span>
                     </div>
@@ -282,11 +298,11 @@ function QuestionAnswerItem({ qa }: QuestionAnswerItemProps) {
                 <CollapsibleContent className="mt-2">
                   <div className="space-y-2">
                     {evidence.slice(0, 5).map((item, index) => (
-                      <div key={index} className="bg-white p-3 rounded border text-sm">
+                      <div className="bg-white p-3 rounded border text-sm" key={index}>
                         <div className="flex items-start justify-between gap-2 mb-1">
                           <p className="font-medium text-gray-900">{item.title || "Untitled"}</p>
                           {item.relevance_score && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge className="text-xs" variant="outline">
                               {Math.round(item.relevance_score * 100)}% match
                             </Badge>
                           )}
@@ -296,13 +312,11 @@ function QuestionAnswerItem({ qa }: QuestionAnswerItemProps) {
                         )}
                         <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
                           {item.contribution_type && (
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge className="text-xs" variant="secondary">
                               {item.contribution_type}
                             </Badge>
                           )}
-                          {item.timestamp && (
-                            <span>{formatDate(item.timestamp)}</span>
-                          )}
+                          {item.timestamp && <span>{formatDate(item.timestamp)}</span>}
                         </div>
                       </div>
                     ))}
@@ -318,20 +332,29 @@ function QuestionAnswerItem({ qa }: QuestionAnswerItemProps) {
 
             {/* Reasoning Steps */}
             {reasoningSteps.length > 0 && (
-              <Collapsible open={showReasoning} onOpenChange={setShowReasoning}>
+              <Collapsible onOpenChange={setShowReasoning} open={showReasoning}>
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-start p-0 h-auto">
+                  <Button className="w-full justify-start p-0 h-auto" variant="ghost">
                     <div className="flex items-center gap-2">
-                      {showReasoning ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      {showReasoning ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
                       <Brain className="h-4 w-4 text-blue-600" />
-                      <span className="font-medium">AI Reasoning ({reasoningSteps.length} steps)</span>
+                      <span className="font-medium">
+                        AI Reasoning ({reasoningSteps.length} steps)
+                      </span>
                     </div>
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mt-2">
                   <div className="space-y-2">
                     {reasoningSteps.map((step, index) => (
-                      <div key={index} className="bg-white p-3 rounded border flex items-start gap-2">
+                      <div
+                        className="bg-white p-3 rounded border flex items-start gap-2"
+                        key={index}
+                      >
                         <div className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                           {index + 1}
                         </div>
@@ -351,8 +374,11 @@ function QuestionAnswerItem({ qa }: QuestionAnswerItemProps) {
                   <span className="font-medium">Suggested Actions</span>
                 </div>
                 <div className="space-y-2">
-                  {suggestedActions.map((action, index) => (
-                    <div key={index} className="bg-amber-50 border border-amber-200 p-3 rounded flex items-start gap-2">
+                  {suggestedActions.map((action) => (
+                    <div
+                      className="bg-amber-50 border border-amber-200 p-3 rounded flex items-start gap-2"
+                      key={action}
+                    >
                       <CheckCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
                       <p className="text-sm text-amber-800 leading-relaxed">{action}</p>
                     </div>
@@ -371,7 +397,8 @@ function QuestionAnswerLoading() {
   return (
     <div className="space-y-4">
       {Array.from({ length: 2 }).map((_, i) => (
-        <div key={i} className="border rounded-lg p-4 space-y-3">
+        // biome-ignore lint/suspicious/noArrayIndexKey: We just need something, this is a static array
+        <div className="border rounded-lg p-4 space-y-3" key={i}>
           <div className="flex items-start gap-2">
             <Skeleton className="h-4 w-4 mt-1" />
             <Skeleton className="h-4 flex-1" />
@@ -392,4 +419,4 @@ function QuestionAnswerLoading() {
       ))}
     </div>
   );
-} 
+}

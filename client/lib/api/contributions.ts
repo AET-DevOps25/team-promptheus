@@ -76,6 +76,15 @@ export function useUpdateContributions() {
       const response = await apiClient.put<string>("/api/contributions", contributions);
       return response.data;
     },
+    onError: (err, _newContributions, context) => {
+      console.error("PUT /api/contributions - Error:", err);
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousContributions) {
+        context.previousContributions.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
     onMutate: async (newContributions) => {
       // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
       await queryClient.cancelQueries({ queryKey: CONTRIBUTION_KEYS.all });
@@ -88,27 +97,18 @@ export function useUpdateContributions() {
         if (!old?.content) return old;
 
         // Create a map for quick lookup of updated contributions
-        const updateMap = new Map(newContributions.map(contrib => [contrib.id, contrib]));
+        const updateMap = new Map(newContributions.map((contrib) => [contrib.id, contrib]));
 
         return {
           ...old,
           content: old.content.map((contrib: ContributionDto) =>
-            updateMap.has(contrib.id) ? updateMap.get(contrib.id) : contrib
-          )
+            updateMap.has(contrib.id) ? updateMap.get(contrib.id) : contrib,
+          ),
         };
       });
 
       // Return a context object with the snapshotted value
       return { previousContributions };
-    },
-    onError: (err, newContributions, context) => {
-      console.error('PUT /api/contributions - Error:', err);
-      // If the mutation fails, use the context returned from onMutate to roll back
-      if (context?.previousContributions) {
-        context.previousContributions.forEach(([queryKey, data]) => {
-          queryClient.setQueryData(queryKey, data);
-        });
-      }
     },
     onSettled: () => {
       // Always refetch after error or success to ensure we have the latest data

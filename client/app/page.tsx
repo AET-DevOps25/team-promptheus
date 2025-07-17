@@ -4,7 +4,7 @@ import { BarChart3, ExternalLink, Github, Loader2, Search, Zap } from "lucide-re
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

@@ -37,8 +37,8 @@ import { useUser } from "@/contexts/user-context";
 import {
   type ContributionDto,
   useContributions,
-  useUpdateContributions,
   useTriggerContributionFetch,
+  useUpdateContributions,
 } from "@/lib/api/contributions";
 
 // Helper function to get week range based on week offset (0 = current week, -1 = last week, etc.)
@@ -47,7 +47,7 @@ function getWeekRange(weekOffset = 0) {
   const startOfWeek = new Date(now);
   const day = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
   const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is sunday
-  startOfWeek.setDate(diff + (weekOffset * 7));
+  startOfWeek.setDate(diff + weekOffset * 7);
   startOfWeek.setHours(0, 0, 0, 0);
 
   const endOfWeek = new Date(startOfWeek);
@@ -55,34 +55,34 @@ function getWeekRange(weekOffset = 0) {
   endOfWeek.setHours(23, 59, 59, 999);
 
   return {
-    startDate: startOfWeek.toISOString(), // Full ISO string for API
     endDate: endOfWeek.toISOString(), // Full ISO string for API
+    startDate: startOfWeek.toISOString(), // Full ISO string for API
     weekLabel: getWeekLabel(startOfWeek, endOfWeek, weekOffset),
   };
 }
 
 // Helper function to generate week label
-function getWeekLabel(startDate: Date, endDate: Date, weekOffset: number): string {
+function getWeekLabel(_startDate: Date, _endDate: Date, weekOffset: number): string {
   if (weekOffset === 0) return "This Week";
   if (weekOffset === -1) return "Last Week";
-  if (weekOffset > 0) return `${weekOffset} Week${weekOffset > 1 ? 's' : ''} Ahead`;
-  return `${Math.abs(weekOffset)} Week${Math.abs(weekOffset) > 1 ? 's' : ''} Ago`;
+  if (weekOffset > 0) return `${weekOffset} Week${weekOffset > 1 ? "s" : ""} Ahead`;
+  return `${Math.abs(weekOffset)} Week${Math.abs(weekOffset) > 1 ? "s" : ""} Ago`;
 }
 
 // Type icons mapping
 const typeIcons = {
-  commit: GitCommit,
-  pullrequest: GitPullRequest,
-  issue: MessageSquare,
   comment: MessageSquare,
+  commit: GitCommit,
+  issue: MessageSquare,
+  pullrequest: GitPullRequest,
 } as const;
 
 // Type labels mapping
 const typeLabels = {
-  commit: "Commit",
-  pullrequest: "Pull Request",
-  issue: "Issue",
   comment: "Comment",
+  commit: "Commit",
+  issue: "Issue",
+  pullrequest: "Pull Request",
 } as const;
 
 export default function DeveloperPage() {
@@ -98,14 +98,14 @@ export default function DeveloperPage() {
     error,
   } = useContributions(
     {
-      startDate: weekRange.startDate,
-      endDate: weekRange.endDate,
       contributor: selectedUser === "all" ? undefined : selectedUser,
+      endDate: weekRange.endDate,
       pageable: {
         page: 0,
         size: 100,
         sort: ["createdAt,desc"],
       },
+      startDate: weekRange.startDate,
     },
     !!userId, // Enable query when userId exists
   );
@@ -125,17 +125,15 @@ export default function DeveloperPage() {
   }, [contributionsData]);
 
   // Fetch all contributions to get unique users (without user filter)
-  const {
-    data: allContributionsData,
-  } = useContributions(
+  const { data: allContributionsData } = useContributions(
     {
-      startDate: weekRange.startDate,
       endDate: weekRange.endDate,
       pageable: {
         page: 0,
         size: 1000, // Get more to see all users
         sort: ["createdAt,desc"],
       },
+      startDate: weekRange.startDate,
     },
     !!userId,
   );
@@ -151,7 +149,6 @@ export default function DeveloperPage() {
     }
     return [];
   }, [allContributionsData]);
-
 
   // Handle individual contribution selection
   const handleContributionToggle = (contribution: ContributionDto) => {
@@ -184,9 +181,7 @@ export default function DeveloperPage() {
         <div className="max-w-md w-full text-center space-y-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Authentication Required</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Please log in to access the developer view
-            </p>
+            <p className="mt-2 text-sm text-gray-600">Please log in to access the developer view</p>
           </div>
           <Button
             className="w-full"
@@ -214,15 +209,15 @@ export default function DeveloperPage() {
               {/* Week Selector */}
               <div className="flex items-center gap-2 border rounded-lg p-2 bg-white">
                 <Button
+                  className="h-8 w-8 p-0"
                   onClick={() => setWeekOffset(weekOffset - 1)}
                   size="sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <div className="flex flex-col items-center min-w-[140px]">
-                  <Badge variant="outline" className="mb-1">
+                  <Badge className="mb-1" variant="outline">
                     {weekRange.weekLabel}
                   </Badge>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -234,10 +229,10 @@ export default function DeveloperPage() {
                   </div>
                 </div>
                 <Button
+                  className="h-8 w-8 p-0"
                   onClick={() => setWeekOffset(weekOffset + 1)}
                   size="sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -246,18 +241,18 @@ export default function DeveloperPage() {
               {/* Quick Week Presets */}
               <div className="flex items-center gap-1">
                 <Button
+                  className="text-xs px-2"
                   onClick={() => setWeekOffset(0)}
                   size="sm"
                   variant={weekOffset === 0 ? "default" : "outline"}
-                  className="text-xs px-2"
                 >
                   This Week
                 </Button>
                 <Button
+                  className="text-xs px-2"
                   onClick={() => setWeekOffset(-1)}
                   size="sm"
                   variant={weekOffset === -1 ? "default" : "outline"}
-                  className="text-xs px-2"
                 >
                   Last Week
                 </Button>
@@ -265,7 +260,7 @@ export default function DeveloperPage() {
 
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
-                <Select value={selectedUser} onValueChange={setSelectedUser}>
+                <Select onValueChange={setSelectedUser} value={selectedUser}>
                   <SelectTrigger className="w-48">
                     <SelectValue placeholder="Filter by user" />
                   </SelectTrigger>
@@ -280,12 +275,14 @@ export default function DeveloperPage() {
                 </Select>
               </div>
               <Button
+                disabled={triggerFetch.isPending}
                 onClick={() => triggerFetch.mutate()}
                 size="sm"
                 variant="outline"
-                disabled={triggerFetch.isPending}
               >
-                <RefreshCw className={`h-4 w-4 mr-1 ${triggerFetch.isPending ? "animate-spin" : ""}`} />
+                <RefreshCw
+                  className={`h-4 w-4 mr-1 ${triggerFetch.isPending ? "animate-spin" : ""}`}
+                />
                 {triggerFetch.isPending ? "Fetching..." : "Refresh Data"}
               </Button>
             </div>
@@ -302,19 +299,19 @@ export default function DeveloperPage() {
                 <span>Contributions - {weekRange.weekLabel}</span>
                 <div className="flex items-center gap-2">
                   <Button
+                    disabled={updateContributions.isPending}
                     onClick={() => handleSelectAll(true)}
                     size="sm"
                     variant="outline"
-                    disabled={updateContributions.isPending}
                   >
                     <CheckSquare className="h-4 w-4 mr-1" />
                     {updateContributions.isPending ? "Saving..." : "Select All"}
                   </Button>
                   <Button
+                    disabled={updateContributions.isPending}
                     onClick={() => handleSelectAll(false)}
                     size="sm"
                     variant="outline"
-                    disabled={updateContributions.isPending}
                   >
                     <Square className="h-4 w-4 mr-1" />
                     {updateContributions.isPending ? "Saving..." : "Deselect All"}
@@ -322,16 +319,15 @@ export default function DeveloperPage() {
                 </div>
               </CardTitle>
               <CardDescription>
-                Select contributions to include in your summary for {weekRange.weekLabel.toLowerCase()}.
+                Select contributions to include in your summary for{" "}
+                {weekRange.weekLabel.toLowerCase()}.
                 {selectedCount > 0 && (
                   <span className="font-medium text-primary ml-1">
                     {selectedCount} of {totalCount} selected
                   </span>
                 )}
                 {updateContributions.isPending && (
-                  <span className="text-orange-600 ml-2">
-                    ⏳ Saving changes...
-                  </span>
+                  <span className="text-orange-600 ml-2">⏳ Saving changes...</span>
                 )}
               </CardDescription>
             </CardHeader>
@@ -355,10 +351,13 @@ export default function DeveloperPage() {
                     {selectedUser !== "all" && (
                       <p className="text-sm">Try changing the user filter.</p>
                     )}
-                    <p className="text-sm">Try selecting a different week or refreshing the data.</p>
+                    <p className="text-sm">
+                      Try selecting a different week or refreshing the data.
+                    </p>
                   </div>
                   <p className="text-xs mt-2 text-muted-foreground">
-                    Searching {weekRange.weekLabel.toLowerCase()} ({new Date(weekRange.startDate).toLocaleDateString()} to{" "}
+                    Searching {weekRange.weekLabel.toLowerCase()} (
+                    {new Date(weekRange.startDate).toLocaleDateString()} to{" "}
                     {new Date(weekRange.endDate).toLocaleDateString()})
                     {selectedUser !== "all" && ` for user: ${selectedUser}`}
                   </p>
@@ -373,8 +372,8 @@ export default function DeveloperPage() {
                         <TableHead className="w-12">
                           <Checkbox
                             checked={selectedCount === totalCount && totalCount > 0}
-                            onCheckedChange={(checked) => handleSelectAll(!!checked)}
                             disabled={updateContributions.isPending}
+                            onCheckedChange={(checked) => handleSelectAll(!!checked)}
                           />
                         </TableHead>
                         <TableHead>Type</TableHead>
@@ -391,20 +390,20 @@ export default function DeveloperPage() {
 
                         return (
                           <TableRow
-                            key={contribution.id}
                             className={contribution.isSelected ? "bg-blue-50" : ""}
+                            key={contribution.id}
                           >
                             <TableCell>
                               <Checkbox
                                 checked={contribution.isSelected}
-                                onCheckedChange={() => handleContributionToggle(contribution)}
                                 disabled={updateContributions.isPending}
+                                onCheckedChange={() => handleContributionToggle(contribution)}
                               />
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 <Icon className="h-4 w-4 text-muted-foreground" />
-                                <Badge variant="secondary" className="text-xs">
+                                <Badge className="text-xs" variant="secondary">
                                   {label}
                                 </Badge>
                               </div>

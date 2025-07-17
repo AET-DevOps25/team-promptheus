@@ -1,17 +1,15 @@
 "use client";
 
-import { ArrowLeft, Calendar, GitCommit, GitPullRequest, Bug, Package, Users } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft, Bug, Calendar, GitCommit, GitPullRequest, Package, Users } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Markdown } from "@/components/ui/markdown";
 import { QuestionAnswerSection } from "@/components/ui/question-answer";
-import { useSummaries, useQuestionsAndAnswers, useCreateQuestion, useQueryClient } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/user-context";
+import { useCreateQuestion, useQueryClient, useQuestionsAndAnswers, useSummaries } from "@/lib/api";
 
 function SummaryLoading() {
   return (
@@ -70,13 +68,13 @@ export default function SingleSummaryPage() {
   const { data: summaries, isLoading, error } = useSummaries();
 
   // Get the summary data
-  const summary = summaries?.find(s => s.id?.toString() === summaryId);
+  const summary = summaries?.find((s) => s.id?.toString() === summaryId);
 
   // Fetch Q&A data if we have the summary
   const { data: questionsAndAnswers, isLoading: qaLoading } = useQuestionsAndAnswers(
-    summary?.username || "", 
-    summary?.week || "", 
-    !!summary?.username && !!summary?.week
+    summary?.username || "",
+    summary?.week || "",
+    !!summary?.username && !!summary?.week,
   );
 
   // Question submission mutation
@@ -85,18 +83,18 @@ export default function SingleSummaryPage() {
 
   const handleSubmitQuestion = async (question: string) => {
     if (!userId || !summary?.username) return;
-    
+
     try {
       await createQuestionMutation.mutateAsync({
+        gitRepositoryId: summary.gitRepositoryId,
         question,
         username: summary.username,
-        gitRepositoryId: summary.gitRepositoryId,
-        weekId: summary.week
+        weekId: summary.week,
       });
       // Manually invalidate the Q&A queries for this specific user/week
       if (summary.week) {
-        queryClient.invalidateQueries({ 
-          queryKey: ['server', 'qa', summary.username, summary.week] 
+        queryClient.invalidateQueries({
+          queryKey: ["server", "qa", summary.username, summary.week],
         });
       }
     } catch (error) {
@@ -137,20 +135,21 @@ export default function SingleSummaryPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <Button onClick={() => router.back()} size="icon" variant="ghost">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold">
-                {summary.username}'s Summary
-              </h1>
+              <h1 className="text-3xl font-bold">{summary.username}'s Summary</h1>
               <Badge variant="secondary">{summary.week}</Badge>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Calendar className="h-4 w-4" />
               <span>
-                Generated on {summary.createdAt ? new Date(summary.createdAt).toLocaleDateString() : 'Unknown date'}
+                Generated on{" "}
+                {summary.createdAt
+                  ? new Date(summary.createdAt).toLocaleDateString()
+                  : "Unknown date"}
               </span>
             </div>
           </div>
@@ -329,7 +328,7 @@ export default function SingleSummaryPage() {
               <CardContent>
                 <ul className="space-y-3">
                   {summary.keyAchievements.map((achievement, index) => (
-                    <li key={index} className="flex items-start gap-2">
+                    <li className="flex items-start gap-2" key={index}>
                       <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
                       <div className="flex-1">
                         <Markdown variant="compact">{achievement}</Markdown>
@@ -352,7 +351,7 @@ export default function SingleSummaryPage() {
               <CardContent>
                 <ul className="space-y-3">
                   {summary.areasForImprovement.map((area, index) => (
-                    <li key={index} className="flex items-start gap-2">
+                    <li className="flex items-start gap-2" key={index}>
                       <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0" />
                       <div className="flex-1">
                         <Markdown variant="compact">{area}</Markdown>
@@ -366,15 +365,15 @@ export default function SingleSummaryPage() {
         </div>
 
         {/* Q&A Section - Moved to bottom */}
-        <QuestionAnswerSection 
-          questionsAndAnswers={questionsAndAnswers || []} 
+        <QuestionAnswerSection
           isLoading={qaLoading}
-          onSubmitQuestion={userId ? handleSubmitQuestion : undefined}
           isSubmitting={createQuestionMutation.isPending}
+          onSubmitQuestion={userId ? handleSubmitQuestion : undefined}
+          questionsAndAnswers={questionsAndAnswers || []}
           username={summary.username}
           weekId={summary.week}
         />
       </div>
     </div>
   );
-} 
+}

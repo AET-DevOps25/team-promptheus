@@ -17,9 +17,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Markdown } from "@/components/ui/markdown";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { Markdown } from "@/components/ui/markdown";
 import { useUser } from "@/contexts/user-context";
 import { useCreateQuestion, useGitRepoInformation } from "@/lib/api/server";
 
@@ -82,9 +82,9 @@ export default function QAPage() {
 
     try {
       await createQuestionMutation.mutateAsync({
+        gitRepositoryId: undefined, // Let server use repository from usercode,
         question: question.trim(),
-        username: username,
-        gitRepositoryId: undefined // Let server use repository from usercode
+        username: username
       });
       setQuestion("");
     } catch (error) {
