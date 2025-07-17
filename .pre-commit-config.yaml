@@ -16,10 +16,10 @@ repos:
           - id: debug-statements
 
     - repo: https://github.com/biomejs/pre-commit
-      rev: "v2.0.6"
+      rev: "v2.0.5"
       hooks:
           - id: biome-format
-            additional_dependencies: ["@biomejs/biome@2.0.6"]
+            additional_dependencies: ["@biomejs/biome@2.0.5"]
           - id: biome-lint
             name: biome lint
             entry: biome check --formatter-enabled=false --linter-enabled=false --write --files-ignore-unknown=true --no-errors-on-unmatched
@@ -27,7 +27,7 @@ repos:
             types: [text]
             files: "\\.(jsx?|tsx?|c(js|ts)|m(js|ts)|d\\.(ts|cts|mts)|jsonc?|css|svelte|vue|astro|graphql|gql)$"
             require_serial: true
-            additional_dependencies: ["@biomejs/biome@2.0.6"]
+            additional_dependencies: ["@biomejs/biome@2.0.5"]
     - repo: https://github.com/astral-sh/ruff-pre-commit
       rev: v0.12.1
       hooks:
