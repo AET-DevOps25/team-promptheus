@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  Bug,
-  Calendar,
-  Eye,
-  FileText,
-  GitCommit,
-  GitPullRequest,
-  Package,
-} from "lucide-react";
+import { Bug, Calendar, Eye, FileText, GitCommit, GitPullRequest, Package } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -48,8 +40,8 @@ function SummariesLoading() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div className="flex items-center gap-4 p-4 border rounded-lg" key={i}>
+              {Array.from({ length: 8 }, () => crypto.randomUUID()).map((uuid) => (
+                <div className="flex items-center gap-4 p-4 border rounded-lg" key={uuid}>
                   <Skeleton className="h-8 w-8" />
                   <div className="flex-1">
                     <Skeleton className="h-5 w-48 mb-2" />

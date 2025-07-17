@@ -297,8 +297,11 @@ function QuestionAnswerItem({ qa }: QuestionAnswerItemProps) {
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mt-2">
                   <div className="space-y-2">
-                    {evidence.slice(0, 5).map((item, index) => (
-                      <div className="bg-white p-3 rounded border text-sm" key={index}>
+                    {evidence.slice(0, 5).map((item) => (
+                      <div
+                        className="bg-white p-3 rounded border text-sm"
+                        key={`evidence-${(item.title || "untitled").slice(0, 30).replace(/\s+/g, "-")}-${item.relevance_score || 0}`}
+                      >
                         <div className="flex items-start justify-between gap-2 mb-1">
                           <p className="font-medium text-gray-900">{item.title || "Untitled"}</p>
                           {item.relevance_score && (
@@ -353,7 +356,7 @@ function QuestionAnswerItem({ qa }: QuestionAnswerItemProps) {
                     {reasoningSteps.map((step, index) => (
                       <div
                         className="bg-white p-3 rounded border flex items-start gap-2"
-                        key={index}
+                        key={`reasoning-step-${step.slice(0, 40).replace(/\s+/g, "-")}`}
                       >
                         <div className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                           {index + 1}

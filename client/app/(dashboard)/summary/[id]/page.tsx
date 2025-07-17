@@ -26,8 +26,8 @@ function SummaryLoading() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Card key={i}>
+          {Array.from({ length: 5 }, () => crypto.randomUUID()).map((uuid) => (
+            <Card key={uuid}>
               <CardContent className="p-4 text-center">
                 <Skeleton className="h-8 w-12 mx-auto mb-2" />
                 <Skeleton className="h-4 w-16 mx-auto" />
@@ -37,8 +37,8 @@ function SummaryLoading() {
         </div>
 
         {/* Content sections */}
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i}>
+        {Array.from({ length: 4 }, () => crypto.randomUUID()).map((uuid) => (
+          <Card key={uuid}>
             <CardHeader>
               <Skeleton className="h-6 w-32" />
             </CardHeader>
@@ -327,8 +327,11 @@ export default function SingleSummaryPage() {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
-                  {summary.keyAchievements.map((achievement, index) => (
-                    <li className="flex items-start gap-2" key={index}>
+                  {summary.keyAchievements.map((achievement) => (
+                    <li
+                      className="flex items-start gap-2"
+                      key={`achievement-${achievement.slice(0, 50).replace(/\s+/g, "-")}`}
+                    >
                       <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
                       <div className="flex-1">
                         <Markdown variant="compact">{achievement}</Markdown>
@@ -350,8 +353,11 @@ export default function SingleSummaryPage() {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
-                  {summary.areasForImprovement.map((area, index) => (
-                    <li className="flex items-start gap-2" key={index}>
+                  {summary.areasForImprovement.map((area) => (
+                    <li
+                      className="flex items-start gap-2"
+                      key={`improvement-${area.slice(0, 50).replace(/\s+/g, "-")}`}
+                    >
                       <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0" />
                       <div className="flex-1">
                         <Markdown variant="compact">{area}</Markdown>

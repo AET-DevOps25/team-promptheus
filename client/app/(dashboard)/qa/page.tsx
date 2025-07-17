@@ -84,7 +84,7 @@ export default function QAPage() {
       await createQuestionMutation.mutateAsync({
         gitRepositoryId: undefined, // Let server use repository from usercode,
         question: question.trim(),
-        username: username
+        username: username,
       });
       setQuestion("");
     } catch (error) {
