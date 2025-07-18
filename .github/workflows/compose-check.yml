@@ -23,23 +23,53 @@ jobs:
 
       - name: Start services in detached mode
         run: docker compose up -d
+        env:
+          OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
 
       - name: Wait for services to initialize
         run: |
           elapsed=0
           while true; do
+            echo "[HEALTH_CHECK] Status check at ${elapsed}s elapsed"
+
+            # Get all containers with their status
+            echo "[CONTAINER_STATUS] Current container states:"
+            docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+
+            # Check for unhealthy containers
             unhealthy=$(docker ps --format '{{.Names}} {{.Status}}' | grep -v 'healthy' | grep 'health')
+
             if [ -z "$unhealthy" ]; then
-              echo "All containers are healthy after $elapsed seconds."
+              echo "[SUCCESS] All containers reached healthy state after ${elapsed}s"
+              echo "[FINAL_STATUS] Container health verification complete:"
+              docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
               exit 0
             fi
-            echo "[$elapsed / 300 seconds elapsed] Waiting containers to become healthy: $unhealthy"
+
+            echo "[WARNING] Unhealthy containers detected:"
+            echo "$unhealthy"
+
+            # Show detailed logs for unhealthy containers
+            echo "[DEBUG] Recent logs from unhealthy containers:"
+            echo "$unhealthy" | while read -r container; do
+              container_name=$(echo "$container" | awk '{print $1}')
+              echo "[LOG_ANALYSIS] Container: $container_name"
+              docker logs --tail=10 "$container_name" 2>&1 || echo "[ERROR] Failed to retrieve logs for $container_name"
+              echo "---"
+            done
+
+            echo "[WAIT] ${elapsed}s/300s elapsed, continuing health check..."
             sleep 10
             elapsed=$((elapsed + 10))
 
             if [ $elapsed -ge 300 ]; then
-              echo "Timeout reached. Some containers are not healthy:"
+              echo "[TIMEOUT] Health check timeout reached after 300s"
+              echo "[FAILURE] Final unhealthy container list:"
               echo "$unhealthy"
+              echo "[FINAL_STATUS] Complete container state:"
+              docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+              echo "[DEBUG] Full container logs for analysis:"
+              docker compose logs --tail=20
               exit 1
             fi
           done
