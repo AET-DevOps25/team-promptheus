@@ -4,350 +4,350 @@
  */
 
 export type paths = {
-    readonly "/api/contributions": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        /** Get all contributions */
-        readonly get: operations["getContributions"];
-        /** Update contribution selection status */
-        readonly put: operations["updateContributions"];
-        readonly post?: never;
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/contributions/trigger": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly get?: never;
-        readonly put?: never;
-        /** Trigger contribution fetch for all repositories */
-        readonly post: operations["triggerContributionFetch"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/contributions/trigger/repository": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly get?: never;
-        readonly put?: never;
-        /** Trigger contribution fetch for specific repository */
-        readonly post: operations["triggerContributionFetchForRepository"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
+	readonly "/api/contributions": {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path?: never;
+			readonly cookie?: never;
+		};
+		/** Get all contributions */
+		readonly get: operations["getContributions"];
+		/** Update contribution selection status */
+		readonly put: operations["updateContributions"];
+		readonly post?: never;
+		readonly delete?: never;
+		readonly options?: never;
+		readonly head?: never;
+		readonly patch?: never;
+		readonly trace?: never;
+	};
+	readonly "/api/contributions/trigger": {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path?: never;
+			readonly cookie?: never;
+		};
+		readonly get?: never;
+		readonly put?: never;
+		/** Trigger contribution fetch for all repositories */
+		readonly post: operations["triggerContributionFetch"];
+		readonly delete?: never;
+		readonly options?: never;
+		readonly head?: never;
+		readonly patch?: never;
+		readonly trace?: never;
+	};
+	readonly "/api/contributions/trigger/repository": {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path?: never;
+			readonly cookie?: never;
+		};
+		readonly get?: never;
+		readonly put?: never;
+		/** Trigger contribution fetch for specific repository */
+		readonly post: operations["triggerContributionFetchForRepository"];
+		readonly delete?: never;
+		readonly options?: never;
+		readonly head?: never;
+		readonly patch?: never;
+		readonly trace?: never;
+	};
 };
 export type webhooks = Record<string, never>;
 export type components = {
-    schemas: {
-        readonly ContributionDto: {
-            /** Format: date-time */
-            readonly createdAt?: string;
-            /** Format: int64 */
-            readonly gitRepositoryId: number;
-            readonly id: string;
-            readonly isSelected: boolean;
-            readonly summary: string;
-            readonly type: string;
-            readonly username: string;
-        };
-        readonly Page: {
-            readonly content?: readonly unknown[];
-            readonly empty?: boolean;
-            readonly first?: boolean;
-            readonly last?: boolean;
-            /** Format: int32 */
-            readonly number?: number;
-            /** Format: int32 */
-            readonly numberOfElements?: number;
-            readonly pageable?: components["schemas"]["PageableObject"];
-            /** Format: int32 */
-            readonly size?: number;
-            readonly sort?: components["schemas"]["SortObject"];
-            /** Format: int64 */
-            readonly totalElements?: number;
-            /** Format: int32 */
-            readonly totalPages?: number;
-        };
-        readonly Pageable: {
-            /** Format: int32 */
-            readonly page?: number;
-            /** Format: int32 */
-            readonly size?: number;
-            readonly sort?: readonly string[];
-        };
-        readonly PageableObject: {
-            /** Format: int64 */
-            readonly offset?: number;
-            readonly paged?: boolean;
-            /** Format: int32 */
-            readonly pageNumber?: number;
-            /** Format: int32 */
-            readonly pageSize?: number;
-            readonly sort?: components["schemas"]["SortObject"];
-            readonly unpaged?: boolean;
-        };
-        readonly PageContributionDto: {
-            readonly content?: readonly components["schemas"]["ContributionDto"][];
-            readonly empty?: boolean;
-            readonly first?: boolean;
-            readonly last?: boolean;
-            /** Format: int32 */
-            readonly number?: number;
-            /** Format: int32 */
-            readonly numberOfElements?: number;
-            readonly pageable?: components["schemas"]["PageableObject"];
-            /** Format: int32 */
-            readonly size?: number;
-            readonly sort?: components["schemas"]["SortObject"];
-            /** Format: int64 */
-            readonly totalElements?: number;
-            /** Format: int32 */
-            readonly totalPages?: number;
-        };
-        readonly SortObject: {
-            readonly empty?: boolean;
-            readonly sorted?: boolean;
-            readonly unsorted?: boolean;
-        };
-        readonly TriggerRequest: {
-            readonly repositoryUrl: string;
-        };
-        readonly TriggerResponse: {
-            /** Format: int32 */
-            readonly contributionsFetched?: number;
-            /** Format: int32 */
-            readonly contributionsUpserted?: number;
-            readonly errors?: readonly string[];
-            readonly message?: string;
-            readonly processedRepositories?: readonly string[];
-            /** Format: int64 */
-            readonly processingTimeMs?: number;
-            /** Format: int32 */
-            readonly repositoriesProcessed?: number;
-            readonly status?: string;
-            /** Format: date-time */
-            readonly triggeredAt?: string;
-        };
-    };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+	schemas: {
+		readonly ContributionDto: {
+			/** Format: date-time */
+			readonly createdAt?: string;
+			/** Format: int64 */
+			readonly gitRepositoryId: number;
+			readonly id: string;
+			readonly isSelected: boolean;
+			readonly summary: string;
+			readonly type: string;
+			readonly username: string;
+		};
+		readonly Page: {
+			readonly content?: readonly unknown[];
+			readonly empty?: boolean;
+			readonly first?: boolean;
+			readonly last?: boolean;
+			/** Format: int32 */
+			readonly number?: number;
+			/** Format: int32 */
+			readonly numberOfElements?: number;
+			readonly pageable?: components["schemas"]["PageableObject"];
+			/** Format: int32 */
+			readonly size?: number;
+			readonly sort?: components["schemas"]["SortObject"];
+			/** Format: int64 */
+			readonly totalElements?: number;
+			/** Format: int32 */
+			readonly totalPages?: number;
+		};
+		readonly Pageable: {
+			/** Format: int32 */
+			readonly page?: number;
+			/** Format: int32 */
+			readonly size?: number;
+			readonly sort?: readonly string[];
+		};
+		readonly PageableObject: {
+			/** Format: int64 */
+			readonly offset?: number;
+			readonly paged?: boolean;
+			/** Format: int32 */
+			readonly pageNumber?: number;
+			/** Format: int32 */
+			readonly pageSize?: number;
+			readonly sort?: components["schemas"]["SortObject"];
+			readonly unpaged?: boolean;
+		};
+		readonly PageContributionDto: {
+			readonly content?: readonly components["schemas"]["ContributionDto"][];
+			readonly empty?: boolean;
+			readonly first?: boolean;
+			readonly last?: boolean;
+			/** Format: int32 */
+			readonly number?: number;
+			/** Format: int32 */
+			readonly numberOfElements?: number;
+			readonly pageable?: components["schemas"]["PageableObject"];
+			/** Format: int32 */
+			readonly size?: number;
+			readonly sort?: components["schemas"]["SortObject"];
+			/** Format: int64 */
+			readonly totalElements?: number;
+			/** Format: int32 */
+			readonly totalPages?: number;
+		};
+		readonly SortObject: {
+			readonly empty?: boolean;
+			readonly sorted?: boolean;
+			readonly unsorted?: boolean;
+		};
+		readonly TriggerRequest: {
+			readonly repositoryUrl: string;
+		};
+		readonly TriggerResponse: {
+			/** Format: int32 */
+			readonly contributionsFetched?: number;
+			/** Format: int32 */
+			readonly contributionsUpserted?: number;
+			readonly errors?: readonly string[];
+			readonly message?: string;
+			readonly processedRepositories?: readonly string[];
+			/** Format: int64 */
+			readonly processingTimeMs?: number;
+			/** Format: int32 */
+			readonly repositoriesProcessed?: number;
+			readonly status?: string;
+			/** Format: date-time */
+			readonly triggeredAt?: string;
+		};
+	};
+	responses: never;
+	parameters: never;
+	requestBodies: never;
+	headers: never;
+	pathItems: never;
 };
 export type $defs = Record<string, never>;
 export interface operations {
-    readonly getContributions: {
-        readonly parameters: {
-            readonly query: {
-                readonly contributor?: string;
-                readonly startDate?: string;
-                readonly endDate?: string;
-                readonly pageable: components["schemas"]["Pageable"];
-            };
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            /** @description Contributions retrieved successfully */
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["Page"];
-                };
-            };
-            /** @description Bad request */
-            readonly 400: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "*/*": components["schemas"]["PageContributionDto"];
-                };
-            };
-            /** @description Internal server error */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "*/*": components["schemas"]["PageContributionDto"];
-                };
-            };
-        };
-    };
-    readonly updateContributions: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody: {
-            readonly content: {
-                readonly "application/json": readonly components["schemas"]["ContributionDto"][];
-            };
-        };
-        readonly responses: {
-            /** @description Contribution selections updated successfully */
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "*/*": string;
-                };
-            };
-            /** @description Bad request - Invalid input */
-            readonly 400: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "*/*": string;
-                };
-            };
-            /** @description Internal server error */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "*/*": string;
-                };
-            };
-        };
-    };
-    readonly triggerContributionFetch: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            /** @description Contribution fetch triggered successfully */
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["TriggerResponse"];
-                };
-            };
-            /** @description Bad request */
-            readonly 400: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "*/*": Record<string, never>;
-                };
-            };
-            /** @description GitHub API rate limit exceeded */
-            readonly 429: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "*/*": Record<string, never>;
-                };
-            };
-            /** @description Internal server error */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "*/*": Record<string, never>;
-                };
-            };
-        };
-    };
-    readonly triggerContributionFetchForRepository: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody: {
-            readonly content: {
-                readonly "application/json": components["schemas"]["TriggerRequest"];
-            };
-        };
-        readonly responses: {
-            /** @description Contribution fetch triggered successfully */
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["TriggerResponse"];
-                };
-            };
-            /** @description Bad request - Invalid repository */
-            readonly 400: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "*/*": Record<string, never>;
-                };
-            };
-            /** @description Repository not found */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "*/*": Record<string, never>;
-                };
-            };
-            /** @description GitHub API rate limit exceeded */
-            readonly 429: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "*/*": Record<string, never>;
-                };
-            };
-            /** @description Internal server error */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "*/*": Record<string, never>;
-                };
-            };
-        };
-    };
+	readonly getContributions: {
+		readonly parameters: {
+			readonly query: {
+				readonly contributor?: string;
+				readonly startDate?: string;
+				readonly endDate?: string;
+				readonly pageable: components["schemas"]["Pageable"];
+			};
+			readonly header?: never;
+			readonly path?: never;
+			readonly cookie?: never;
+		};
+		readonly requestBody?: never;
+		readonly responses: {
+			/** @description Contributions retrieved successfully */
+			readonly 200: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					readonly "application/json": components["schemas"]["Page"];
+				};
+			};
+			/** @description Bad request */
+			readonly 400: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					readonly "*/*": components["schemas"]["PageContributionDto"];
+				};
+			};
+			/** @description Internal server error */
+			readonly 500: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					readonly "*/*": components["schemas"]["PageContributionDto"];
+				};
+			};
+		};
+	};
+	readonly updateContributions: {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path?: never;
+			readonly cookie?: never;
+		};
+		readonly requestBody: {
+			readonly content: {
+				readonly "application/json": readonly components["schemas"]["ContributionDto"][];
+			};
+		};
+		readonly responses: {
+			/** @description Contribution selections updated successfully */
+			readonly 200: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					readonly "*/*": string;
+				};
+			};
+			/** @description Bad request - Invalid input */
+			readonly 400: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					readonly "*/*": string;
+				};
+			};
+			/** @description Internal server error */
+			readonly 500: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					readonly "*/*": string;
+				};
+			};
+		};
+	};
+	readonly triggerContributionFetch: {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path?: never;
+			readonly cookie?: never;
+		};
+		readonly requestBody?: never;
+		readonly responses: {
+			/** @description Contribution fetch triggered successfully */
+			readonly 200: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					readonly "application/json": components["schemas"]["TriggerResponse"];
+				};
+			};
+			/** @description Bad request */
+			readonly 400: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					readonly "*/*": Record<string, never>;
+				};
+			};
+			/** @description GitHub API rate limit exceeded */
+			readonly 429: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					readonly "*/*": Record<string, never>;
+				};
+			};
+			/** @description Internal server error */
+			readonly 500: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					readonly "*/*": Record<string, never>;
+				};
+			};
+		};
+	};
+	readonly triggerContributionFetchForRepository: {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path?: never;
+			readonly cookie?: never;
+		};
+		readonly requestBody: {
+			readonly content: {
+				readonly "application/json": components["schemas"]["TriggerRequest"];
+			};
+		};
+		readonly responses: {
+			/** @description Contribution fetch triggered successfully */
+			readonly 200: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					readonly "application/json": components["schemas"]["TriggerResponse"];
+				};
+			};
+			/** @description Bad request - Invalid repository */
+			readonly 400: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					readonly "*/*": Record<string, never>;
+				};
+			};
+			/** @description Repository not found */
+			readonly 404: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					readonly "*/*": Record<string, never>;
+				};
+			};
+			/** @description GitHub API rate limit exceeded */
+			readonly 429: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					readonly "*/*": Record<string, never>;
+				};
+			};
+			/** @description Internal server error */
+			readonly 500: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					readonly "*/*": Record<string, never>;
+				};
+			};
+		};
+	};
 }

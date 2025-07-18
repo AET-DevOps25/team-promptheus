@@ -1,66 +1,170 @@
 {
-  "components": {
-    "schemas": {
-      "Summary": {
-        "properties": {
-          "analysis": { "type": "string" },
-          "areasForImprovement": { "items": { "type": "string" }, "type": "array" },
-          "commitsCount": { "format": "int32", "type": "integer" },
-          "commitsSummary": { "type": "string" },
-          "createdAt": { "format": "date-time", "type": "string" },
-          "gitRepositoryId": { "format": "int64", "type": "integer" },
-          "id": { "format": "int64", "type": "integer" },
-          "issuesCount": { "format": "int32", "type": "integer" },
-          "issuesSummary": { "type": "string" },
-          "keyAchievements": { "items": { "type": "string" }, "type": "array" },
-          "overview": { "type": "string" },
-          "pullRequestsCount": { "format": "int32", "type": "integer" },
-          "pullRequestsSummary": { "type": "string" },
-          "releasesCount": { "format": "int32", "type": "integer" },
-          "releasesSummary": { "type": "string" },
-          "totalContributions": { "format": "int32", "type": "integer" },
-          "username": { "type": "string" },
-          "week": { "type": "string" }
-        },
-        "type": "object"
-      }
-    }
-  },
-  "info": { "title": "OpenAPI definition", "version": "v0" },
-  "openapi": "3.1.0",
-  "paths": {
-    "/api/summaries": {
-      "get": {
-        "operationId": "getSummaries",
-        "parameters": [
-          { "in": "query", "name": "week", "required": false, "schema": { "type": "string" } }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": { "items": { "$ref": "#/components/schemas/Summary" }, "type": "array" }
-              }
-            },
-            "description": "OK"
-          }
-        },
-        "tags": ["summary-controller"]
-      }
-    },
-    "/api/summaries/{owner}/{repo}/{username}/{week}": {
-      "post": {
-        "operationId": "generateSummary",
-        "parameters": [
-          { "in": "path", "name": "owner", "required": true, "schema": { "type": "string" } },
-          { "in": "path", "name": "repo", "required": true, "schema": { "type": "string" } },
-          { "in": "path", "name": "username", "required": true, "schema": { "type": "string" } },
-          { "in": "path", "name": "week", "required": true, "schema": { "type": "string" } }
-        ],
-        "responses": { "200": { "description": "OK" } },
-        "tags": ["summary-controller"]
-      }
-    }
-  },
-  "servers": [{ "description": "Generated server url", "url": "http://localhost:8084" }]
+	"components": {
+		"schemas": {
+			"Summary": {
+				"properties": {
+					"analysis": {
+						"type": "string"
+					},
+					"areasForImprovement": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"commitsCount": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"commitsSummary": {
+						"type": "string"
+					},
+					"createdAt": {
+						"format": "date-time",
+						"type": "string"
+					},
+					"gitRepositoryId": {
+						"format": "int64",
+						"type": "integer"
+					},
+					"id": {
+						"format": "int64",
+						"type": "integer"
+					},
+					"issuesCount": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"issuesSummary": {
+						"type": "string"
+					},
+					"keyAchievements": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"overview": {
+						"type": "string"
+					},
+					"pullRequestsCount": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"pullRequestsSummary": {
+						"type": "string"
+					},
+					"releasesCount": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"releasesSummary": {
+						"type": "string"
+					},
+					"totalContributions": {
+						"format": "int32",
+						"type": "integer"
+					},
+					"username": {
+						"type": "string"
+					},
+					"week": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			}
+		}
+	},
+	"info": {
+		"title": "OpenAPI definition",
+		"version": "v0"
+	},
+	"openapi": "3.1.0",
+	"paths": {
+		"/api/summaries": {
+			"get": {
+				"operationId": "getSummaries",
+				"parameters": [
+					{
+						"in": "query",
+						"name": "week",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"*/*": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/Summary"
+									},
+									"type": "array"
+								}
+							}
+						},
+						"description": "OK"
+					}
+				},
+				"summary": "Get summaries",
+				"tags": ["summary-controller"]
+			}
+		},
+		"/api/summaries/{owner}/{repo}/{username}/{week}": {
+			"post": {
+				"operationId": "generateSummary",
+				"parameters": [
+					{
+						"in": "path",
+						"name": "owner",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "repo",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "username",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "week",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK"
+					}
+				},
+				"summary": "Generate summary",
+				"tags": ["summary-controller"]
+			}
+		}
+	},
+	"servers": [
+		{
+			"description": "Generated server url",
+			"url": "http://localhost:8084"
+		}
+	]
 }

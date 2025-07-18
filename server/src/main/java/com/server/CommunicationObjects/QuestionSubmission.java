@@ -22,5 +22,21 @@ public record QuestionSubmission(
         minLength = 1,
         maxLength = 100
     )
-    String username
+    String username,
+
+    @Schema(
+        description = "Optional repository ID to specify which repository the question is about (overrides repository from usercode)",
+        example = "123",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
+        nullable = true
+    )
+    Long gitRepositoryId,
+
+    @Schema(
+        description = "Optional week ID to associate the question with a specific week (if not provided, uses current week)",
+        example = "2025-W25",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
+        nullable = true
+    )
+    String weekId
 ) {}

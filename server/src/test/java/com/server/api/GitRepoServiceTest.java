@@ -5,6 +5,7 @@ import com.server.CommunicationObjects.LinkConstruct;
 import com.server.CommunicationObjects.PATConstruct;
 import com.server.persistence.entity.*;
 import com.server.persistence.repository.*;
+import com.server.service.QuestionAnswerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,11 +35,15 @@ class GitRepoServiceTest {
     @Mock
     private PersonalAccessToken2GitRepoRepository pat2gitRepository;
     @Mock
+    private QuestionAnswerRepository questionAnswerRepository;
+    @Mock
     private GitContentRepository gitContentRepository;
+    @Mock
+    private QuestionAnswerService questionAnswerService;
     private GitRepoService gitRepoService;
     @BeforeEach
     void setUp() {
-        gitRepoService = new GitRepoService(gitRepoRepository, linkRepository, patRepository, pat2gitRepository, questionRepository, gitContentRepository);
+        gitRepoService = new GitRepoService(gitRepoRepository, linkRepository, patRepository, pat2gitRepository, questionRepository, questionAnswerRepository, gitContentRepository, questionAnswerService);
     }
 
     @Test
@@ -236,7 +241,7 @@ class GitRepoServiceTest {
 
         // Act & Assert
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-                () -> gitRepoService.createQuestion(invalidAccessId, question));
+                () -> gitRepoService.createQuestion(invalidAccessId, question, "testuser", 1L, "2025-W04"));
 
         assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
         assertEquals("link is not a valid access id", exception.getReason());

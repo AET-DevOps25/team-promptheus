@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+	createContext,
+	type ReactNode,
+	useContext,
+	useEffect,
+	useState,
+} from "react";
 
 interface UserContextType {
 	userId: string;
@@ -59,11 +65,7 @@ export function UserProvider({ children }: UserProviderProps) {
 		clearUser,
 	};
 
-	return (
-		<UserContext.Provider value={value}>
-			{children}
-		</UserContext.Provider>
-	);
+	return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
 
 export function useUser(): UserContextType {

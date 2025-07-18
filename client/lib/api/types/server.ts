@@ -4,352 +4,491 @@
  */
 
 export type paths = {
-    readonly "/api/repositories/{usercode}": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        /**
-         * Get the git repository information
-         * @description Auth is handled via the provided UUID
-         */
-        readonly get: operations["getGitRepository"];
-        readonly put?: never;
-        readonly post?: never;
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/repositories/{usercode}/question": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly get?: never;
-        readonly put?: never;
-        /** Create a question to be answered asynchronously by the AI service */
-        readonly post: operations["createQuestion"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/repositories/PAT": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly get?: never;
-        readonly put?: never;
-        /** Provide the personal access token to retrieve the secure maintainer and developer links */
-        readonly post: operations["createFromPAT"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
+	readonly "/api/repositories/{usercode}/question": {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path?: never;
+			readonly cookie?: never;
+		};
+		readonly get?: never;
+		readonly put?: never;
+		/** Create a question and get the AI-powered answer */
+		readonly post: operations["createQuestion"];
+		readonly delete?: never;
+		readonly options?: never;
+		readonly head?: never;
+		readonly patch?: never;
+		readonly trace?: never;
+	};
+	readonly "/api/repositories/PAT": {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path?: never;
+			readonly cookie?: never;
+		};
+		readonly get?: never;
+		readonly put?: never;
+		/** Provide the personal access token to retrieve the secure maintainer and developer links */
+		readonly post: operations["createFromPAT"];
+		readonly delete?: never;
+		readonly options?: never;
+		readonly head?: never;
+		readonly patch?: never;
+		readonly trace?: never;
+	};
+	readonly "/api/repositories/{usercode}": {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path?: never;
+			readonly cookie?: never;
+		};
+		/**
+		 * Get the git repository information
+		 * @description Auth is handled via the provided UUID
+		 */
+		readonly get: operations["getGitRepository"];
+		readonly put?: never;
+		readonly post?: never;
+		readonly delete?: never;
+		readonly options?: never;
+		readonly head?: never;
+		readonly patch?: never;
+		readonly trace?: never;
+	};
+	readonly "/api/repositories/questions/{username}/{weekId}": {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path?: never;
+			readonly cookie?: never;
+		};
+		/** Get questions and answers for a specific user and week */
+		readonly get: operations["getQuestionsForUserWeek"];
+		readonly put?: never;
+		readonly post?: never;
+		readonly delete?: never;
+		readonly options?: never;
+		readonly head?: never;
+		readonly patch?: never;
+		readonly trace?: never;
+	};
 };
 export type webhooks = Record<string, never>;
 export type components = {
-    schemas: {
-        /** @description Metadata about repository content with AI-generated summary */
-        readonly ContentConstruct: {
-            /**
-             * Format: date-time
-             * @description Timestamp when the content was created or processed
-             * @example 2023-01-20T08:45:12.789Z
-             */
-            readonly createdAt: string;
-            /**
-             * @description Unique identifier for the content item
-             * @example commit-12a34bc5
-             */
-            readonly id: string;
-            /**
-             * @description AI-generated summary of the content
-             * @example Fixed authentication bug in login controller
-             */
-            readonly summary: string;
-            /**
-             * @description Type of content (e.g., commit, pull request, issue)
-             * @example commit
-             */
-            readonly type: string;
-            /**
-             * @description GitHub username of the content author
-             * @example johndoe
-             */
-            readonly user: string;
-        };
-        /** @description Repository information including metadata, questions, summaries, and contents */
-        readonly GitRepoInformationConstruct: {
-            /** @description List of repository content metadata */
-            readonly contents?: readonly components["schemas"]["ContentConstruct"][];
-            /**
-             * Format: date-time
-             * @description Timestamp when the repository was registered with the service
-             * @example 2023-01-15T14:30:45.123Z
-             */
-            readonly createdAt: string;
-            /**
-             * @description Whether the requesting user has maintainer privileges
-             * @example true
-             */
-            readonly isMaintainer: boolean;
-            /** @description List of questions and their answers related to this repository */
-            readonly questions?: readonly components["schemas"]["QuestionConstruct"][];
-            /**
-             * @description URL to the GitHub repository
-             * @example https://github.com/organization/repository
-             */
-            readonly repoLink: string;
-            /** @description List of AI-generated summaries of the repository content */
-            readonly summaries?: readonly components["schemas"]["SummaryConstruct"][];
-        };
-        /** @description Contains secure access links for developers and stakeholders */
-        readonly LinkConstruct: {
-            /**
-             * @description URL for developer access to the repository
-             * @example https://example.com/app/123e4567-e89b-12d3-a456-426614174000
-             */
-            readonly developerview: string;
-            /**
-             * @description URL for stakeholder access to the repository
-             * @example https://example.com/app/123e4567-e89b-12d3-a456-426614174001
-             */
-            readonly stakeholderview: string;
-        };
-        /** @description Request object containing GitHub Personal Access Token and repository information */
-        readonly PATConstruct: {
-            /**
-             * @description GitHub Personal Access Token with repo scope
-             * @example ghp_1234567890abcdefghijklmnopqrstuvwxyz
-             */
-            readonly pat: string;
-            /**
-             * @description URL to the GitHub repository
-             * @example https://github.com/organization/repository
-             */
-            readonly repolink: string;
-        };
-        /** @description Answer provided by the AI for a user's question */
-        readonly QuestionAnswerConstruct: {
-            /**
-             * @description The answer text generated by the AI
-             * @example The system uses OAuth2 with JWT tokens for authentication
-             */
-            readonly answer: string;
-            /**
-             * Format: date-time
-             * @description Timestamp when the answer was generated
-             * @example 2023-01-16T09:15:30.456Z
-             */
-            readonly createdAt: string;
-        };
-        /** @description Question submitted by a user with its answers */
-        readonly QuestionConstruct: {
-            /** @description List of AI-generated answers to this question */
-            readonly answers?: readonly components["schemas"]["QuestionAnswerConstruct"][];
-            /**
-             * Format: date-time
-             * @description Timestamp when the question was created
-             * @example 2023-01-15T16:45:22.789Z
-             */
-            readonly createdAt: string;
-            /**
-             * @description The question text submitted by the user
-             * @example How does the authentication system work?
-             */
-            readonly question: string;
-        };
-        /** @description Request object for submitting a new question to be answered by the AI */
-        readonly QuestionSubmission: {
-            /**
-             * @description The question text to be processed by the AI
-             * @example How does the authentication system work?
-             */
-            readonly question: string;
-        };
-        /** @description AI-generated summary of repository content */
-        readonly SummaryConstruct: {
-            /**
-             * Format: date-time
-             * @description Timestamp when the summary was generated
-             * @example 2023-01-18T10:15:30.123Z
-             */
-            readonly createdAt: string;
-            /**
-             * Format: int64
-             * @description Unique identifier for the summary
-             * @example 42
-             */
-            readonly id: number;
-            /**
-             * @description Text content of the AI-generated summary
-             * @example This repository implements a RESTful API for user authentication using Spring Security
-             */
-            readonly summary: string;
-        };
-    };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+	schemas: {
+		/** @description Request object for submitting a new question to be answered by the AI */
+		readonly QuestionSubmission: {
+			/**
+			 * @description The question text to be processed by the AI
+			 * @example How does the authentication system work?
+			 */
+			readonly question: string;
+			/**
+			 * @description The username of the person asking the question
+			 * @example john.doe
+			 */
+			readonly username: string;
+			/**
+			 * Format: int64
+			 * @description Optional repository ID to specify which repository the question is about (overrides repository from usercode)
+			 * @example 123
+			 */
+			readonly gitRepositoryId?: number;
+			/**
+			 * @description Optional week ID to associate the question with a specific week (if not provided, uses current week)
+			 * @example 2025-W25
+			 */
+			readonly weekId?: string;
+		};
+		/** @description Answer provided by the AI for a user's question */
+		readonly QuestionAnswerConstruct: {
+			/**
+			 * @description The answer text generated by the AI
+			 * @example The system uses OAuth2 with JWT tokens for authentication
+			 */
+			readonly answer: string;
+			/**
+			 * Format: float
+			 * @description Confidence score of the AI answer (0.0 to 1.0)
+			 * @example 0.85
+			 */
+			readonly confidence?: number;
+			/**
+			 * Format: date-time
+			 * @description Timestamp when the answer was generated
+			 * @example 2023-01-16T09:15:30.456Z
+			 */
+			readonly createdAt: string;
+			/**
+			 * @description UUIDv7 identifier from GenAI service response
+			 * @example 018d1234-5678-7abc-def0-123456789abc
+			 */
+			readonly genaiQuestionId?: string;
+			/**
+			 * @description GitHub username - denormalized for performance
+			 * @example john.doe
+			 */
+			readonly userName?: string;
+			/**
+			 * @description ISO week format (YYYY-WXX) - denormalized for performance
+			 * @example 2025-W29
+			 */
+			readonly weekId?: string;
+			/**
+			 * @description Question text - denormalized for easy access
+			 * @example How does the authentication system work?
+			 */
+			readonly questionText?: string;
+			/**
+			 * @description Complete GenAI response including evidence, reasoning steps, and suggested actions
+			 * @example {"question_id":"018d1234-5678-7abc-def0-123456789abc","evidence":[...],"reasoning_steps":[...]}
+			 */
+			readonly fullResponse?: string;
+			/**
+			 * Format: date-time
+			 * @description When question was asked (from GenAI)
+			 * @example 2023-01-16T09:15:30.456Z
+			 */
+			readonly askedAt?: string;
+			/**
+			 * Format: int32
+			 * @description Response time from GenAI service in milliseconds
+			 * @example 1420
+			 */
+			readonly responseTimeMs?: number;
+			/**
+			 * @description Session ID for conversation context
+			 * @example john.doe:2025-W29
+			 */
+			readonly conversationId?: string;
+		};
+		/** @description Request object containing GitHub Personal Access Token and repository information */
+		readonly PATConstruct: {
+			/**
+			 * @description URL to the GitHub repository
+			 * @example https://github.com/organization/repository
+			 */
+			readonly repolink: string;
+			/**
+			 * @description GitHub Personal Access Token with repo scope
+			 * @example ghp_1234567890abcdefghijklmnopqrstuvwxyz
+			 */
+			readonly pat: string;
+		};
+		/** @description Contains secure access links for developers and stakeholders */
+		readonly LinkConstruct: {
+			/**
+			 * @description URL for developer access to the repository
+			 * @example https://example.com/app/123e4567-e89b-12d3-a456-426614174000
+			 */
+			readonly developerview: string;
+			/**
+			 * @description URL for stakeholder access to the repository
+			 * @example https://example.com/app/123e4567-e89b-12d3-a456-426614174001
+			 */
+			readonly stakeholderview: string;
+		};
+		/** @description Metadata about repository content with AI-generated summary */
+		readonly ContentConstruct: {
+			/**
+			 * @description Unique identifier for the content item
+			 * @example commit-12a34bc5
+			 */
+			readonly id: string;
+			/**
+			 * @description Type of content (e.g., commit, pull request, issue)
+			 * @example commit
+			 */
+			readonly type: string;
+			/**
+			 * @description GitHub username of the content author
+			 * @example johndoe
+			 */
+			readonly user: string;
+			/**
+			 * @description AI-generated summary of the content
+			 * @example Fixed authentication bug in login controller
+			 */
+			readonly summary: string;
+			/**
+			 * Format: date-time
+			 * @description Timestamp when the content was created or processed
+			 * @example 2023-01-20T08:45:12.789Z
+			 */
+			readonly createdAt: string;
+		};
+		/** @description Repository information including metadata, questions, summaries, and contents */
+		readonly GitRepoInformationConstruct: {
+			/**
+			 * @description URL to the GitHub repository
+			 * @example https://github.com/organization/repository
+			 */
+			readonly repoLink: string;
+			/**
+			 * @description Whether the requesting user has maintainer privileges
+			 * @example true
+			 */
+			readonly isMaintainer: boolean;
+			/**
+			 * Format: date-time
+			 * @description Timestamp when the repository was registered with the service
+			 * @example 2023-01-15T14:30:45.123Z
+			 */
+			readonly createdAt: string;
+			/** @description List of questions and their answers related to this repository */
+			readonly questions?: readonly components["schemas"]["QuestionConstruct"][];
+			/** @description List of AI-generated summaries of the repository content */
+			readonly summaries?: readonly components["schemas"]["SummaryConstruct"][];
+			/** @description List of repository content metadata */
+			readonly contents?: readonly components["schemas"]["ContentConstruct"][];
+		};
+		/** @description Question submitted by a user with its answers */
+		readonly QuestionConstruct: {
+			/**
+			 * @description The question text submitted by the user
+			 * @example How does the authentication system work?
+			 */
+			readonly question: string;
+			/**
+			 * Format: date-time
+			 * @description Timestamp when the question was created
+			 * @example 2023-01-15T16:45:22.789Z
+			 */
+			readonly createdAt: string;
+			/** @description List of AI-generated answers to this question */
+			readonly answers?: readonly components["schemas"]["QuestionAnswerConstruct"][];
+		};
+		/** @description AI-generated summary of repository content */
+		readonly SummaryConstruct: {
+			/**
+			 * Format: int64
+			 * @description Unique identifier for the summary
+			 * @example 42
+			 */
+			readonly id: number;
+			/**
+			 * @description Text content of the AI-generated summary
+			 * @example This repository implements a RESTful API for user authentication using Spring Security
+			 */
+			readonly summary: string;
+			/**
+			 * Format: date-time
+			 * @description Timestamp when the summary was generated
+			 * @example 2023-01-18T10:15:30.123Z
+			 */
+			readonly createdAt: string;
+		};
+	};
+	responses: never;
+	parameters: never;
+	requestBodies: never;
+	headers: never;
+	pathItems: never;
 };
 export type $defs = Record<string, never>;
 export interface operations {
-    readonly getGitRepository: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path: {
-                /**
-                 * @description UUID access token for repository authentication
-                 * @example 123e4567-e89b-12d3-a456-426614174000
-                 */
-                readonly usercode: string;
-            };
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            /** @description Repository information including questions, summaries, and contents */
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    /** @example {
-                     *       "contents": [],
-                     *       "createdAt": "2023-01-15T14:30:45.123Z",
-                     *       "isMaintainer": true,
-                     *       "questions": [
-                     *         {
-                     *           "answers": [
-                     *             {
-                     *               "answer": "The system uses OAuth2 with JWT tokens",
-                     *               "createdAt": "2023-01-16T09:15:30.456Z"
-                     *             }
-                     *           ],
-                     *           "createdAt": "2023-01-15T16:45:22.789Z",
-                     *           "question": "How does the authentication system work?"
-                     *         }
-                     *       ],
-                     *       "repoLink": "https://github.com/organization/repository",
-                     *       "summaries": []
-                     *     } */
-                    readonly "application/json": components["schemas"]["GitRepoInformationConstruct"];
-                };
-            };
-            /** @description Forbidden - Requested UUID access token does not exist */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    /** @example Invalid access token */
-                    readonly "application/json": string;
-                };
-            };
-        };
-    };
-    readonly createQuestion: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path: {
-                /**
-                 * @description UUID access token for repository authentication
-                 * @example 123e4567-e89b-12d3-a456-426614174000
-                 */
-                readonly usercode: string;
-            };
-            readonly cookie?: never;
-        };
-        /** @description Question to create */
-        readonly requestBody: {
-            readonly content: {
-                /** @example {
-                 *       "question": "Why are these developer raving about 42?"
-                 *     } */
-                readonly "application/json": components["schemas"]["QuestionSubmission"];
-            };
-        };
-        readonly responses: {
-            /** @description Question successfully submitted for AI processing */
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    /** @example Created Successfull */
-                    readonly "application/json": string;
-                };
-            };
-            /** @description Forbidden - Requested UUID access token does not exist */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    /** @example Invalid access token */
-                    readonly "application/json": string;
-                };
-            };
-        };
-    };
-    readonly createFromPAT: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        /** @description Personal Access Token for GitHub repository */
-        readonly requestBody: {
-            readonly content: {
-                /** @example {
-                 *       "pat": "ghp_1234567890abcdefghijklmnopqrstuvwxyz",
-                 *       "repolink": "https://github.com/organization/repository"
-                 *     } */
-                readonly "application/json": components["schemas"]["PATConstruct"];
-            };
-        };
-        readonly responses: {
-            /** @description Secure maintainer and developer access links successfully generated */
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    /** @example {
-                     *       "developerview": "https://example.com/app/123e4567-e89b-12d3-a456-426614174000",
-                     *       "stakeholderview": "https://example.com/app/123e4567-e89b-12d3-a456-426614174001"
-                     *     } */
-                    readonly "application/json": components["schemas"]["LinkConstruct"];
-                };
-            };
-            /** @description Forbidden - Invalid personal access token provided */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    /** @example Invalid personal access token */
-                    readonly "application/json": string;
-                };
-            };
-        };
-    };
+	readonly createQuestion: {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path: {
+				/**
+				 * @description UUID access token for repository authentication
+				 * @example 123e4567-e89b-12d3-a456-426614174000
+				 */
+				readonly usercode: string;
+			};
+			readonly cookie?: never;
+		};
+		/** @description Question to create */
+		readonly requestBody: {
+			readonly content: {
+				/** @example {
+				 *       "question": "Why are these developer raving about 42?",
+				 *       "username": "john.doe",
+				 *       "gitRepositoryId": 123
+				 *     } */
+				readonly "application/json": components["schemas"]["QuestionSubmission"];
+			};
+		};
+		readonly responses: {
+			/** @description Question processed successfully with AI-generated answer */
+			readonly 200: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					/** @example {
+					 *       "answer": "Based on the contributions, the main technical challenges included...",
+					 *       "confidence": 0.95,
+					 *       "createdAt": "2023-01-16T09:15:30.456Z",
+					 *       "genaiQuestionId": "018d1234-5678-7abc-def0-123456789abc",
+					 *       "userName": "john.doe",
+					 *       "weekId": "2025-W29",
+					 *       "questionText": "What were the main technical challenges this week?",
+					 *       "askedAt": "2023-01-16T09:15:30.456Z",
+					 *       "responseTimeMs": 1420,
+					 *       "conversationId": "john.doe:2025-W29"
+					 *     } */
+					readonly "application/json": components["schemas"]["QuestionAnswerConstruct"];
+				};
+			};
+			/** @description Forbidden - Requested UUID access token does not exist */
+			readonly 403: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					/** @example Invalid access token */
+					readonly "application/json": string;
+				};
+			};
+		};
+	};
+	readonly createFromPAT: {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path?: never;
+			readonly cookie?: never;
+		};
+		/** @description Personal Access Token for GitHub repository */
+		readonly requestBody: {
+			readonly content: {
+				/** @example {
+				 *       "pat": "ghp_1234567890abcdefghijklmnopqrstuvwxyz",
+				 *       "repolink": "https://github.com/organization/repository"
+				 *     } */
+				readonly "application/json": components["schemas"]["PATConstruct"];
+			};
+		};
+		readonly responses: {
+			/** @description Secure maintainer and developer access links successfully generated */
+			readonly 200: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					/** @example {
+					 *       "developerview": "https://example.com/app/123e4567-e89b-12d3-a456-426614174000",
+					 *       "stakeholderview": "https://example.com/app/123e4567-e89b-12d3-a456-426614174001"
+					 *     } */
+					readonly "application/json": components["schemas"]["LinkConstruct"];
+				};
+			};
+			/** @description Forbidden - Invalid personal access token provided */
+			readonly 403: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					/** @example Invalid personal access token */
+					readonly "application/json": string;
+				};
+			};
+		};
+	};
+	readonly getGitRepository: {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path: {
+				/**
+				 * @description UUID access token for repository authentication
+				 * @example 123e4567-e89b-12d3-a456-426614174000
+				 */
+				readonly usercode: string;
+			};
+			readonly cookie?: never;
+		};
+		readonly requestBody?: never;
+		readonly responses: {
+			/** @description Repository information including questions, summaries, and contents */
+			readonly 200: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					/** @example {
+					 *       "repoLink": "https://github.com/organization/repository",
+					 *       "isMaintainer": true,
+					 *       "createdAt": "2023-01-15T14:30:45.123Z",
+					 *       "questions": [
+					 *         {
+					 *           "question": "How does the authentication system work?",
+					 *           "answers": [
+					 *             {
+					 *               "answer": "The system uses OAuth2 with JWT tokens",
+					 *               "createdAt": "2023-01-16T09:15:30.456Z"
+					 *             }
+					 *           ],
+					 *           "createdAt": "2023-01-15T16:45:22.789Z"
+					 *         }
+					 *       ],
+					 *       "summaries": [],
+					 *       "contents": []
+					 *     } */
+					readonly "application/json": components["schemas"]["GitRepoInformationConstruct"];
+				};
+			};
+			/** @description Forbidden - Requested UUID access token does not exist */
+			readonly 403: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					/** @example Invalid access token */
+					readonly "application/json": string;
+				};
+			};
+		};
+	};
+	readonly getQuestionsForUserWeek: {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path: {
+				/**
+				 * @description GitHub username to get questions for
+				 * @example john.doe
+				 */
+				readonly username: string;
+				/**
+				 * @description ISO week format (YYYY-WXX) to get questions for
+				 * @example 2025-W29
+				 */
+				readonly weekId: string;
+			};
+			readonly cookie?: never;
+		};
+		readonly requestBody?: never;
+		readonly responses: {
+			/** @description Questions and answers for the specified user and week */
+			readonly 200: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					/** @example [
+					 *       {
+					 *         "answer": "You worked on implementing the Q/A API system...",
+					 *         "confidence": 0.95,
+					 *         "createdAt": "2023-01-16T09:15:30.456Z",
+					 *         "genaiQuestionId": "018d1234-5678-7abc-def0-123456789abc",
+					 *         "userName": "john.doe",
+					 *         "weekId": "2025-W29",
+					 *         "questionText": "What did I work on this week?",
+					 *         "askedAt": "2023-01-16T09:15:30.456Z",
+					 *         "responseTimeMs": 1420,
+					 *         "conversationId": "john.doe:2025-W29"
+					 *       }
+					 *     ] */
+					readonly "application/json": components["schemas"]["QuestionAnswerConstruct"];
+				};
+			};
+		};
+	};
 }
