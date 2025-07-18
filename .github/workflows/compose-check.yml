@@ -37,7 +37,7 @@ jobs:
             docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
 
             # Check for unhealthy containers
-            unhealthy=$(docker ps --format '{{.Names}} {{.Status}}' | grep -v 'healthy' | grep 'health')
+            unhealthy=$(docker ps --format '{{.Names}} {{.Status}}' | grep -v 'healthy' | grep 'health' || true)
 
             if [ -z "$unhealthy" ]; then
               echo "[SUCCESS] All containers reached healthy state after ${elapsed}s"
@@ -48,15 +48,6 @@ jobs:
 
             echo "[WARNING] Unhealthy containers detected:"
             echo "$unhealthy"
-
-            # Show detailed logs for unhealthy containers
-            echo "[DEBUG] Recent logs from unhealthy containers:"
-            echo "$unhealthy" | while read -r container; do
-              container_name=$(echo "$container" | awk '{print $1}')
-              echo "[LOG_ANALYSIS] Container: $container_name"
-              docker logs --tail=10 "$container_name" 2>&1 || echo "[ERROR] Failed to retrieve logs for $container_name"
-              echo "---"
-            done
 
             echo "[WAIT] ${elapsed}s/300s elapsed, continuing health check..."
             sleep 10
