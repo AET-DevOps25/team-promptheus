@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.5'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id "org.openapi.generator" version "7.14.0"
 }
 
 group = 'com.server'
@@ -19,10 +20,14 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'org.hibernate.validator:hibernate-validator:9.0.0.Final'
 
 	// docs
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
+	implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+	implementation 'javax.annotation:javax.annotation-api:1.3.2'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
 	// db access
 	implementation 'org.postgresql:postgresql:42.7.2'
@@ -50,6 +55,70 @@ dependencies {
 	testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
 }
 
+// Generate GenAI client
+openApiGenerate {
+    generatorName = "java"
+    inputSpec = file("$projectDir/genai.json").exists() ? "$projectDir/genai.json" : "$projectDir/../genai/openapi.json"
+    outputDir = "$buildDir/generated-genai"
+    apiPackage = "com.server.genai.api"
+    modelPackage = "com.server.genai.model"
+    configOptions = [
+        "library": "webclient",
+        "useSpringBoot3": "true",
+        "openApiNullable": "false",
+        "useJakartaEe": "true",
+        "generateApiTests": "false",
+        "generateModelTests": "false",
+        "generateSupportingFiles": "true",
+        "generateApiDocumentation": "false",
+        "generateModelDocumentation": "false"
+    ]
+}
+
+// Generate Summary client
+task openApiGenerateSummary(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+    generatorName = "java"
+    inputSpec = file("$projectDir/summary.json").exists() ? "$projectDir/summary.json" : "$projectDir/../summary/openapi.json"
+    outputDir = "$buildDir/generated-summary"
+    apiPackage = "com.server.summary.api"
+    modelPackage = "com.server.summary.model"
+    configOptions = [
+        "library": "webclient",
+        "useSpringBoot3": "true",
+        "openApiNullable": "false",
+        "useJakartaEe": "true",
+        "generateApiTests": "false",
+        "generateModelTests": "false",
+        "generateSupportingFiles": "true",
+        "generateApiDocumentation": "false",
+        "generateModelDocumentation": "false"
+    ]
+}
+
+tasks.named('compileJava') {
+    dependsOn 'openApiGenerate', 'openApiGenerateSummary'
+}
+
+tasks.named('compileTestJava') {
+    dependsOn 'openApiGenerate', 'openApiGenerateSummary'
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
+    dependsOn 'openApiGenerate', 'openApiGenerateSummary'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir "$buildDir/generated-genai/src/main/java"
+            srcDir "$buildDir/generated-summary/src/main/java"
+        }
+    }
+    test {
+        java {
+            srcDir "$buildDir/generated-genai/src/test/java"
+            srcDir "$buildDir/generated-summary/src/test/java"
+        }
+    }
 }

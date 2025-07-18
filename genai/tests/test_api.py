@@ -324,6 +324,7 @@ class TestQuestionAnswering:
         """Test successful question answering."""
         request_data = {
             "question": "What commits were made?",
+            "repository": "octocat/Hello-World",
             "github_pat": "fake_test_pat_123",
             "context": {
                 "focus_areas": ["features", "bugs", "performance"],
@@ -509,6 +510,7 @@ class TestFullWorkflow:
         # 3. Ask questions about the contributions
         question1 = {
             "question": "What new features were implemented?",
+            "repository": "octocat/Hello-World",
             "github_pat": "fake_test_pat_123",
             "context": {
                 "focus_areas": ["features", "implementation"],
@@ -526,6 +528,7 @@ class TestFullWorkflow:
 
         question2 = {
             "question": "Are there any performance issues?",
+            "repository": "octocat/Hello-World",
             "github_pat": "fake_test_pat_123",
             "context": {
                 "focus_areas": ["performance", "optimization"],
@@ -584,6 +587,7 @@ class TestFullWorkflow:
         # Ask questions for each user
         question = {
             "question": "What did I work on?",
+            "repository": "octocat/Hello-World",
             "github_pat": "fake_test_pat_123",
             "context": {
                 "focus_areas": [],

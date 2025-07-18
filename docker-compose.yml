@@ -86,8 +86,8 @@ services:
         ]
       interval: 10s
       timeout: 3s
-      retries: 5
-      start_period: 1s
+      retries: 10
+      start_period: 30s
       start_interval: 100ms
   db:
     image: postgres:17
@@ -125,7 +125,8 @@ services:
       management.otlp.metrics.export.url: http://monitoring:4318/v1/metrics
       management.otlp.logging.endpoint: http://monitoring:4318/v1/logs
     build:
-      context: server
+      context: .
+      dockerfile: server/Dockerfile
     restart: unless-stopped
     ports:
       - ${SERVER_PORT:-8080}:8080
@@ -153,8 +154,8 @@ services:
         ]
       interval: 10s
       timeout: 3s
-      retries: 5
-      start_period: 1s
+      retries: 10
+      start_period: 30s
       start_interval: 100ms
   genai:
     image: ghcr.io/aet-devops25/promptheus-genai:main
@@ -245,8 +246,8 @@ services:
         ]
       interval: 10s
       timeout: 3s
-      retries: 5
-      start_period: 1s
+      retries: 10
+      start_period: 30s
       start_interval: 100ms
     depends_on:
       db:
@@ -284,11 +285,18 @@ services:
         - action: rebuild
           path: ./summary/src
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      test:
+        [
+          "CMD",
+          "/bin/wget",
+          "-qO-",
+          "--tries=1",
+          "http://localhost:8084/actuator/health",
+        ]
       interval: 10s
       timeout: 3s
-      retries: 5
-      start_period: 1s
+      retries: 10
+      start_period: 30s
       start_interval: 100ms
     depends_on:
       db:
@@ -333,9 +341,17 @@ services:
         - action: rebuild
           path: ./client/components.json
         - action: rebuild
-          path: ./client/src
+          path: ./client/app
+        - action: rebuild
+          path: ./client/components
+        - action: rebuild
+          path: ./client/hooks
+        - action: rebuild
+          path: ./client/lib
         - action: rebuild
           path: ./client/public
+        - action: rebuild
+          path: ./client/styles
         - action: rebuild
           path: ./client/next.config.mjs
   monitoring:

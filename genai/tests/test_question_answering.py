@@ -40,6 +40,7 @@ class TestQuestionAnsweringService:
         """Test QuestionRequest model validation."""
         request = QuestionRequest(
             question="What commits were programmed?",
+            repository="octocat/Hello-World",
             github_pat="fake_pat_for_testing",
             context=QuestionContext(
                 focus_areas=["features", "bugs", "performance"],
@@ -57,6 +58,7 @@ class TestQuestionAnsweringService:
         """Test QuestionRequest JSON serialization."""
         request = QuestionRequest(
             question="What commits were programmed?",
+            repository="octocat/Hello-World",
             github_pat="fake_pat_for_testing",
             context=QuestionContext(
                 focus_areas=["features", "bugs", "performance"],
@@ -79,7 +81,10 @@ class TestQuestionAnsweringService:
     async def test_retrieve_relevant_contributions_empty(self, qa_service) -> None:
         """Test retrieving contributions when none exist."""
         request = QuestionRequest(
-            question="What was done?", github_pat="fake_pat_for_testing", context=QuestionContext(max_evidence_items=5)
+            question="What was done?",
+            repository="octocat/Hello-World",
+            github_pat="fake_pat_for_testing",
+            context=QuestionContext(max_evidence_items=5),
         )
 
         contributions = await qa_service._retrieve_relevant_contributions(
@@ -92,7 +97,10 @@ class TestQuestionAnsweringService:
     async def test_answer_question_no_contributions(self, qa_service) -> None:
         """Test answering question when no contributions are found."""
         request = QuestionRequest(
-            question="What was done?", github_pat="fake_pat_for_testing", context=QuestionContext()
+            question="What was done?",
+            repository="octocat/Hello-World",
+            github_pat="fake_pat_for_testing",
+            context=QuestionContext(),
         )
 
         # Test with a user/week that has no contributions
@@ -117,6 +125,7 @@ class TestQuestionAnsweringService:
         """Test the complete question answering flow."""
         request = QuestionRequest(
             question="What commits were programmed?",
+            repository="octocat/Hello-World",
             github_pat="fake_pat_for_testing",
             context=QuestionContext(
                 focus_areas=["features", "bugs", "performance"],
@@ -149,7 +158,10 @@ class TestQuestionAnsweringService:
 
         # First question
         request1 = QuestionRequest(
-            question="What commits were made?", github_pat="fake_pat_for_testing", context=QuestionContext()
+            question="What commits were made?",
+            repository="octocat/Hello-World",
+            github_pat="fake_pat_for_testing",
+            context=QuestionContext(),
         )
 
         response1 = await qa_service.answer_question(user, week, request1)
@@ -160,7 +172,10 @@ class TestQuestionAnsweringService:
 
         # Second question in same conversation
         request2 = QuestionRequest(
-            question="Tell me more about those commits", github_pat="fake_pat_for_testing", context=QuestionContext()
+            question="Tell me more about those commits",
+            repository="octocat/Hello-World",
+            github_pat="fake_pat_for_testing",
+            context=QuestionContext(),
         )
 
         response2 = await qa_service.answer_question(user, week, request2)
@@ -184,7 +199,10 @@ class TestQuestionAnsweringService:
 
         # Ask a question to create history
         request = QuestionRequest(
-            question="What was done?", github_pat="fake_pat_for_testing", context=QuestionContext()
+            question="What was done?",
+            repository="octocat/Hello-World",
+            github_pat="fake_pat_for_testing",
+            context=QuestionContext(),
         )
 
         await qa_service.answer_question(user, week, request)
@@ -205,7 +223,10 @@ class TestQuestionAnsweringService:
         """Test that different user/week combinations have separate conversations."""
         # Ask questions for different user/week combinations
         request = QuestionRequest(
-            question="What was done?", github_pat="fake_pat_for_testing", context=QuestionContext()
+            question="What was done?",
+            repository="octocat/Hello-World",
+            github_pat="fake_pat_for_testing",
+            context=QuestionContext(),
         )
 
         response1 = await qa_service.answer_question("user1", "2024-W21", request)

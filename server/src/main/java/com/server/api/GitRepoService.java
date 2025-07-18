@@ -3,6 +3,7 @@ package com.server.api;
 import com.server.CommunicationObjects.*;
 import com.server.persistence.entity.*;
 import com.server.persistence.repository.*;
+import com.server.service.QuestionAnswerService;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,7 +28,9 @@ public class GitRepoService {
     private final PersonalAccessTokenRepository patRepository;
     private final PersonalAccessToken2GitRepoRepository pat2gitRepository;
     private final QuestionRepository questionRepository;
+    private final QuestionAnswerRepository questionAnswerRepository;
     private final GitContentRepository gitContentRepository;
+    private final QuestionAnswerService questionAnswerService;
 
     @Autowired
     public GitRepoService(
@@ -35,14 +39,18 @@ public class GitRepoService {
         PersonalAccessTokenRepository patRepository,
         PersonalAccessToken2GitRepoRepository pat2gitRepository,
         QuestionRepository questionRepository,
-        GitContentRepository gitContentRepository
+        QuestionAnswerRepository questionAnswerRepository,
+        GitContentRepository gitContentRepository,
+        QuestionAnswerService questionAnswerService
     ) {
         this.gitRepoRepository = gitRepoRepository;
         this.linkRepository = linkRepository;
         this.patRepository = patRepository;
         this.pat2gitRepository = pat2gitRepository;
         this.questionRepository = questionRepository;
+        this.questionAnswerRepository = questionAnswerRepository;
         this.gitContentRepository = gitContentRepository;
+        this.questionAnswerService = questionAnswerService;
     }
 
     public LinkConstruct createAccessLinks(PATConstruct patRequest) {
@@ -98,13 +106,80 @@ public class GitRepoService {
             .build();
     }
 
-    public void createQuestion(UUID usercode, String question) {
+    public QuestionAnswerConstruct createQuestion(UUID usercode, String question, String username, Long gitRepositoryId, String weekId) {
         Optional<Link> repoLinkEntity = linkRepository.findById(usercode);
         if (repoLinkEntity.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "link is not a valid access id");
         }
 
-        Question q = Question.builder().gitRepositoryId(repoLinkEntity.get().getGitRepositoryId()).question(question).build();
-        questionRepository.save(q);
+        // Determine which repository to use - prioritize gitRepositoryId if provided
+        Long targetRepositoryId;
+        if (gitRepositoryId != null) {
+            // Verify the provided gitRepositoryId is valid and user has access
+            Optional<GitRepo> providedRepo = gitRepoRepository.findById(gitRepositoryId);
+            if (providedRepo.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "specified repository not found");
+            }
+            targetRepositoryId = gitRepositoryId;
+        } else {
+            // Use repository from usercode link
+            targetRepositoryId = repoLinkEntity.get().getGitRepositoryId();
+        }
+
+        // Get repository information for processing
+        Optional<GitRepo> repoEntity = gitRepoRepository.findById(targetRepositoryId);
+        if (repoEntity.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "repository not found");
+        }
+
+        // Save the question first
+        Question q = Question.builder().gitRepositoryId(targetRepositoryId).question(question).build();
+        Question savedQuestion = questionRepository.save(q);
+
+        // Use the provided weekId, or current week as fallback
+        String finalWeekId = weekId != null ? weekId : getCurrentWeekId();
+
+        try {
+            // Process question synchronously and wait for result
+            CompletableFuture<Void> processingFuture = questionAnswerService.processQuestionAsync(
+                savedQuestion.getId(),
+                repoEntity.get().getRepositoryLink(),
+                username,
+                finalWeekId
+            );
+
+            // Wait for processing to complete (with timeout)
+            processingFuture.get(30, java.util.concurrent.TimeUnit.SECONDS);
+
+            // Retrieve the processed answer
+            List<QuestionAnswer> answers = questionAnswerRepository.findByQuestionIdIn(List.of(savedQuestion.getId()));
+            Optional<QuestionAnswer> answerOpt = answers.stream().findFirst();
+
+            if (answerOpt.isPresent()) {
+                return QuestionAnswerConstruct.from(answerOpt.get());
+            } else {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process question - no answer found");
+            }
+
+        } catch (java.util.concurrent.TimeoutException e) {
+            throw new ResponseStatusException(HttpStatus.REQUEST_TIMEOUT, "Question processing timed out");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process question: " + e.getMessage());
+        }
+    }
+
+    private String getCurrentWeekId() {
+        java.time.LocalDate now = java.time.LocalDate.now();
+        java.time.temporal.WeekFields weekFields = java.time.temporal.WeekFields.of(java.util.Locale.getDefault());
+        int weekNumber = now.get(weekFields.weekOfWeekBasedYear());
+        int year = now.get(weekFields.weekBasedYear());
+        return String.format("%d-W%02d", year, weekNumber);
+    }
+
+    public List<QuestionAnswerConstruct> getQuestionsAndAnswersForUserWeek(String username, String weekId) {
+        List<QuestionAnswer> answers = questionAnswerRepository.findByUserNameAndWeekIdOrderByAskedAtDesc(username, weekId);
+        return answers.stream()
+            .map(QuestionAnswerConstruct::from)
+            .toList();
     }
 }

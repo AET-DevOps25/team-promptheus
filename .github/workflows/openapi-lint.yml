@@ -16,6 +16,7 @@ jobs:
           - genai/openapi.json
           - search/openapi.json
           - server/openapi.json
+          - summary/openapi.json
     steps:
       - uses: actions/checkout@v4
       - name: Lint OpenAPI files (matrix)

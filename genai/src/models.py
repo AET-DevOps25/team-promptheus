@@ -512,9 +512,19 @@ class QuestionRequest(BaseModel):
     """Request to ask a question about a user's week."""
 
     question: str
+    repository: str  # Repository in "owner/repo" format
     summary: str | None = None
     context: QuestionContext = Field(default_factory=QuestionContext)
     github_pat: str  # GitHub Personal Access Token for API authentication
+
+    @field_validator("repository")
+    @classmethod
+    def validate_repository_format(cls, v: str) -> str:
+        """Validate repository format (owner/repo)."""
+        if not v or "/" not in v:
+            msg = "Repository must be in format: owner/repo"
+            raise ValueError(msg)
+        return v
 
 
 class QuestionEvidence(BaseModel):

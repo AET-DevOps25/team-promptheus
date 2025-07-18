@@ -10,12 +10,8 @@ import de.promptheus.summary.persistence.GitRepositoryRepository;
 import de.promptheus.summary.service.SummaryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
 
-import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -23,9 +19,9 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.timeout;
 
 import de.promptheus.summary.genai.model.ContributionsIngestRequest;
 import de.promptheus.summary.genai.model.SummaryResponse;
@@ -94,23 +90,23 @@ class SummaryServiceTest {
         repository.setId(1L);
         repository.setRepositoryLink("https://github.com/test/repo");
 
+        // Create a properly configured ContributionDto
         ContributionDto contribution = new ContributionDto();
         contribution.setIsSelected(true);
         contribution.setType("commit");
+        contribution.setId("test-id");
+
+        SummaryResponse summaryResponse = new SummaryResponse();
+        summaryResponse.setOverview("Test summary");
 
         when(contributionClient.getContributionsForUserAndWeek(any(), any())).thenReturn(Mono.just(Collections.singletonList(contribution)));
-        when(genAiClient.generateSummaryAsync(any(ContributionsIngestRequest.class))).thenReturn(Mono.just(new SummaryResponse()));
+        when(genAiClient.generateSummaryAsync(any(ContributionsIngestRequest.class))).thenReturn(Mono.just(summaryResponse));
         when(summaryRepository.findByUsernameAndWeek(username, week)).thenReturn(Collections.emptyList());
 
         // When
         summaryService.generateSummary(username, week, repository, "test-token");
 
-        // Then
-        try {
-            Thread.sleep(1000); // Wait for async processing
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        verify(summaryRepository, times(1)).save(any(Summary.class));
+        // Then - use timeout to wait for async processing
+        verify(summaryRepository, timeout(2000).times(1)).save(any(Summary.class));
     }
 }
