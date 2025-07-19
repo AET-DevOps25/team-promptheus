@@ -1,7 +1,7 @@
 defaultReplicas: 1
 
 secrets:
-    postgresPassword: ""
-    meiliMasterKey: ""
+  postgresPassword: ""
+  meiliMasterKey: ""
 ingress:
-    domain: "team-prompteus.local"
+  domain: "team-prompteus.local"
