@@ -7,3 +7,5 @@ defaultReplicas: 1
 secrets:
     postgresPassword: "postgres"
     meiliMasterKey: "change_me_change_me_change_me"
+ingress:
+    domain: "team-prompteus.local"

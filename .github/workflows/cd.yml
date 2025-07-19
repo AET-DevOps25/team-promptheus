@@ -1,0 +1,24 @@
+name: cd.yml
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy-helm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: azure/setup-helm@v4
+      - uses: azure/k8s-set-context@v4
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+      - uses: actions/checkout@v4
+      - run: |
+          helm install team-promptheus ./k8s \
+            --namespace team-promptheus \
+            --create-namespace \
+            --set secrets.postgresPassword="${{ secrets.POSTGRES_PASSWORD }}" \
+            --set secrets.meiliMasterKey="${{ secrets.MEILI_MASTER_KEY }}"
+            --set ingress.domain=example.com
