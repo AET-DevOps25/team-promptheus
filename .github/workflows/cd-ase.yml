@@ -1,4 +1,4 @@
-name: cd.yml
+name: Deploy to the CIT Cluster
 on:
   push:
     branches:
