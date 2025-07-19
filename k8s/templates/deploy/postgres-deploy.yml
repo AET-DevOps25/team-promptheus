@@ -13,6 +13,8 @@ spec:
             labels:
                 app: postgres
         spec:
+            securityContext:
+              fsGroup: 999
             containers:
                 - name: postgres-exporter
                   imagePullPolicy: Always
@@ -36,8 +38,8 @@ spec:
                   securityContext:
                       runAsNonRoot: true
                       allowPrivilegeEscalation: false
-                      runAsUser: 1000
-                      runAsGroup: 1000
+                      runAsUser: 999
+                      runAsGroup: 999
                       privileged: false
                 - name: postgres
                   imagePullPolicy: Always
@@ -63,11 +65,13 @@ spec:
                             secretKeyRef:
                                 name: app-secrets
                                 key: POSTGRES_DB
+                      - name: PGDATA
+                        value: /var/lib/postgresql/data/pgdata
                   securityContext:
                       runAsNonRoot: true
                       allowPrivilegeEscalation: false
-                      runAsUser: 1000
-                      runAsGroup: 1000
+                      runAsUser: 999
+                      runAsGroup: 999
                       privileged: false
                   volumeMounts:
                       - name: postgres-data
@@ -81,7 +85,7 @@ spec:
                               - pg_isready
                               - -U
                               - postgres
-                      initialDelaySeconds: 1
+                      initialDelaySeconds: 30
                       periodSeconds: 10
                       failureThreshold: 5
                   readinessProbe:
@@ -90,7 +94,7 @@ spec:
                               - pg_isready
                               - -U
                               - postgres
-                      initialDelaySeconds: 1
+                      initialDelaySeconds: 5
                       periodSeconds: 10
                       failureThreshold: 5
             volumes:
