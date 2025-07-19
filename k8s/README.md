@@ -37,7 +37,7 @@ helm upgrade --install team-promptheus ./k8s \
   --set secrets.postgresPassword="your-secure-password" \
   --set secrets.meiliMasterKey="your-super-super-secure-key" \
   --set secrets.ollamaApiKey="your-ollama-api-key" \
-  --set ingress.domain="example.com"
+  --set ingress.domain="prompteus.student.k8s.aet.cit.tum.de"
 ```
 
 > [!TIP]
