@@ -36,6 +36,20 @@ spec:
                             secretKeyRef:
                                 name: app-secrets
                                 key: MEILI_MASTER_KEY
+                      {{ with .Values.secrets.ollamaApiKey }}
+                      - name: OLLAMA_API_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: OLLAMA_API_KEY
+                      {{ end }}
+                      {{ with .Values.secrets.openaiApiKey }}
+                      - name: OPENAI_API_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: app-secrets
+                                key: OPENAI_API_KEY
+                      {{ end }}
                       # routing
                       - name: MEILISEARCH_URL
                         value: http://meilisearch-service:7700
