@@ -37,8 +37,11 @@ export function SummariesTimeline() {
 				</CardHeader>
 				<CardContent>
 					<div className="space-y-4">
-						{Array.from({ length: 5 }).map((_, i) => (
-							<div className="flex gap-4" key={i}>
+						{Array.from(
+							{ length: 5 },
+							(_, i) => `summaries-timeline-skeleton-${i + 1}`,
+						).map((key) => (
+							<div className="flex gap-4" key={key}>
 								<div className="flex flex-col items-center">
 									<div className="h-3 w-3 bg-slate-200 rounded-full animate-pulse" />
 									<div className="w-px h-16 bg-slate-200 animate-pulse" />
@@ -150,7 +153,7 @@ export function SummariesTimeline() {
 														</div>
 														<p className="text-xs text-muted-foreground mb-2">
 															{summary.overview
-																? summary.overview.substring(0, 120) + "..."
+																? `${summary.overview.substring(0, 120)}...`
 																: "No summary available"}
 														</p>
 														<div className="flex items-center gap-2 text-xs">
