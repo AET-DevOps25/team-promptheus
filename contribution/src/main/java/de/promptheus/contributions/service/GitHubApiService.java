@@ -9,7 +9,6 @@ import org.kohsuke.github.*;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;

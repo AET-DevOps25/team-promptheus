@@ -20,7 +20,9 @@ import org.testcontainers.utility.DockerImageName;
 import java.time.Duration;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -89,5 +91,60 @@ class SummaryControllerIntegrationTest {
     void testGetSummaries() throws Exception {
         mockMvc.perform(get("/api/summaries"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void testGenerateBackfillSummaries() throws Exception {
+        mockMvc.perform(post("/api/summaries/backfill"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testGetSummariesWithPagination() throws Exception {
+        // Test pagination functionality
+        mockMvc.perform(get("/api/summaries")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "createdAt,desc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.pageable.pageNumber").value(0))
+                .andExpect(jsonPath("$.pageable.pageSize").value(10))
+                .andExpect(jsonPath("$.totalElements").exists())
+                .andExpect(jsonPath("$.totalPages").exists());
+    }
+
+    @Test
+    public void testGetSummariesWithFilters() throws Exception {
+        // Test filtering functionality
+        mockMvc.perform(get("/api/summaries")
+                .param("week", "2024-W01")
+                .param("username", "testuser")
+                .param("repository", "owner/repo"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray());
+    }
+
+    @Test
+    public void testGetSummariesResponseStructure() throws Exception {
+        // Test that response has correct pagination structure
+        mockMvc.perform(get("/api/summaries"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.pageable").exists())
+                .andExpect(jsonPath("$.totalElements").exists())
+                .andExpect(jsonPath("$.totalPages").exists());
+    }
+
+
+
+    @Test
+    public void testGetSummariesDefaultPagination() throws Exception {
+        // Test default pagination values
+        mockMvc.perform(get("/api/summaries"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pageable.pageSize").value(20))
+                .andExpect(jsonPath("$.pageable.pageNumber").value(0))
+                .andExpect(jsonPath("$.sort.sorted").value(true));
     }
 }

@@ -106,6 +106,14 @@ class ContributionsIngestionService:
             )
 
             # Fetch content for selected contributions using GitHub service
+            pat_info = "provided" if request.github_pat else "not provided"
+            logger.info(
+                "Creating GitHubContentService",
+                user=request.user,
+                week=request.week,
+                repository=request.repository,
+                github_pat=pat_info,
+            )
             github_content_service = GitHubContentService(request.github_pat)
             contributions = await github_content_service.fetch_contributions(
                 repository=request.repository,

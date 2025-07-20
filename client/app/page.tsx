@@ -9,7 +9,6 @@ import {
 	Search,
 	TrendingUp,
 	Users,
-	Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { useId, useState } from "react";
@@ -29,63 +28,71 @@ import { useCreateFromPAT } from "@/lib/api/server";
 export default function HomePage() {
 	const [repoLink, setRepoLink] = useState("");
 	const [pat, setPat] = useState("");
-	const [error, setError] = useState("");
 	const repoLinkId = useId();
 	const patId = useId();
 
+	// Use TanStack Query mutation for PAT submission
 	const createFromPATMutation = useCreateFromPAT();
+
+	// Get loading and error states from the mutation
+	const isLoading = createFromPATMutation.isPending;
+	const error = createFromPATMutation.error;
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!repoLink.trim() || !pat.trim()) return;
 
-		setError("");
 
 		try {
-			const result = await createFromPATMutation.mutateAsync({
-				pat: pat,
-				repolink: repoLink,
-			});
+			// Use the TanStack Query mutation
+			const patData = {
+				repolink: repoLink.trim(),
+				pat: pat.trim(),
+			};
 
-			// Extract usercode from the developerview URL
-			if (result.developerview) {
-				window.location.href = result.developerview;
-			} else {
-				setError("Invalid response from server. Please try again.");
-			}
+			const response = await createFromPATMutation.mutateAsync(patData);
+
+			// Extract the developer view link and use it as the usercode
+			const developerLink = response.developerview;
+			const userCode = developerLink.split("/").pop() || "demo";
+
+			// Store the usercode in localStorage for the user context
+			localStorage.setItem("usercode", userCode);
+
+			// Redirect to the dashboard
+			window.location.href = "/dashboard";
 		} catch (error) {
 			console.error("Setup error:", error);
-			setError(
-				"Failed to connect repository. Please check your GitHub link and token are correct.",
-			);
+			// Error handling is managed by TanStack Query
 		}
 	};
 
 	return (
-		<main className="container mx-auto px-4 py-16 max-w-6xl">
-			<div className="space-y-24 mt-24">
-				{/* Hero Section */}
-				<section className="text-center space-y-8">
-					<div className="space-y-4">
-						<Badge className="bg-blue-100 text-blue-800" variant="secondary">
-							✨ AI-Powered GitHub Management
-						</Badge>
-						<h1 className="text-4xl md:text-6xl font-bold text-slate-900">
-							Keep up with{" "}
-							<span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-								team changes
-							</span>{" "}
-							effortlessly
-						</h1>
-						<p className="text-xl text-slate-600 max-w-3xl mx-auto">
-							Prompteus uses AI to summarize repository activity, answer
-							questions about your codebase, and keep diverse teams aligned with
-							intelligent insights.
-						</p>
-					</div>
+		<div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+			<main className="container mx-auto px-4 py-16 max-w-6xl">
+				<div className="space-y-24">
+					{/* Hero Section */}
+					<section className="text-center space-y-8">
+						<div className="space-y-4">
+							<Badge className="bg-blue-100 text-blue-800" variant="secondary">
+								✨ AI-Powered GitHub Management
+							</Badge>
+							<h1 className="text-4xl md:text-6xl font-bold text-slate-900">
+								Keep up with{" "}
+								<span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+									team changes
+								</span>{" "}
+								effortlessly
+							</h1>
+							<p className="text-xl text-slate-600 max-w-3xl mx-auto">
+								Prompteus uses AI to summarize repository activity, answer
+								questions about your codebase, and keep diverse teams aligned
+								with intelligent insights.
+							</p>
+						</div>
 
-					<div className="flex flex-col sm:flex-row gap-4 justify-center">
-						<Button asChild className="text-lg px-8 py-6" size="lg">
+						<div className="flex flex-col sm:flex-row gap-4 justify-center">
+							<Button className="text-lg px-8 py-6" size="lg">
 							<Link href="#setup-form">
 								<Github className="h-5 w-5 mr-2" />
 								Get Started Free
@@ -141,79 +148,82 @@ export default function HomePage() {
 					</Card>
 				</section>
 
-				{/* Setup Form */}
-				<section className="max-w-2xl mx-auto" id="setup-form">
-					<Card>
-						<CardHeader className="text-center">
-							<CardTitle className="text-2xl">
-								Connect Your Repository
-							</CardTitle>
-							<CardDescription className="text-lg">
-								Get started with AI-powered insights for your GitHub repository
-								in under 2 minutes.
-							</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<form className="space-y-6" onSubmit={handleSubmit}>
-								<div className="space-y-2">
-									<Label htmlFor={repoLinkId}>GitHub Repository Link</Label>
-									<Input
-										disabled={createFromPATMutation.isPending}
-										id={repoLinkId}
-										onChange={(e) => setRepoLink(e.target.value)}
-										placeholder="https://github.com/username/repository"
-										required
-										type="url"
-										value={repoLink}
-									/>
-								</div>
-								<div className="space-y-2">
-									<Label htmlFor={patId}>GitHub Personal Access Token</Label>
-									<Input
-										disabled={createFromPATMutation.isPending}
-										id={patId}
-										onChange={(e) => setPat(e.target.value)}
-										placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-										required
-										type="password"
-										value={pat}
-									/>
-									<p className="text-xs text-slate-500">
-										Need a token?{" "}
-										<a
-											className="text-blue-600 hover:underline"
-											href="https://github.com/settings/tokens"
-											rel="noopener noreferrer"
-											target="_blank"
-										>
-											Create one here
-										</a>{" "}
-										with 'repo' permissions.
-									</p>
-								</div>
-								<Button
-									className="w-full text-lg py-6"
-									disabled={
-										!repoLink.trim() ||
-										!pat.trim() ||
-										createFromPATMutation.isPending
-									}
-									size="lg"
-									type="submit"
-								>
-									{createFromPATMutation.isPending ? (
-										<>
-											<Loader2 className="h-5 w-5 mr-2 animate-spin" />
-											Setting up your repository...
-										</>
-									) : (
-										<>
-											<ArrowRight className="h-5 w-5 mr-2" />
-											Start Analyzing Repository
-										</>
+					{/* Setup Form */}
+					<section className="max-w-2xl mx-auto" id="setup-form">
+						<Card>
+							<CardHeader className="text-center">
+								<CardTitle className="text-2xl">
+									Connect Your Repository
+								</CardTitle>
+								<CardDescription className="text-lg">
+									Get started with AI-powered insights for your GitHub
+									repository in under 2 minutes.
+								</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<form className="space-y-6" onSubmit={handleSubmit}>
+									<div className="space-y-2">
+										<Label htmlFor={repoLinkId}>GitHub Repository Link</Label>
+										<Input
+											disabled={isLoading}
+											id={repoLinkId}
+											onChange={(e) => setRepoLink(e.target.value)}
+											placeholder="https://github.com/username/repository"
+											required
+											type="url"
+											value={repoLink}
+										/>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor={patId}>GitHub Personal Access Token</Label>
+										<Input
+											disabled={isLoading}
+											id={patId}
+											onChange={(e) => setPat(e.target.value)}
+											placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+											required
+											type="password"
+											value={pat}
+										/>
+										<p className="text-xs text-slate-500">
+											Need a token?{" "}
+											<a
+												className="text-blue-600 hover:underline"
+												href="https://github.com/settings/tokens"
+												rel="noopener noreferrer"
+												target="_blank"
+											>
+												Create one here
+											</a>{" "}
+											with 'repo' permissions.
+										</p>
+									</div>
+									<Button
+										className="w-full text-lg py-6"
+										disabled={!repoLink.trim() || !pat.trim() || isLoading}
+										size="lg"
+										type="submit"
+									>
+										{isLoading ? (
+											<>
+												<Loader2 className="h-5 w-5 mr-2 animate-spin" />
+												Setting up your repository...
+											</>
+										) : (
+											<>
+												<ArrowRight className="h-5 w-5 mr-2" />
+												Start Analyzing Repository
+											</>
+										)}
+									</Button>
+									{error && (
+										<p className="text-red-500 text-sm mt-4">
+											{error instanceof Error
+												? error.message
+												: "Failed to set up repository. Please check your repository link and PAT."}
+										</p>
 									)}
-								</Button>
-							</form>
+								</form>
 
 							{error && (
 								<div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -275,9 +285,10 @@ export default function HomePage() {
 							<Github className="h-5 w-5 mr-2" />
 							Start Free Trial
 						</Link>
-					</Button>
-				</section>
-			</div>
-		</main>
+						</Button>
+					</section>
+				</div>
+			</main>
+		</div>
 	);
 }

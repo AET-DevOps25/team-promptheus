@@ -4,17 +4,10 @@ import com.server.CommunicationObjects.*;
 import com.server.persistence.entity.*;
 import com.server.persistence.repository.*;
 import com.server.service.QuestionAnswerService;
-import java.time.DayOfWeek;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -29,7 +22,6 @@ public class GitRepoService {
     private final PersonalAccessToken2GitRepoRepository pat2gitRepository;
     private final QuestionRepository questionRepository;
     private final QuestionAnswerRepository questionAnswerRepository;
-    private final GitContentRepository gitContentRepository;
     private final QuestionAnswerService questionAnswerService;
 
     @Autowired
@@ -49,7 +41,6 @@ public class GitRepoService {
         this.pat2gitRepository = pat2gitRepository;
         this.questionRepository = questionRepository;
         this.questionAnswerRepository = questionAnswerRepository;
-        this.gitContentRepository = gitContentRepository;
         this.questionAnswerService = questionAnswerService;
     }
 
