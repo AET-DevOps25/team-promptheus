@@ -119,12 +119,12 @@ export type components = {
 			/** Format: int64 */
 			readonly offset?: number;
 			readonly sort?: components["schemas"]["SortObject"];
+			readonly unpaged?: boolean;
 			readonly paged?: boolean;
 			/** Format: int32 */
 			readonly pageNumber?: number;
 			/** Format: int32 */
 			readonly pageSize?: number;
-			readonly unpaged?: boolean;
 		};
 		readonly SortObject: {
 			readonly empty?: boolean;
