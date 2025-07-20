@@ -41,6 +41,18 @@ spec:
               mountPath: /data/prometheus
             - name: pyroscope-storage
               mountPath: /data/pyroscope
+            - name: grafana-datasources
+              mountPath: /otel-lgtm/grafana/conf/provisioning/datasources/datasource-provider.yml
+              subPath: datasource-provider.yml
+            - name: grafana-dashboards
+              mountPath: /otel-lgtm/grafana/conf/provisioning/dashboards/dashboard-provider.yml
+              subPath: dashboard-provider.yml
+            - name: grafana-dashboards
+              mountPath: /otel-lgtm/grafana/conf/provisioning/dashboards/team-promptheus-app.json
+              subPath: team-promptheus-app.json
+            - name: grafana-dashboards
+              mountPath: /otel-lgtm/grafana/conf/provisioning/dashboards/postgres-monitoring.json
+              subPath: postgres-monitoring.json
       volumes:
         - name: tempo-data
           emptyDir: {}
@@ -54,3 +66,18 @@ spec:
           emptyDir: {}
         - name: pyroscope-storage
           emptyDir: {}
+        - name: grafana-datasources
+          configMap:
+            name: grafana-datasources
+        - name: grafana-dashboard-provider
+          configMap:
+            name: grafana-dashboard-provider
+        - name: grafana-dashboards-kubernetes
+          configMap:
+            name: grafana-dashboards-kubernetes
+        - name: grafana-dashboards-application
+          configMap:
+            name: grafana-dashboards-application
+        - name: grafana-dashboards-postgres
+          configMap:
+            name: grafana-dashboards-postgres

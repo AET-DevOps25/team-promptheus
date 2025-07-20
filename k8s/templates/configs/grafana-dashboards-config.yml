@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+data:
+  team-promptheus-app.json: |
+    {{ .Files.Get "k8s/templates/configs/grafana-dashboards/team-promptheus-app.json" | nindent 4 }}
+  postgres-monitoring.json: |
+    {{ .Files.Get "k8s/templates/configs/grafana-dashboards/postgres-monitoring.json" | nindent 4 }}
+  dashboard-provider.yml: |
+    apiVersion: 1
+    providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        folderUid: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        options:
+          path: /otel-lgtm/grafana/conf/provisioning/dashboards/team-promptheus-app.json
+      - name: 'postgres'
+        orgId: 1
+        folder: ''
+        folderUid: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        options:
+          path: /otel-lgtm/grafana/conf/provisioning/dashboards/postgres-monitoring.json
