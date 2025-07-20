@@ -5,7 +5,6 @@ metadata:
   name: team-promptheus-ingress
   namespace: {{ $.Release.Namespace }}
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
