@@ -137,6 +137,10 @@ information than the static evidence alone. Remember to use "{repository}" as th
                     )
                 )
 
+            # Set the GitHub PAT for the content service
+            if request.github_pat:
+                self.content_service.set_github_pat(request.github_pat)
+
             tools = create_agent_tools(request.github_pat)
 
             context_message = self._create_context_message(user, week, request.repository, evidence, tools)

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { SummaryBackfillPrompt } from "@/components/summary-backfill-prompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -205,11 +206,18 @@ export default function SummariesPage() {
 								<h3 className="text-lg font-semibold text-gray-900 mb-2">
 									No summaries found
 								</h3>
-								<p className="text-gray-600">
-									{weekFilter !== "all" || userFilter || repoFilter
-										? "No summaries match your current filters."
-										: "No summaries have been generated yet."}
-								</p>
+								{weekFilter !== "all" || userFilter || repoFilter ? (
+									<p className="text-gray-600">
+										No summaries match your current filters.
+									</p>
+								) : (
+									<>
+										<p className="text-gray-600 mb-4">
+											No summaries have been generated yet.
+										</p>
+										<SummaryBackfillPrompt />
+									</>
+								)}
 							</div>
 						) : (
 							<div className="space-y-4">

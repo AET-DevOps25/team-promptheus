@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SummaryRepository extends JpaRepository<Summary, Long>, PagingAndSortingRepository<Summary, Long> {
@@ -16,6 +17,8 @@ public interface SummaryRepository extends JpaRepository<Summary, Long>, PagingA
     List<Summary> findByWeek(String week);
 
     List<Summary> findByUsernameAndWeek(String username, String week);
+
+    Optional<Summary> findByUsernameAndWeekAndGitRepositoryId(String username, String week, Long gitRepositoryId);
 
     @Query("SELECT DISTINCT s.username FROM Summary s WHERE s.username IS NOT NULL")
     List<String> findDistinctUsernames();

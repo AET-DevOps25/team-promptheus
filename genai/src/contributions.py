@@ -83,9 +83,14 @@ class GitHubContentService:
         headers = {"Accept": "application/vnd.github.v3+json", "User-Agent": USER_AGENT}
 
         if self.github_token:
-            headers["Authorization"] = f"token {self.github_token}"
+            headers["Authorization"] = f"Bearer {self.github_token}"
 
         self.session.headers.update(headers)
+
+    def set_github_pat(self, github_pat: str) -> None:
+        """Set the GitHub PAT and re-configure authentication."""
+        self.github_token = github_pat
+        self._configure_authentication()
 
     async def fetch_contributions(
         self,

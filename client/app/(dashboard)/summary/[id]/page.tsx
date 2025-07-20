@@ -7,6 +7,7 @@ import {
 	GitCommit,
 	GitPullRequest,
 	Package,
+	TrendingUp,
 	Users,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -348,14 +349,16 @@ export default function SingleSummaryPage() {
 				{summary.analysis && (
 					<Card>
 						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<div className="p-2 bg-indigo-100 rounded-full">
-									<Users className="h-4 w-4 text-indigo-600" />
-								</div>
-								Analysis
+							<CardTitle className="flex items-center gap-2 text-lg">
+								<TrendingUp className="h-5 w-5 text-indigo-600" />
+								Critical Analysis & SE Best Practices
 							</CardTitle>
+							<p className="text-sm text-muted-foreground mt-1">
+								Evidence-based assessment for manager 1:1s and career
+								development
+							</p>
 						</CardHeader>
-						<CardContent>
+						<CardContent className="prose prose-sm max-w-none">
 							<Markdown variant="default">{summary.analysis}</Markdown>
 						</CardContent>
 					</Card>

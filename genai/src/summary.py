@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import structlog
-from langchain.output_parsers import PydanticOutputParser
 from langchain.prompts import ChatPromptTemplate
 
 # LangChain imports
@@ -47,6 +46,7 @@ class WeeklyProgressOutput(PydanticBaseModel):
     key_accomplishments: list[str] = Field(description="List of key accomplishments this week")
     impediments: list[str] = Field(description="Current blockers or impediments (empty list if none)")
     next_steps: list[str] = Field(description="Planned work for next week based on assignments and context")
+    analysis: str = Field(description="Analysis of the week's contributions")
 
 
 class SummaryService:
@@ -64,6 +64,7 @@ class SummaryService:
         self.llm = LLMService.create_llm(
             temperature=0.2,
             max_tokens=2500,
+            timeout=120.0,  # Increased timeout
         )
 
         # Create LangGraph agent for tool-enhanced summary generation
@@ -126,7 +127,7 @@ class SummaryService:
                 releases_summary=f"Published {metadata.releases_count} releases"
                 if metadata.releases_count > 0
                 else "No releases this week",
-                analysis="Weekly progress report generated",
+                analysis=progress_report.analysis,  # Use the critical analysis from the AI
                 key_achievements=progress_report.key_accomplishments,
                 areas_for_improvement=progress_report.impediments + progress_report.next_steps,
                 metadata=metadata,
@@ -173,62 +174,89 @@ class SummaryService:
         """Generate structured progress report using AI."""
         contributions_summary = self._format_contributions_for_prompt(contributions)
         tool_descriptions = get_tool_descriptions(all_tools)
-        parser = PydanticOutputParser(pydantic_object=WeeklyProgressOutput)
+
+        # Bind the Pydantic model to the LLM for structured output
+        structured_llm = self.llm.with_structured_output(WeeklyProgressOutput)
+
         prompt = ChatPromptTemplate.from_messages(
             [
                 SystemMessage(
-                    content=f"""You are Auto-Pulse, a helpful assistant that generates weekly progress
-reports for developers.
-Auto-Pulse never starts its response by saying a question or idea or observation was good, great,
-fascinating, profound, excellent, or any other positive adjective. It skips the flattery and responds directly.
+                    content=f"""You are Auto-Pulse, a senior engineering manager assistant that generates weekly progress
+reports with critical analysis for developer performance reviews and career development.
+
+Auto-Pulse provides direct, evidence-based feedback without unnecessary pleasantries or flattery.
 
 You have access to the following tools:
-
 {tool_descriptions}
 
-You are generating a weekly progress report for developer \"{user}\".
+Your role is to analyze developer \"{user}\"\'s work and provide:
+1. Factual summary of accomplishments
+2. Critical analysis of software engineering practices
+3. Actionable feedback for improvement
 
-Create a brief, professional, up-to one page report similar to a weekly scrum update.
+CRITICAL ANALYSIS GUIDELINES:
+- Be direct and honest - managers need truthful assessments for effective 1:1s
+- Base ALL observations on concrete evidence from contributions
+- Identify both strengths and areas needing improvement
+- Focus on patterns that impact code quality, collaboration, and productivity
+- Suggest specific improvements tied to career progression
 
-Focus on:
-- What was accomplished this week (brief, factual) - enhance with tool data when helpful
-- Key achievements and deliverables - use tools to understand impact
-- Any blockers or impediments encountered - check related issues if needed
-- Planned next steps (infer from open issues and work patterns) - use tools to identify upcoming work
+ANALYZE THESE SE BEST PRACTICES:
+1. Code Quality & Standards
+   - Commit message quality (descriptive, atomic, follows conventions)
+   - PR size and scope (small, focused changes vs large, unfocused ones)
+   - Testing evidence (are tests mentioned in commits/PRs?)
 
-If no impediments are apparent from the contributions, use an empty list.
-If no clear next steps can be inferred, indicate \"No remaining tasks assigned\".
+2. Collaboration & Communication
+   - PR descriptions quality
+   - Issue tracking discipline
+   - Response to feedback (PR review cycles)
 
-{parser.get_format_instructions()}"""
+3. Development Practices
+   - Frequency and consistency of contributions
+   - Balance between feature work, bug fixes, and maintenance
+   - Documentation habits
+
+4. Technical Leadership
+   - Mentoring indicators (reviewing others' PRs, helping with issues)
+   - Architectural decisions and design discussions
+   - Initiative in addressing technical debt
+
+Use the available tools to gather additional context when needed for accurate analysis.
+
+IMPORTANT: The 'analysis' field must contain a critical, evidence-based assessment of the developer's
+software engineering practices this week. Include specific examples and actionable feedback."""
                 ),
                 HumanMessage(
                     content=f"""Analyze {user}'s contributions for week {week}:
 
 {contributions_summary}
 
-Generate a weekly progress report for {user}. Be concise and professional.
-Consider using available tools to provide richer context where appropriate."""
+Generate a comprehensive progress report with critical analysis.
+Focus on factual observations and specific examples from the contributions.
+Use tools when needed to verify facts or gather additional context."""
                 ),
             ]
         )
 
-        # Use the agent for enhanced summary generation
-        # First try with the structured chain, but the agent can use tools if needed
-        chain = prompt | self.llm | parser
+        # Create the chain with structured output
+        chain = prompt | structured_llm
 
         try:
+            # Invoke the chain and get the structured response
             return await chain.ainvoke({})
         except Exception as e:
             logger.warning(
-                "Failed to parse structured progress report, using fallback",
+                "Failed to generate structured progress report, using fallback",
                 error=str(e),
             )
-            # Fallback to basic report
+            # Fallback with basic analysis
             return WeeklyProgressOutput(
                 summary=f"{user} completed {len(contributions)} contributions this week across various repositories.",
                 key_accomplishments=[f"Completed {len(contributions)} development tasks"],
                 impediments=[],
                 next_steps=["Continue with assigned development tasks"],
+                analysis="Unable to generate a critical analysis of the developer's work this week.",
             )
 
     def _format_contributions_for_prompt(self, contributions: list[GitHubContribution]) -> str:
@@ -294,6 +322,22 @@ Consider using available tools to provide richer context where appropriate."""
             generated_at=datetime.now(UTC),
         )
 
+        # Provide critical analysis even for zero contributions
+        analysis = (
+            f"No contributions detected for {user} during week {week}. "
+            "This absence of activity requires immediate attention:\n\n"
+            "CRITICAL OBSERVATIONS:\n"
+            "• Zero commits, PRs, or issues indicates complete disengagement from development work\n"
+            "• This could signal: blocked work, unclear assignments, personal issues, or role misalignment\n"
+            "• Extended periods without contributions impact team velocity and project timelines\n\n"
+            "RECOMMENDED MANAGER ACTIONS:\n"
+            "1. Schedule immediate 1:1 to understand blockers or challenges\n"
+            "2. Review current task assignments and priorities\n"
+            "3. Assess if developer has necessary resources and support\n"
+            "4. Consider pairing opportunities to re-engage with codebase\n\n"
+            "Note: Verify if work is happening outside tracked repositories before drawing conclusions."
+        )
+
         return SummaryResponse(
             summary_id=summary_id,
             user=user,
@@ -303,9 +347,9 @@ Consider using available tools to provide richer context where appropriate."""
             pull_requests_summary="No pull requests created this week.",
             issues_summary="No issues created this week.",
             releases_summary="No releases published this week.",
-            analysis="No activity to analyze for this week.",
+            analysis=analysis,
             key_achievements=[],
-            areas_for_improvement=["No remaining tasks assigned"],
+            areas_for_improvement=["Immediate re-engagement with development work required"],
             metadata=metadata,
             generated_at=datetime.now(UTC),
         )
