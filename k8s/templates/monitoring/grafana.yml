@@ -116,9 +116,11 @@ data:
       - name: Prometheus
         type: prometheus
         access: proxy
-        url: http://prometheus-service.team-promptheus.svc.cluster.local:9090
+        url: http://prometheus-operated.{{ .Release.Namespace }}.svc.cluster.local:9090
         isDefault: true
         editable: true
+        basicAuth: false
+        withCredentials: false
         jsonData:
           httpMethod: POST
           manageAlerts: true
@@ -127,15 +129,21 @@ data:
           cacheLevel: 'High'
           disableRecordingRules: false
           incrementalQueryOverlapWindow: 10m
+          timeInterval: "30s"
+          queryTimeout: "60s"
+          defaultEditor: "code"
+{{- if .Values.monitoring.tempo.enabled }}
           exemplarTraceIdDestinations:
             - name: trace_id
               datasourceUid: tempo
               urlDisplayLabel: "Trace: $${__value.raw}"
+{{- end }}
 
+{{- if .Values.monitoring.tempo.enabled }}
       - name: Tempo
         type: tempo
         uid: tempo
-        url: http://tempo-service.team-promptheus.svc.cluster.local:3200
+        url: http://tempo-service.{{ .Release.Namespace }}.svc.cluster.local:3200
         editable: true
         jsonData:
           tracesToLogsV2:
@@ -153,13 +161,15 @@ data:
             enabled: true
           lokiSearch:
             datasourceUid: "loki"
+{{- end }}
 
       - name: Loki
         type: loki
         uid: loki
-        url: http://loki-service.team-promptheus.svc.cluster.local:3100
+        url: http://loki-service.{{ .Release.Namespace }}.svc.cluster.local:3100
         editable: true
         jsonData:
+{{- if .Values.monitoring.tempo.enabled }}
           derivedFields:
             - name: "trace_id"
               matcherType: "label"
@@ -167,12 +177,15 @@ data:
               url: "$${__value.raw}"
               datasourceUid: "tempo"
               urlDisplayLabel: "Trace: $${__value.raw}"
+{{- end }}
 
+{{- if .Values.monitoring.pyroscope.enabled }}
       - name: Pyroscope
         type: grafana-pyroscope-datasource
         uid: pyroscope
-        url: http://pyroscope-service.team-promptheus.svc.cluster.local:4040
+        url: http://pyroscope-service.{{ .Release.Namespace }}.svc.cluster.local:4040
         editable: true
+{{- end }}
 
 ---
 apiVersion: v1

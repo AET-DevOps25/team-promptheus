@@ -38,3 +38,15 @@ monitoring:
 
   otelCollector:
     enabled: true
+
+  tempo:
+    enabled: true
+    image:
+      tag: "latest"
+    retention: "24h"
+
+  pyroscope:
+    enabled: true
+    image:
+      tag: "latest"
+    retention: "7d"

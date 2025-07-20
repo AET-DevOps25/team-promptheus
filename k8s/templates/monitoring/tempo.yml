@@ -1,0 +1,181 @@
+{{- if .Values.monitoring.tempo.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tempo
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: tempo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tempo
+  template:
+    metadata:
+      labels:
+        app: tempo
+    spec:
+      securityContext:
+        fsGroup: 10001
+        runAsUser: 10001
+        runAsGroup: 10001
+        runAsNonRoot: true
+      containers:
+        - name: tempo
+          image: grafana/tempo:{{ .Values.monitoring.tempo.image.tag | default "latest" }}
+          args:
+            - "-config.file=/etc/tempo/tempo.yaml"
+          ports:
+            - containerPort: 3200
+              name: http
+            - containerPort: 4317
+              name: otlp-grpc
+            - containerPort: 4318
+              name: otlp-http
+            - containerPort: 9411
+              name: zipkin
+            - containerPort: 14268
+              name: jaeger-http
+          env:
+            - name: TEMPO_QUERY_LOG_LEVEL
+              value: "info"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3200
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 3200
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          volumeMounts:
+            - name: tempo-config
+              mountPath: /etc/tempo
+              readOnly: true
+            - name: tempo-storage
+              mountPath: /tmp/tempo
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+      volumes:
+        - name: tempo-config
+          configMap:
+            name: tempo-config
+            defaultMode: 0644
+        - name: tempo-storage
+          emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tempo-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: tempo
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3200
+      targetPort: 3200
+      protocol: TCP
+      name: http
+    - port: 4317
+      targetPort: 4317
+      protocol: TCP
+      name: otlp-grpc
+    - port: 4318
+      targetPort: 4318
+      protocol: TCP
+      name: otlp-http
+    - port: 9411
+      targetPort: 9411
+      protocol: TCP
+      name: zipkin
+    - port: 14268
+      targetPort: 14268
+      protocol: TCP
+      name: jaeger-http
+  selector:
+    app: tempo
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tempo-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: tempo
+data:
+  tempo.yaml: |
+    server:
+      http_listen_port: 3200
+      log_level: info
+
+    distributor:
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:4317
+            http:
+              endpoint: 0.0.0.0:4318
+        zipkin:
+          endpoint: 0.0.0.0:9411
+        jaeger:
+          protocols:
+            thrift_http:
+              endpoint: 0.0.0.0:14268
+
+    ingester:
+      max_block_duration: 5m
+      max_block_bytes: 1_000_000
+      complete_block_timeout: 10m
+
+    compactor:
+      compaction:
+        block_retention: {{ .Values.monitoring.tempo.retention | default "24h" }}
+
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /tmp/tempo/blocks
+        wal:
+          path: /tmp/tempo/wal
+        pool:
+          max_workers: 100
+          queue_depth: 10000
+
+    query_frontend:
+      search:
+        duration_slo: 5s
+        throughput_bytes_slo: 1.073741824e+09
+      trace_by_id:
+        duration_slo: 5s
+
+    metrics_generator:
+      registry:
+        external_labels:
+          source: tempo
+          cluster: {{ .Release.Name }}
+      storage:
+        path: /tmp/tempo/generator/wal
+        remote_write:
+          - url: http://prometheus-operated.{{ .Release.Namespace }}.svc.cluster.local:9090/api/v1/write
+            send_exemplars: true
+
+    overrides:
+      defaults:
+        metrics_generator:
+          processors: [service-graphs, span-metrics]
+{{- end }}
