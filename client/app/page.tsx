@@ -30,6 +30,7 @@ export default function HomePage() {
 	const [pat, setPat] = useState("");
 	const repoLinkId = useId();
 	const patId = useId();
+	const setupFormId = useId();
 
 	// Use TanStack Query mutation for PAT submission
 	const createFromPATMutation = useCreateFromPAT();
@@ -92,7 +93,7 @@ export default function HomePage() {
 
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
 							<Button className="text-lg px-8 py-6" size="lg">
-								<Link href="#setup-form">
+								<Link href={`#${setupFormId}`}>
 									<Github className="h-5 w-5 mr-2" />
 									Start Free Trial
 								</Link>
@@ -148,7 +149,7 @@ export default function HomePage() {
 					</section>
 
 					{/* Setup Form */}
-					<section className="max-w-2xl mx-auto" id="setup-form">
+					<section className="max-w-2xl mx-auto" id={setupFormId}>
 						<Card>
 							<CardHeader className="text-center">
 								<CardTitle className="text-2xl">
