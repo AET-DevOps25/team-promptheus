@@ -85,7 +85,9 @@ const statusColors = {
 	"in-progress": "text-blue-600 bg-blue-50",
 };
 
-export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
+export function WeeklySummarySelector({
+	userId: _userId,
+}: WeeklySummarySelectorProps) {
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [filter, setFilter] = useState<StateFilter>("all");
 	const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
@@ -173,7 +175,7 @@ export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
 		return `${year}-W${weekNum.toString().padStart(2, "0")}`;
 	};
 
-	const extractRepoInfo = (gitRepositoryId: number) => {
+	const extractRepoInfo = (_gitRepositoryId: number) => {
 		// For now, return default values since we don't have repo info in contributions
 		// In a real implementation, you'd fetch this from the repo data
 		return {
