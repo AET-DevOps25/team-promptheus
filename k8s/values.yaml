@@ -5,3 +5,18 @@ secrets:
   meiliMasterKey: ""
 ingress:
   domain: "team-prompteus.local"
+
+# Storage configuration
+storage:
+  class: "csi-rbd-sc"
+
+# Prometheus configuration
+prometheus:
+  enabled: true
+  retention: "30d"
+  storageSize: "10Gi"
+
+# Alertmanager configuration
+alertmanager:
+  enabled: true
+  storageSize: "2Gi"

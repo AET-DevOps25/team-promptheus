@@ -9,7 +9,7 @@ metadata:
     component: prometheus-server
 spec:
   replicas: 1
-  retention: 7d
+  retention: {{ .Values.prometheus.retention | default "7d" }}
 
   # Service account
   serviceAccountName: prometheus-team-promptheus-prometheus
@@ -27,33 +27,27 @@ spec:
   storage:
     volumeClaimTemplate:
       spec:
+        storageClassName: {{ .Values.storage.class | default "csi-rbd-sc" }}
         accessModes:
           - ReadWriteOnce
         resources:
           requests:
-            storage: "10Gi"
+            storage: {{ .Values.prometheus.storageSize | default "10Gi" }}
 
   # Service monitor selector - select all ServiceMonitors in this namespace
-  serviceMonitorSelector:
-    matchLabels:
-      release: {{ $.Release.Name }}
+  serviceMonitorSelector: {}
 
   # Rule selector - select all PrometheusRules in this namespace
-  ruleSelector:
-    matchLabels:
-      app: prometheus
-      role: alert-rules
+  ruleSelector: {}
 
   # Pod monitor selector for additional pod monitoring
-  podMonitorSelector:
-    matchLabels:
-      release: {{ $.Release.Name }}
+  podMonitorSelector: {}
 
   # Alerting configuration
   alerting:
     alertmanagers:
       - namespace: {{ $.Release.Namespace }}
-        name: alertmanager-operated
+        name: team-promptheus-alertmanager
         port: web
 
   # Security context
@@ -79,6 +73,7 @@ spec:
   scrapeInterval: 30s
 
   externalUrl: https://$hostName/prometheus
+  routePrefix: /prometheus
 
   # Remote write configuration (optional - for long-term storage)
   # remoteWrite:

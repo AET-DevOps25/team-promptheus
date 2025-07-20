@@ -3,6 +3,9 @@ kind: Service
 metadata:
     name: client-service
     namespace: {{ $.Release.Namespace }}
+    labels:
+        app: client
+        component: client-service
 spec:
     selector:
         app: client

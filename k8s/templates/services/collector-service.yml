@@ -3,10 +3,14 @@ kind: Service
 metadata:
   name: collector-service
   namespace: {{ $.Release.Namespace }}
+  labels:
+    app: contribution
+    component: collector-service
 spec:
   selector:
     app: contribution
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: 8082
       targetPort: 8082
