@@ -119,14 +119,14 @@ data:
           - application: server
             spy-name: javaspy
             targets:
-              - server-service.{{ $.Release.Namespace }}.svc.cluster.local:8081
+              - server-service.{{ $.Release.Namespace }}.svc.cluster.local:8080
       - job-name: 'spring-boot-search'
         enabled-profiles: [cpu, alloc_objects, alloc_space, inuse_objects, inuse_space]
         static-configs:
           - application: search
             spy-name: javaspy
             targets:
-              - search-service.{{ $.Release.Namespace }}.svc.cluster.local:8071
+              - search-service.{{ $.Release.Namespace }}.svc.cluster.local:8070
       - job-name: 'pyroscope-self'
         enabled-profiles: [cpu, alloc_objects, alloc_space, inuse_objects, inuse_space]
         static-configs:

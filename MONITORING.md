@@ -118,7 +118,7 @@ Configure your application to send logs to the OTEL Collector:
 
 ```bash
 # Environment variables for your application
-OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector-service.team-promptheus.svc.cluster.local:4318
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector-service:4318
 OTEL_SERVICE_NAME=your-service-name
 OTEL_RESOURCE_ATTRIBUTES=service.version=1.0.0
 ```
@@ -127,8 +127,8 @@ OTEL_RESOURCE_ATTRIBUTES=service.version=1.0.0
 
 Send traces to the OTEL Collector:
 
-- **HTTP**: `http://otel-collector-service.team-promptheus.svc.cluster.local:4318/v1/traces`
-- **gRPC**: `otel-collector-service.team-promptheus.svc.cluster.local:4317`
+- **HTTP**: `http://otel-collector-service:4318/v1/traces`
+- **gRPC**: `otel-collector-service:4317`
 
 ## Configuration
 

@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: collector-service
+  name: contribution-service
   namespace: {{ $.Release.Namespace }}
   labels:
     app: contribution
-    component: collector-service
+    component: contribution-service
 spec:
   selector:
     app: contribution

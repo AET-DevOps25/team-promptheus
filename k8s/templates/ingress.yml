@@ -48,6 +48,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: collector-service
+            name: contribution-service
             port:
               number: 8082

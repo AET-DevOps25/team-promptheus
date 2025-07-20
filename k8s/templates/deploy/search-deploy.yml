@@ -35,8 +35,6 @@ spec:
           image: ghcr.io/aet-devops25/promptheus-search:main
           ports:
             - containerPort: 8070
-            - containerPort: 8071
-              name: management
           securityContext:
             runAsNonRoot: true
             allowPrivilegeEscalation: false
@@ -82,8 +80,7 @@ spec:
               value: "true"
             - name: management.endpoint.heapdump.enabled
               value: "true"
-            - name: management.server.port
-              value: "8071"
+
             - name: PYROSCOPE_APPLICATION_NAME
               value: search
             - name: PYROSCOPE_SERVER_ADDRESS

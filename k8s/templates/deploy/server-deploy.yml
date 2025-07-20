@@ -19,8 +19,6 @@ spec:
           image: ghcr.io/aet-devops25/promptheus-server:main
           ports:
             - containerPort: 8080
-            - containerPort: 8081
-              name: management
           securityContext:
             runAsNonRoot: true
             allowPrivilegeEscalation: false
@@ -59,12 +57,10 @@ spec:
               value: "true"
             - name: management.endpoint.heapdump.enabled
               value: "true"
-            - name: management.server.port
-              value: "8081"
             - name: PYROSCOPE_APPLICATION_NAME
               value: server
             - name: PYROSCOPE_SERVER_ADDRESS
-              value: http://pyroscope-service.{{$.Release.Namespace}}.svc.cluster.local:4040
+              value: http://pyroscope-service:4040
           livenessProbe:
             httpGet:
               path: /actuator/health
