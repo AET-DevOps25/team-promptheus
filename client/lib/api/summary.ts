@@ -11,7 +11,6 @@ export type SummaryDto = components["schemas"]["SummaryDto"];
 export type PageSummaryDto = components["schemas"]["PageSummaryDto"];
 export type Pageable = components["schemas"]["Pageable"];
 
-type GetSummariesParams = operations["getSummaries"]["parameters"]["query"];
 type GenerateSummaryParams =
 	operations["generateSummary"]["parameters"]["path"];
 
