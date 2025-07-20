@@ -43,6 +43,7 @@ dependencies {
 	implementation 'io.micrometer:micrometer-tracing'
 	implementation 'io.micrometer:micrometer-tracing-bridge-otel'
 	implementation 'io.micrometer:micrometer-registry-otlp'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
 
 	// lombok => less weird setter/getters
 	compileOnly("org.projectlombok:lombok:1.18.38")
