@@ -1,0 +1,83 @@
+{{- $hostName := .Values.ingress.domain | required "ingress.domain is required." -}}
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: team-promptheus-prometheus
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app: prometheus
+    component: prometheus-server
+spec:
+  replicas: 1
+  retention: {{ .Values.prometheus.retention | default "7d" }}
+
+  # Service account
+  serviceAccountName: prometheus-team-promptheus-prometheus
+
+  # Resource requirements
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+  # Storage configuration
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: {{ .Values.storage.class | default "csi-rbd-sc" }}
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.prometheus.storageSize | default "10Gi" }}
+
+  # Service monitor selector - select all ServiceMonitors in this namespace
+  serviceMonitorSelector: {}
+
+  # Rule selector - select all PrometheusRules in this namespace
+  ruleSelector: {}
+
+  # Pod monitor selector for additional pod monitoring
+  podMonitorSelector: {}
+
+  # Alerting configuration
+  alerting:
+    alertmanagers:
+      - namespace: "{{ $.Release.Namespace }}"
+        name: team-promptheus-alertmanager
+        port: web
+
+  # Security context
+  securityContext:
+    fsGroup: 2000
+    runAsNonRoot: true
+    runAsUser: 1000
+
+  # Web configuration
+  web:
+    pageTitle: "Team Promptheus Prometheus"
+
+  # Enable admin API for management
+  enableAdminAPI: false
+
+  # Log level
+  logLevel: info
+
+  # Evaluation interval
+  evaluationInterval: 30s
+
+  # Scrape interval
+  scrapeInterval: 30s
+
+  externalUrl: https://prometheus-{{ $hostName }}
+
+  # Remote write configuration (optional - for long-term storage)
+  # remoteWrite:
+  #   - url: "https://prometheus-remote-write-endpoint"
+  #     writeRelabelConfigs:
+  #       - sourceLabels: [__name__]
+  #         regex: "prometheus_.*|up|container_.*"
+  #         action: keep

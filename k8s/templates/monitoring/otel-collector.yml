@@ -1,0 +1,170 @@
+{{- if .Values.monitoring.otelCollector.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app: otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:latest
+          ports:
+            - containerPort: 4317
+              name: otlp-grpc
+            - containerPort: 4318
+              name: otlp-http
+            - containerPort: 8888
+              name: metrics
+            - containerPort: 8889
+              name: prometheus
+          args:
+            - '--config=/etc/otelcol-contrib/config.yaml'
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          volumeMounts:
+            - name: otel-config
+              mountPath: /etc/otelcol-contrib
+              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: otel-config
+          configMap:
+            name: otel-collector-config
+            defaultMode: 0644
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector-service
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app: otel-collector
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4317
+      targetPort: 4317
+      protocol: TCP
+      name: otlp-grpc
+    - port: 4318
+      targetPort: 4318
+      protocol: TCP
+      name: otlp-http
+    - port: 8888
+      targetPort: 8888
+      protocol: TCP
+      name: metrics
+    - port: 8889
+      targetPort: 8889
+      protocol: TCP
+      name: prometheus
+  selector:
+    app: otel-collector
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app: otel-collector
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: 'otel-collector'
+              static_configs:
+                - targets: ['localhost:8888']
+
+    processors:
+      batch:
+
+      resource:
+        attributes:
+          - key: service.name
+            value: "team-promptheus"
+            action: insert
+          - key: service.version
+            from_attribute: version
+            action: insert
+
+      memory_limiter:
+        limit_mib: 400
+        check_interval: 1s
+
+    exporters:
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+
+      loki:
+        endpoint: http://loki-service.team-promptheus.svc.cluster.local:3100/loki/api/v1/push
+
+      otlp:
+        endpoint: http://tempo-service.team-promptheus.svc.cluster.local:4317
+        tls:
+          insecure: true
+
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+      pprof:
+        endpoint: 0.0.0.0:1777
+      zpages:
+        endpoint: 0.0.0.0:55679
+
+    service:
+      extensions: [health_check, pprof, zpages]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, resource, batch]
+          exporters: [otlp]
+
+        metrics:
+          receivers: [otlp, prometheus]
+          processors: [memory_limiter, resource, batch]
+          exporters: [prometheus]
+
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, resource, batch]
+          exporters: [loki]
+{{- end }}

@@ -4,7 +4,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{$serviceName}}-hpa
-  namespace: {{ $.Release.Namespace }}
+  namespace: "{{ $.Release.Namespace }}"
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -18,13 +18,13 @@ spec:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: 70
+        averageUtilization: 90
   - type: Resource
     resource:
       name: memory
       target:
         type: Utilization
-        averageUtilization: 80
+        averageUtilization: 90
   behavior:
     scaleDown:
       stabilizationWindowSeconds: 300

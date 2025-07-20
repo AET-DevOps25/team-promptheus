@@ -106,7 +106,7 @@ check_pods() {
 check_services() {
     print_header "Checking Service Health"
 
-    local services=("client-service" "server-service" "genai-service" "search-service" "collector-service" "meilisearch-service" "monitoring-service")
+    local services=("client-service" "server-service" "genai-service" "search-service" "collector-service" "meilisearch-service" "otel-collector-service")
     local failed=0
 
     for service in "${services[@]}"; do

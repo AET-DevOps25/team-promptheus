@@ -1,5 +1,52 @@
 defaultReplicas: 1
 
 secrets:
-    postgresPassword: ""
-    meiliMasterKey: ""
+  postgresPassword: ""
+  meiliMasterKey: ""
+ingress:
+  domain: "team-prompteus.local"
+
+# Storage configuration
+storage:
+  class: "csi-rbd-sc"
+
+# Prometheus configuration
+prometheus:
+  enabled: true
+  retention: "30d"
+  storageSize: "10Gi"
+
+# Alertmanager configuration
+alertmanager:
+  enabled: true
+  storageSize: "2Gi"
+
+# Monitoring stack configuration
+monitoring:
+  grafana:
+    enabled: true
+    adminPassword: "admin"
+    persistence:
+      enabled: false
+      size: "1Gi"
+
+  loki:
+    enabled: true
+    persistence:
+      enabled: false
+      size: "5Gi"
+
+  otelCollector:
+    enabled: true
+
+  tempo:
+    enabled: true
+    image:
+      tag: "latest"
+    retention: "24h"
+
+  pyroscope:
+    enabled: true
+    image:
+      tag: "latest"
+    retention: "7d"

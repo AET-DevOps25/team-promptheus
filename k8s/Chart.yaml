@@ -6,17 +6,17 @@ version: 0.1.0
 appVersion: "1.0.0"
 
 keywords:
-    - team-promptheus
-    - microservices
-    - github
-    - ai
-    - devops
-    - high-project-management-overhead
+  - team-promptheus
+  - microservices
+  - github
+  - ai
+  - devops
+  - high-project-management-overhead
 
 home: https://github.com/AET-DevOps25/team-promptheus
 sources:
-    - https://github.com/AET-DevOps25/team-promptheus
+  - https://github.com/AET-DevOps25/team-promptheus
 
 maintainers:
-    - name: Team Promptheus
-      email: frank.elsing -at-symbol- tum.de
+  - name: Team Promptheus
+    email: frank.elsing -at-symbol- tum.de

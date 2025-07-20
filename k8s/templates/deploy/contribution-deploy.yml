@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
     name: contribution
-    namespace: {{ $.Release.Namespace }}
+    namespace: "{{ $.Release.Namespace }}"
 spec:
     replicas: 1
     selector:
@@ -61,11 +61,11 @@ spec:
                       - name: app.meiliHost
                         value: http://meilisearch-service:7700
                       - name: management.otlp.tracing.endpoint
-                        value: http://monitoring-service:4318/v1/traces
+                        value: http://otel-collector-service:4318/v1/traces
                       - name: management.otlp.metrics.export.url
-                        value: http://monitoring-service:4318/v1/metrics
+                        value: http://otel-collector-service:4318/v1/metrics
                       - name: management.otlp.logging.endpoint
-                        value: http://monitoring-service:4318/v1/logs
+                        value: http://otel-collector-service:4318/v1/logs
                   securityContext:
                       runAsNonRoot: true
                       allowPrivilegeEscalation: false

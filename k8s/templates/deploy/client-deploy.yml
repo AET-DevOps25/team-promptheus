@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
     name: client
-    namespace: {{ $.Release.Namespace }}
+    namespace: "{{ $.Release.Namespace }}"
 spec:
     replicas: {{ .Values.defaultReplicas }}
     selector:
@@ -27,7 +27,7 @@ spec:
                       - name: NEXT_PUBLIC_SEARCH_API_URL
                         value: http://search-service:8070
                       - name: NEXT_PUBLIC_CONTRIBUTIONS_API_URL
-                        value: http://collector-service:8082
+                        value: http://contribution-service:8082
                   securityContext:
                       runAsNonRoot: true
                       allowPrivilegeEscalation: false

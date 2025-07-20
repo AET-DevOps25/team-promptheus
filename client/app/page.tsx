@@ -10,6 +10,7 @@ import {
 	TrendingUp,
 	Users,
 } from "lucide-react";
+import Link from "next/link";
 import { useId, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,8 +45,8 @@ export default function HomePage() {
 		try {
 			// Use the TanStack Query mutation
 			const patData = {
-				repolink: repoLink.trim(),
 				pat: pat.trim(),
+				repolink: repoLink.trim(),
 			};
 
 			const response = await createFromPATMutation.mutateAsync(patData);
@@ -91,12 +92,21 @@ export default function HomePage() {
 
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
 							<Button className="text-lg px-8 py-6" size="lg">
-								<Github className="h-5 w-5 mr-2" />
-								Get Started Free
+								<Link href="#setup-form">
+									<Github className="h-5 w-5 mr-2" />
+									Start Free Trial
+								</Link>
 							</Button>
-							<Button className="text-lg px-8 py-6" size="lg" variant="outline">
-								<MessageSquare className="h-5 w-5 mr-2" />
-								See Demo
+							<Button
+								asChild
+								className="text-lg px-8 py-6"
+								size="lg"
+								variant="outline"
+							>
+								<Link href="/login/">
+									<MessageSquare className="h-5 w-5 mr-2" />
+									See Demo
+								</Link>
 							</Button>
 						</div>
 					</section>
@@ -138,7 +148,7 @@ export default function HomePage() {
 					</section>
 
 					{/* Setup Form */}
-					<section className="max-w-2xl mx-auto">
+					<section className="max-w-2xl mx-auto" id="setup-form">
 						<Card>
 							<CardHeader className="text-center">
 								<CardTitle className="text-2xl">
@@ -214,6 +224,12 @@ export default function HomePage() {
 									)}
 								</form>
 
+								{error && (
+									<div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+										<p className="text-red-700 text-sm">{error}</p>
+									</div>
+								)}
+
 								<div className="mt-6 p-4 bg-green-50 rounded-lg">
 									<div className="flex items-center gap-2 text-green-800 mb-2">
 										<CheckCircle className="h-5 w-5" />
@@ -263,9 +279,11 @@ export default function HomePage() {
 							Join thousands of developers who use Prompteus to stay aligned and
 							productive. Start your free trial today.
 						</p>
-						<Button className="text-lg px-8 py-6" size="lg">
-							<Github className="h-5 w-5 mr-2" />
-							Start Free Trial
+						<Button asChild className="text-lg px-8 py-6" size="lg">
+							<Link href="#setup-form">
+								<Github className="h-5 w-5 mr-2" />
+								Start Free Trial
+							</Link>
 						</Button>
 					</section>
 				</div>

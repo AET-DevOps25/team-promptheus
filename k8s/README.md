@@ -32,9 +32,13 @@ helm install team-promptheus ./k8s \
 #### Production Installation
 
 ```bash
-helm install team-promptheus ./k8s \
-  --namespace team-promptheus \
-  --create-namespace \
+helm upgrade --install team-promptheus ./k8s \
+  --namespace team-promptheus --create-namespace \
   --set secrets.postgresPassword="your-secure-password" \
-  --set secrets.meiliMasterKey="your-super-super-secure-key"
+  --set secrets.meiliMasterKey="your-super-super-secure-key" \
+  --set secrets.ollamaApiKey="your-ollama-api-key" \
+  --set ingress.domain="prompteus.student.k8s.aet.cit.tum.de"
 ```
+
+> [!TIP]
+> To support a different LLM, you can replace `ollamaApiKey` with `openaiApiKey`.

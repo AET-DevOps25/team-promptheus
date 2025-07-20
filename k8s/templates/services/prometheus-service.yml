@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app: prometheus
+    component: prometheus-server
+spec:
+  type: ClusterIP
+  ports:
+    - name: web
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/instance: team-promptheus-prometheus
+    prometheus: team-promptheus-prometheus

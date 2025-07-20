@@ -2,7 +2,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
     name: postgres-health-alerts
-    namespace: {{ $.Release.Namespace }}
+    namespace: "{{ $.Release.Namespace }}"
     labels:
         app: prometheus
         role: alert-rules

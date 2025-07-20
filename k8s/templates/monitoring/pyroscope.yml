@@ -1,0 +1,137 @@
+{{- if .Values.monitoring.pyroscope.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pyroscope
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app: pyroscope
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pyroscope
+  template:
+    metadata:
+      labels:
+        app: pyroscope
+    spec:
+      securityContext:
+        fsGroup: 10001
+        runAsUser: 10001
+        runAsGroup: 10001
+        runAsNonRoot: true
+      containers:
+        - name: pyroscope
+          image: grafana/pyroscope:{{ .Values.monitoring.pyroscope.image.tag | default "latest" }}
+          args:
+            - "server"
+            - "--config.file=/etc/pyroscope/config.yaml"
+          ports:
+            - containerPort: 4040
+              name: http
+          env:
+            - name: PYROSCOPE_LOG_LEVEL
+              value: "info"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 4040
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 4040
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          volumeMounts:
+            - name: pyroscope-config
+              mountPath: /etc/pyroscope
+              readOnly: true
+            - name: pyroscope-storage
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+      volumes:
+        - name: pyroscope-config
+          configMap:
+            name: pyroscope-config
+            defaultMode: 0644
+        - name: pyroscope-storage
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pyroscope-service
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app: pyroscope
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4040
+      targetPort: 4040
+      protocol: TCP
+      name: http
+  selector:
+    app: pyroscope
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pyroscope-config
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app: pyroscope
+data:
+  config.yaml: |
+    log-level: info
+
+    storage-path: /data
+
+    server:
+      http-listen-address: :4040
+      http-listen-port: 4040
+
+    analytics:
+      reporting-disabled: true
+
+    # Retention policy
+    retention-policy:
+      keep-last: {{ .Values.monitoring.pyroscope.retention | default "7d" }}
+
+    # API configuration
+    api:
+      base-url: ""
+
+    # Scrape configs for pulling profiles
+    scrape-configs:
+      - job-name: 'spring-boot-server'
+        enabled-profiles: [cpu, alloc_objects, alloc_space, inuse_objects, inuse_space]
+        static-configs:
+          - application: server
+            spy-name: javaspy
+            targets:
+              - server-service.{{ $.Release.Namespace }}.svc.cluster.local:8080
+      - job-name: 'spring-boot-search'
+        enabled-profiles: [cpu, alloc_objects, alloc_space, inuse_objects, inuse_space]
+        static-configs:
+          - application: search
+            spy-name: javaspy
+            targets:
+              - search-service.{{ $.Release.Namespace }}.svc.cluster.local:8070
+      - job-name: 'pyroscope-self'
+        enabled-profiles: [cpu, alloc_objects, alloc_space, inuse_objects, inuse_space]
+        static-configs:
+          - application: pyroscope-server
+            spy-name: gospy
+            targets:
+              - pyroscope:4040
+{{- end }}

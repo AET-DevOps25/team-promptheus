@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
     name: meilisearch
-    namespace: {{ $.Release.Namespace }}
+    namespace: "{{ $.Release.Namespace }}"
 spec:
     replicas: 1
     selector:
@@ -20,6 +20,8 @@ spec:
                   ports:
                       - containerPort: 7700
                   env:
+                      - name: MEILI_EXPERIMENTAL_ENABLE_METRICS
+                        value: "true"
                       - name: MEILI_ENV
                         value: production
                       # secrets

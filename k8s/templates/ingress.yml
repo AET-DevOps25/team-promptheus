@@ -1,14 +1,19 @@
+{{- $hostName := .Values.ingress.domain | required "ingress.domain is required." -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: team-promptheus-ingress
-  namespace: {{ $.Release.Namespace }}
+  name: promptheus-ingress
+  namespace: "{{ $.Release.Namespace }}"
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
+  tls:
+  - hosts:
+    - {{ $hostName }}
+    secretName: team-promptheus-tls
   rules:
-  - host: team-promptheus.local
+  - host: {{ $hostName }}
     http:
       paths:
       - path: /
@@ -43,6 +48,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: collector-service
+            name: contribution-service
             port:
               number: 8082

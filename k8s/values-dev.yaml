@@ -5,5 +5,22 @@
 defaultReplicas: 1
 
 secrets:
-    postgresPassword: "postgres"
-    meiliMasterKey: "change_me_change_me_change_me"
+  postgresPassword: "postgres"
+  meiliMasterKey: "change_me_change_me_change_me"
+ingress:
+  domain: "team-prompteus.local"
+
+# Storage configuration
+storage:
+  class: "csi-rbd-sc"
+
+# Prometheus configuration
+prometheus:
+  enabled: true
+  retention: "7d"
+  storageSize: "5Gi"
+
+# Alertmanager configuration
+alertmanager:
+  enabled: true
+  storageSize: "1Gi"

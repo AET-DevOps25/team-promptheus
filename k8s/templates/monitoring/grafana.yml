@@ -1,0 +1,228 @@
+{{- if .Values.monitoring.grafana.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      securityContext:
+        fsGroup: 472
+        runAsUser: 472
+        runAsGroup: 472
+        runAsNonRoot: true
+      containers:
+        - name: grafana
+          image: grafana/grafana:latest
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: "{{ .Values.monitoring.grafana.adminPassword }}"
+            - name: GF_PATHS_PROVISIONING
+              value: "/etc/grafana/provisioning"
+            - name: GF_LOG_LEVEL
+              value: "info"
+            - name: GF_SECURITY_ALLOW_EMBEDDING
+              value: "true"
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          volumeMounts:
+            - name: grafana-storage
+              mountPath: /var/lib/grafana
+            - name: grafana-datasources
+              mountPath: /etc/grafana/provisioning/datasources
+              readOnly: true
+            - name: grafana-dashboards-config
+              mountPath: /etc/grafana/provisioning/dashboards
+              readOnly: true
+            - name: grafana-dashboards-files
+              mountPath: /var/lib/grafana/dashboards
+              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: grafana-storage
+          emptyDir: {}
+        - name: grafana-datasources
+          configMap:
+            name: grafana-datasources
+            defaultMode: 0644
+        - name: grafana-dashboards-config
+          configMap:
+            name: grafana-dashboards-config
+            defaultMode: 0644
+        - name: grafana-dashboards-files
+          configMap:
+            name: grafana-dashboards-files
+            defaultMode: 0644
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-service
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app: grafana
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: 3000
+      protocol: TCP
+      name: http
+  selector:
+    app: grafana
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app: grafana
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-service.{{ .Release.Namespace }}.svc.cluster.local:9090
+        isDefault: true
+        editable: true
+        basicAuth: false
+        withCredentials: false
+        jsonData:
+          httpMethod: POST
+          manageAlerts: true
+          prometheusType: Prometheus
+          prometheusVersion: 2.40.0
+          cacheLevel: 'High'
+          disableRecordingRules: false
+          incrementalQueryOverlapWindow: 10m
+          timeInterval: "30s"
+          queryTimeout: "60s"
+          defaultEditor: "code"
+{{- if .Values.monitoring.tempo.enabled }}
+          exemplarTraceIdDestinations:
+            - name: trace_id
+              datasourceUid: tempo
+              urlDisplayLabel: "Trace: $${__value.raw}"
+{{- end }}
+
+{{- if .Values.monitoring.tempo.enabled }}
+      - name: Tempo
+        type: tempo
+        uid: tempo
+        url: http://tempo-service.{{ .Release.Namespace }}.svc.cluster.local:3200
+        editable: true
+        jsonData:
+          tracesToLogsV2:
+            customQuery: true
+            datasourceUid: "loki"
+            query: '{$${__tags}} | trace_id = "$${__trace.traceId}"'
+            tags:
+              - key: "service.name"
+                value: "service_name"
+          serviceMap:
+            datasourceUid: "prometheus"
+          search:
+            hide: false
+          nodeGraph:
+            enabled: true
+          lokiSearch:
+            datasourceUid: "loki"
+{{- end }}
+
+      - name: Loki
+        type: loki
+        uid: loki
+        url: http://loki-service.{{ .Release.Namespace }}.svc.cluster.local:3100
+        editable: true
+        jsonData:
+{{- if .Values.monitoring.tempo.enabled }}
+          derivedFields:
+            - name: "trace_id"
+              matcherType: "label"
+              matcherRegex: "trace_id"
+              url: "$${__value.raw}"
+              datasourceUid: "tempo"
+              urlDisplayLabel: "Trace: $${__value.raw}"
+{{- end }}
+
+{{- if .Values.monitoring.pyroscope.enabled }}
+      - name: Pyroscope
+        type: grafana-pyroscope-datasource
+        uid: pyroscope
+        url: http://pyroscope-service.{{ .Release.Namespace }}.svc.cluster.local:4040
+        editable: true
+{{- end }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-config
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app: grafana
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: 'team-promptheus'
+        orgId: 1
+        type: file
+        disableDeletion: false
+        editable: true
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        options:
+          path: /var/lib/grafana/dashboards
+          foldersFromFilesStructure: true
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-files
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app: grafana
+data:
+  team-promptheus-app.json: |
+    {{ .Files.Get "dashboards/team-promptheus-app.json" | nindent 4 }}
+  postgres-monitoring.json: |
+    {{ .Files.Get "dashboards/postgres-monitoring.json" | nindent 4 }}
+  meilisearch-monitoring.json: |
+    {{ .Files.Get "dashboards/meilisearch-monitoring.json" | nindent 4 }}
+{{- end }}
