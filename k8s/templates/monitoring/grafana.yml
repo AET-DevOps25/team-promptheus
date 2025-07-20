@@ -223,4 +223,6 @@ data:
     {{ .Files.Get "dashboards/team-promptheus-app.json" | nindent 4 }}
   postgres-monitoring.json: |
     {{ .Files.Get "dashboards/postgres-monitoring.json" | nindent 4 }}
+  meilisearch-monitoring.json: |
+    {{ .Files.Get "dashboards/meilisearch-monitoring.json" | nindent 4 }}
 {{- end }}
