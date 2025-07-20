@@ -54,13 +54,13 @@ spec:
                       - name: MEILISEARCH_URL
                         value: http://meilisearch-service:7700
                       - name: OTEL_EXPORTER_OTLP_ENDPOINT
-                        value: "http://monitoring-service:4317"
+                        value: "http://otel-collector-service:4317"
                       - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
-                        value: "http://monitoring-service:4317/v1/traces"
+                        value: "http://otel-collector-service:4317/v1/traces"
                       - name: OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
-                        value: "http://monitoring-service:4317/v1/metrics"
+                        value: "http://otel-collector-service:4317/v1/metrics"
                       - name: OTEL_EXPORTER_OTLP_LOGGING_ENDPOINT
-                        value: "http://monitoring-service:4317/v1/logs"
+                        value: "http://otel-collector-service:4317/v1/logs"
                   command: ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port 3003"]
                   livenessProbe:
                       httpGet:

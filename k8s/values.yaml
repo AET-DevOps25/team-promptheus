@@ -20,3 +20,21 @@ prometheus:
 alertmanager:
   enabled: true
   storageSize: "2Gi"
+
+# Monitoring stack configuration
+monitoring:
+  grafana:
+    enabled: true
+    adminPassword: "admin"
+    persistence:
+      enabled: false
+      size: "1Gi"
+
+  loki:
+    enabled: true
+    persistence:
+      enabled: false
+      size: "5Gi"
+
+  otelCollector:
+    enabled: true
