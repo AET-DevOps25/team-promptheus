@@ -1,7 +1,7 @@
 """Summary service for generating weekly progress reports."""
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import structlog
 from langchain.prompts import ChatPromptTemplate
@@ -244,7 +244,7 @@ Use tools when needed to verify facts or gather additional context."""
 
         try:
             # Invoke the chain and get the structured response
-            return await chain.ainvoke({})
+            return cast("WeeklyProgressOutput", await chain.ainvoke({}))
         except Exception as e:
             logger.warning(
                 "Failed to generate structured progress report, using fallback",
