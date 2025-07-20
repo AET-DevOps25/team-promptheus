@@ -4,7 +4,7 @@ metadata:
   name: grafana-datasources
   namespace: {{ $.Release.Namespace }}
 data:
-  datasource-provider.yml: |
+  grafana-datasources.yaml: |
     apiVersion: 1
     datasources:
       - name: Prometheus

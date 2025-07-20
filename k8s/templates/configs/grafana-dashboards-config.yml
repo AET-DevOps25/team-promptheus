@@ -7,10 +7,10 @@ metadata:
     grafana_dashboard: "1"
 data:
   team-promptheus-app.json: |
-    {{ .Files.Get "k8s/templates/configs/grafana-dashboards/team-promptheus-app.json" | nindent 4 }}
+    {{ .Files.Get "k8s/files/dashboards/team-promptheus-app.json" | nindent 4 }}
   postgres-monitoring.json: |
-    {{ .Files.Get "k8s/templates/configs/grafana-dashboards/postgres-monitoring.json" | nindent 4 }}
-  dashboard-provider.yml: |
+    {{ .Files.Get "k8s/files/dashboards/postgres-monitoring.json" | nindent 4 }}
+  grafana-dashboards.yaml: |
     apiVersion: 1
     providers:
       - name: 'default'
