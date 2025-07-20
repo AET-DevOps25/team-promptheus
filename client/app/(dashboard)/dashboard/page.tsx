@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { SearchModal } from "@/components/search-modal";
+import { SummariesTimeline } from "@/components/summaries-timeline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +23,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Markdown } from "@/components/ui/markdown";
-import { WeeklySummaryServer } from "@/components/weekly-summary-server";
 import { useUser } from "@/contexts/user-context";
 import { useContributions } from "@/lib/api/contributions";
 import { useGitRepoInformation } from "@/lib/api/server";
@@ -438,9 +438,9 @@ export default function DashboardPage() {
 						</Card>
 					</div>
 
-					{/* Right Column - Weekly Summary */}
+					{/* Right Column - Timeline */}
 					<div>
-						<WeeklySummaryServer userId={userId} />
+						<SummariesTimeline />
 					</div>
 				</div>
 			</main>

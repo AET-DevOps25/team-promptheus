@@ -1,0 +1,186 @@
+# This workflow deploys the Prompteus multi-service application to AWS EC2
+#
+# IMPORTANT: This workflow depends on the CI/CD workflows for each service to build
+# and publish Docker images to GitHub Container Registry (GHCR) before deployment.
+# The workflow will automatically wait for all builder workflows to complete successfully.
+#
+# Prerequisites:
+# 1. EC2 instance with Docker and Docker Compose installed
+# 2. A .env file exists in the repository root with base configuration for all services
+# 3. Configure the following repository variables (Settings > Secrets and variables > Actions > Variables):
+#    - EC2_PUBLIC_IP: Your EC2 instance public IP address
+#    - AWS_EC2_USER: SSH username (usually 'ubuntu' or 'ec2-user')
+#
+# 4. Configure the following repository secrets (Settings > Secrets and variables > Actions > Secrets):
+#    - AWS_EC2_PRIVATE_KEY: Your EC2 private key for SSH access
+#    - POSTGRES_PASSWORD: Strong password for PostgreSQL database (overrides .env)
+#    - MEILI_MASTER_KEY: Strong master key for MeiliSearch (overrides .env)
+#    - OPENAI_API_KEY: (Optional) If using OpenAI instead of Ollama for LLM services
+#
+# 5. The workflow uses nip.io for easy SSL-enabled domain names:
+#    - Client will be available at: https://client.{EC2_PUBLIC_IP}.nip.io
+#    - API will be available at: https://api.{EC2_PUBLIC_IP}.nip.io
+#
+# 6. Make sure your EC2 security group allows inbound traffic on:
+#    - Port 22 (SSH)
+#    - Port 80 (HTTP)
+#    - Port 443 (HTTPS)
+#    - Port 8081 (Client service)
+#    - Port 8080 (API services)
+
+name: Deploy Prompteus to AWS
+
+on:
+  push:
+    branches: [main, finalize]
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - "Client CI/CD"
+      - "Genai CI/CD"
+      - "Search CI/CD"
+      - "Server CI/CD"
+      - "Summary CI/CD"
+      - "Contribution CI/CD"
+    types:
+      - completed
+    branches: [main, finalize]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Only deploy if all builder workflows completed successfully
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+      github.event_name == 'push'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Wait for all builder workflows to complete
+        if: github.event_name == 'push'
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.ref }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+          running-workflow-name: 'Deploy Prompteus to AWS'
+          check-regexp: '.*(CI/CD).*'
+          allowed-conclusions: success
+
+      - name: Copy Docker Compose and Config Files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.EC2_PUBLIC_IP }}
+          username: ${{ vars.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
+          source: "./docker-compose.yml"
+          target: /home/${{ vars.AWS_EC2_USER }}/prompteus
+
+      - name: Prepare Production Environment File
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.EC2_PUBLIC_IP }}
+          username: ${{ vars.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
+          script: |
+            cd prompteus
+
+            # Override security-sensitive values from GitHub secrets (only if available)
+            if [ ! -z "${{ secrets.POSTGRES_PASSWORD }}" ]; then
+              echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+            fi
+
+            if [ ! -z "${{ secrets.MEILI_MASTER_KEY }}" ]; then
+              echo "MEILI_MASTER_KEY=${{ secrets.MEILI_MASTER_KEY }}" >> .env
+            fi
+
+            # Override URLs for production deployment using nip.io
+            echo "CLIENT_HOST=client.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+            echo "SERVER_HOST=api.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+            echo "PUBLIC_API_URL=https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+
+            if [ ! -z "${{ secrets.OPENAI_API_KEY }}" ]; then
+              echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+            fi
+
+            echo "Production environment file prepared successfully"
+
+      - name: Deploy Prompteus Services
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.EC2_PUBLIC_IP }}
+          username: ${{ vars.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
+          script: |
+            cd prompteus
+
+            # Login to GitHub Container Registry
+            echo "${{ secrets.GITHUB_TOKEN }}" | \
+              docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            # Set image tags for main branch deployment
+            export DOCKER_TAG=main
+
+            # Show which images will be deployed
+            echo "=== Images to be deployed ==="
+            docker compose \
+              --env-file .env \
+              config --images
+
+            # Pull latest images from the builder workflows
+            docker compose \
+              --env-file .env \
+              pull
+
+            # Deploy with the built images
+            docker compose \
+              --env-file .env \
+              up -d \
+              --remove-orphans
+
+            # Show running services
+            docker compose ps
+
+            # Show service logs (last 50 lines)
+            echo "=== Recent service logs ==="
+            docker compose logs --tail=50
+
+      - name: Wait for Services Health Check
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.EC2_PUBLIC_IP }}
+          username: ${{ vars.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
+          script: |
+            cd prompteus
+
+            echo "Waiting for services to become healthy..."
+
+            # Wait up to 5 minutes for all services to be healthy
+            timeout 300 bash -c '
+              while true; do
+                if docker compose ps --format json | jq -r ".[] | select(.Health != \"\" and .Health != \"healthy\") | .Name" | grep -q .; then
+                  echo "Waiting for services to become healthy..."
+                  sleep 10
+                else
+                  echo "All services are healthy!"
+                  break
+                fi
+              done
+            ' || {
+              echo "Timeout waiting for services to become healthy"
+              echo "Current service status:"
+              docker compose ps
+              docker compose logs --tail=100
+              exit 1
+            }
+
+            echo "=== Final deployment status ==="
+            docker compose ps
+            echo ""
+            echo "🚀 Deployment complete!"
+            echo "Client URL: https://client.${{ vars.EC2_PUBLIC_IP }}.nip.io"
+            echo "API URL: https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io"
