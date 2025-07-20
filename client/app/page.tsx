@@ -227,7 +227,9 @@ export default function HomePage() {
 
 								{error && (
 									<div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-										<p className="text-red-700 text-sm">{error}</p>
+										<p className="text-red-700 text-sm">
+											{error instanceof Error ? error.message : error}
+										</p>
 									</div>
 								)}
 
