@@ -188,8 +188,6 @@ data:
     providers:
       - name: 'team-promptheus'
         orgId: 1
-        folder: 'Team Promptheus'
-        folderUid: 'team-promptheus'
         type: file
         disableDeletion: false
         editable: true
