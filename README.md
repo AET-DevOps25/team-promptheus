@@ -16,9 +16,7 @@ further progress reports starting at week 2 are available [on confluence](https:
 
 ## Screenshots
 
-![Screenshot of the dashboard](docs/dashboard.png)
-
-![Screenshot of a summary](docs/demo-summary.png)
+<img src="docs/dashboard.png" width="50%"/><img src="docs/demo-summary.png" width="50%"/>
 
 ## Architecture of the systems
 
