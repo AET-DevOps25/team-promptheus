@@ -3,7 +3,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
 metadata:
   name: team-promptheus-prometheus
-  namespace: {{ $.Release.Namespace }}
+  namespace: "{{ $.Release.Namespace }}"
   labels:
     app: prometheus
     component: prometheus-server
@@ -46,7 +46,7 @@ spec:
   # Alerting configuration
   alerting:
     alertmanagers:
-      - namespace: {{ $.Release.Namespace }}
+      - namespace: "{{ $.Release.Namespace }}"
         name: team-promptheus-alertmanager
         port: web
 

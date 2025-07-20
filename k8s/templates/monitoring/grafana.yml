@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana
-  namespace: {{ .Release.Namespace }}
+  namespace: "{{ $.Release.Namespace }}"
   labels:
     app: grafana
 spec:
@@ -88,7 +88,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: grafana-service
-  namespace: {{ .Release.Namespace }}
+  namespace: "{{ $.Release.Namespace }}"
   labels:
     app: grafana
 spec:
@@ -106,7 +106,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-datasources
-  namespace: {{ .Release.Namespace }}
+  namespace: "{{ $.Release.Namespace }}"
   labels:
     app: grafana
 data:
@@ -192,7 +192,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-dashboards-config
-  namespace: {{ .Release.Namespace }}
+  namespace: "{{ $.Release.Namespace }}"
   labels:
     app: grafana
 data:
@@ -215,7 +215,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-dashboards-files
-  namespace: {{ .Release.Namespace }}
+  namespace: "{{ $.Release.Namespace }}"
   labels:
     app: grafana
 data:

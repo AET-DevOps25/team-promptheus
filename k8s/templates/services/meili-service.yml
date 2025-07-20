@@ -5,7 +5,7 @@ metadata:
   labels:
     app: meilisearch
     component: meilisearch-service
-  namespace: { { $.Release.Namespace } }
+  namespace: "{{ $.Release.Namespace }}"
 spec:
   selector:
     app: meilisearch

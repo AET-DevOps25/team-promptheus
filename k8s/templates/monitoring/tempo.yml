@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tempo
-  namespace: {{ .Release.Namespace }}
+  namespace: "{{ $.Release.Namespace }}"
   labels:
     app: tempo
 spec:
@@ -78,7 +78,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: tempo-service
-  namespace: {{ .Release.Namespace }}
+  namespace: "{{ $.Release.Namespace }}"
   labels:
     app: tempo
 spec:
@@ -112,7 +112,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: tempo-config
-  namespace: {{ .Release.Namespace }}
+  namespace: "{{ $.Release.Namespace }}"
   labels:
     app: tempo
 data:

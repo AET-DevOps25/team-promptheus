@@ -1,16 +1,16 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-    name: meilisearch-metrics
+    name: otel-collector-metrics
     namespace: "{{ $.Release.Namespace }}"
     labels:
-        app: meilisearch
+        app: otel-collector
 spec:
     selector:
         matchLabels:
-            app: meilisearch
+            app: otel-collector
     endpoints:
-    - port: http
+    - port: prometheus
       path: /metrics
       interval: 30s
       scrapeTimeout: 10s

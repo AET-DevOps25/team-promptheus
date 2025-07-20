@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pyroscope
-  namespace: {{ .Release.Namespace }}
+  namespace: "{{ $.Release.Namespace }}"
   labels:
     app: pyroscope
 spec:
@@ -70,7 +70,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: pyroscope-service
-  namespace: {{ .Release.Namespace }}
+  namespace: "{{ $.Release.Namespace }}"
   labels:
     app: pyroscope
 spec:
@@ -87,7 +87,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: pyroscope-config
-  namespace: {{ .Release.Namespace }}
+  namespace: "{{ $.Release.Namespace }}"
   labels:
     app: pyroscope
 data:

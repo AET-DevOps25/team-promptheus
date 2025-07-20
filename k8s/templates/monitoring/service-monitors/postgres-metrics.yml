@@ -1,8 +1,8 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
-metadata:
+ "{{ $.Release.Namespace }}"metadata:
   name: postgres-metrics
-  namespace: {{ $.Release.Namespace }}
+  namespace: "{{ $.Release.Namespace }}"
   labels:
     app: postgres
     release: {{ $.Release.Name }}
