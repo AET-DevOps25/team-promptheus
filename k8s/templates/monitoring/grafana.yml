@@ -116,7 +116,7 @@ data:
       - name: Prometheus
         type: prometheus
         access: proxy
-        url: http://prometheus-operated.{{ .Release.Namespace }}.svc.cluster.local:9090
+        url: http://prometheus-service.{{ .Release.Namespace }}.svc.cluster.local:9090
         isDefault: true
         editable: true
         basicAuth: false

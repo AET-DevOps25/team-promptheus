@@ -72,8 +72,7 @@ spec:
   # Scrape interval
   scrapeInterval: 30s
 
-  externalUrl: https://{{ $hostName }}/prometheus
-  routePrefix: /prometheus
+  externalUrl: https://prometheus-{{ $hostName }}
 
   # Remote write configuration (optional - for long-term storage)
   # remoteWrite:

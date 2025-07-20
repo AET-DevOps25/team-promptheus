@@ -51,10 +51,3 @@ spec:
             name: collector-service
             port:
               number: 8082
-      - path: /prometheus
-        pathType: Prefix
-        backend:
-          service:
-            name: prometheus-service
-            port:
-              number: 9090
