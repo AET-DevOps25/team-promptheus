@@ -278,3 +278,12 @@ pre-commit run --all-files
 
 We provide a [prometheus interface here](https://prometheus-prompteus.student.k8s.aet.cit.tum.de/) and grafana (admin/admin) [here](https://grafana-prompteus.student.k8s.aet.cit.tum.de/).
 For further details, how the rest of the system (tracing, profiling, logs) is set up, please see [these docs](MONITORING.md)
+
+## API documentation
+
+Our api is documented here:
+- [`server`](https://editor.swagger.io/?url=https://raw.githubusercontent.com/AET-DevOps25/team-promptheus/refs/heads/main/server/openapi.json)
+- [`search`](https://editor.swagger.io/?url=https://raw.githubusercontent.com/AET-DevOps25/team-promptheus/refs/heads/main/search/openapi.json)
+- [`summary`](https://editor.swagger.io/?url=https://raw.githubusercontent.com/AET-DevOps25/team-promptheus/refs/heads/main/summary/openapi.json)
+- [`contribution`](https://editor.swagger.io/?url=https://raw.githubusercontent.com/AET-DevOps25/team-promptheus/refs/heads/main/contribution/openapi.json)
+- [`genai`](https://editor.swagger.io/?url=https://raw.githubusercontent.com/AET-DevOps25/team-promptheus/refs/heads/main/genai/openapi.json)
