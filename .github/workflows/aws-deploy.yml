@@ -31,8 +31,6 @@
 name: Deploy Prompteus to AWS
 
 on:
-  push:
-    branches: [main, finalize]
   workflow_dispatch:
   workflow_run:
     workflows:
@@ -52,23 +50,11 @@ jobs:
     # Only deploy if all builder workflows completed successfully
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
-      github.event_name == 'push'
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Wait for all builder workflows to complete
-        if: github.event_name == 'push'
-        uses: lewagon/wait-on-check-action@v1.3.4
-        with:
-          ref: ${{ github.ref }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 30
-          running-workflow-name: 'Deploy Prompteus to AWS'
-          check-regexp: '.*(CI/CD).*'
-          allowed-conclusions: success
 
       - name: Copy Docker Compose and Config Files
         uses: appleboy/scp-action@v0.1.7
