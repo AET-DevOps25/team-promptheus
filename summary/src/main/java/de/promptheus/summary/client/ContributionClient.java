@@ -58,6 +58,47 @@ public class ContributionClient {
     }
 
     /**
+     * Get the oldest contribution date for a specific repository and user
+     */
+    public Mono<Instant> getOldestContributionDate(String username, Long repositoryId) {
+        // For now, we'll need to fetch all contributions and find the oldest
+        // This is not optimal but works with the current API structure
+        Pageable pageable = new Pageable();
+        pageable.setPage(0);
+        pageable.setSize(10000); // Large size to get all contributions
+
+        return contributionApi.getContributions(pageable, username, null, null)
+                .map(page -> {
+                    List<?> content = page.getContent();
+                    if (content == null || content.isEmpty()) {
+                        return null;
+                    }
+
+                    // Convert to ContributionDto objects
+                    List<ContributionDto> contributions;
+                    if (content.get(0) instanceof Map) {
+                        contributions = content.stream()
+                                .map(obj -> convertMapToContributionDto((Map<String, Object>) obj))
+                                .collect(Collectors.toList());
+                    } else {
+                        @SuppressWarnings("unchecked")
+                        List<ContributionDto> typedContributions = (List<ContributionDto>) content;
+                        contributions = typedContributions;
+                    }
+
+                    // Filter by repository and find oldest
+                    return contributions.stream()
+                            .filter(contrib -> contrib.getGitRepositoryId() != null &&
+                                             contrib.getGitRepositoryId().equals(repositoryId))
+                            .map(ContributionDto::getCreatedAt)
+                            .filter(offsetDateTime -> offsetDateTime != null)
+                            .map(OffsetDateTime::toInstant)
+                            .min(Instant::compareTo)
+                            .orElse(null);
+                });
+    }
+
+    /**
      * Convert week format (e.g., "2025-W25") to ISO 8601 date range.
      * Returns array with [startDate, endDate] in ISO format.
      */

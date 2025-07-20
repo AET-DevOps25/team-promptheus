@@ -3,8 +3,11 @@
 import {
 	Bug,
 	Calendar,
+	ChevronLeft,
+	ChevronRight,
 	Eye,
 	FileText,
+	Folder,
 	GitCommit,
 	GitPullRequest,
 	Package,
@@ -24,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSummaries } from "@/lib/api";
+import type { SummaryFilters } from "@/lib/api/summary";
 
 function SummariesLoading() {
 	return (
@@ -38,6 +42,7 @@ function SummariesLoading() {
 				{/* Filters */}
 				<div className="flex gap-4 mb-6">
 					<Skeleton className="h-10 w-64" />
+					<Skeleton className="h-10 w-48" />
 					<Skeleton className="h-10 w-48" />
 				</div>
 
@@ -78,34 +83,57 @@ function SummariesLoading() {
 }
 
 export default function SummariesPage() {
+	const [filters, setFilters] = useState<SummaryFilters>({
+		page: 0,
+		size: 20,
+		sort: ["createdAt,desc"],
+	});
 	const [weekFilter, setWeekFilter] = useState<string>("all");
 	const [userFilter, setUserFilter] = useState<string>("");
+	const [repoFilter, setRepoFilter] = useState<string>("");
 
-	const {
-		data: summaries,
-		isLoading,
-		error,
-	} = useSummaries(
-		weekFilter && weekFilter !== "all" ? { week: weekFilter } : undefined,
-	);
+	// Build filters object
+	const apiFilters: SummaryFilters = {
+		...filters,
+		...(weekFilter && weekFilter !== "all" && { week: weekFilter }),
+		...(userFilter && { username: userFilter }),
+		...(repoFilter && { repository: repoFilter }),
+	};
 
-	// Filter summaries by user if user filter is set
-	const filteredSummaries =
-		summaries?.filter(
-			(summary) =>
-				!userFilter ||
-				summary.username?.toLowerCase().includes(userFilter.toLowerCase()),
-		) || [];
+	const { data: summariesPage, isLoading, error } = useSummaries(apiFilters);
 
-	// Get unique weeks and users for filter options
-	const availableWeeks = [
-		...new Set(summaries?.map((s) => s.week).filter(Boolean)),
-	]
-		.sort()
-		.reverse();
-	const _availableUsers = [
-		...new Set(summaries?.map((s) => s.username).filter(Boolean)),
-	].sort();
+	const summaries = summariesPage?.content || [];
+	const totalElements = summariesPage?.totalElements || 0;
+	const totalPages = summariesPage?.totalPages || 0;
+	const currentPage = summariesPage?.number || 0;
+
+	// Handle filter changes
+	const handleWeekChange = (value: string) => {
+		setWeekFilter(value);
+		setFilters((prev: SummaryFilters) => ({ ...prev, page: 0 })); // Reset to first page
+	};
+
+	const handleUserChange = (value: string) => {
+		setUserFilter(value);
+		setFilters((prev: SummaryFilters) => ({ ...prev, page: 0 })); // Reset to first page
+	};
+
+	const handleRepoChange = (value: string) => {
+		setRepoFilter(value);
+		setFilters((prev: SummaryFilters) => ({ ...prev, page: 0 })); // Reset to first page
+	};
+
+	const clearFilters = () => {
+		setWeekFilter("all");
+		setUserFilter("");
+		setRepoFilter("");
+		setFilters({ page: 0, size: 20, sort: ["createdAt,desc"] });
+	};
+
+	// Pagination handlers
+	const handlePageChange = (newPage: number) => {
+		setFilters((prev: SummaryFilters) => ({ ...prev, page: newPage }));
+	};
 
 	if (isLoading) {
 		return <SummariesLoading />;
@@ -137,37 +165,36 @@ export default function SummariesPage() {
 				</div>
 
 				{/* Filters */}
-				<div className="flex gap-4 mb-6">
+				<div className="flex gap-4 mb-6 flex-wrap">
 					<Input
 						className="max-w-64"
-						onChange={(e) => setUserFilter(e.target.value)}
+						onChange={(e) => handleUserChange(e.target.value)}
 						placeholder="Filter by user..."
 						value={userFilter}
 					/>
-					<Select onValueChange={setWeekFilter} value={weekFilter}>
-						<SelectTrigger className="w-48">
-							<SelectValue placeholder="Filter by week" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="all">All weeks</SelectItem>
-							{availableWeeks.map((week) => (
-								<SelectItem key={week} value={week || "unknown"}>
-									{week}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-					{((weekFilter && weekFilter !== "all") || userFilter) && (
-						<Button
-							onClick={() => {
-								setWeekFilter("all");
-								setUserFilter("");
-							}}
-							variant="outline"
-						>
+					<Input
+						className="max-w-64"
+						onChange={(e) => handleRepoChange(e.target.value)}
+						placeholder="Filter by repository..."
+						value={repoFilter}
+					/>
+					<Input
+						className="max-w-48"
+						onChange={(e) => handleWeekChange(e.target.value)}
+						placeholder="Week (e.g., 2024-W01)"
+						value={weekFilter === "all" ? "" : weekFilter}
+					/>
+					{(weekFilter !== "all" || userFilter || repoFilter) && (
+						<Button onClick={clearFilters} variant="outline">
 							Clear Filters
 						</Button>
 					)}
+				</div>
+
+				{/* Results info */}
+				<div className="text-sm text-muted-foreground">
+					Showing {summaries.length} of {totalElements} summaries
+					{totalPages > 1 && ` (Page ${currentPage + 1} of ${totalPages})`}
 				</div>
 
 				{/* Summaries Table */}
@@ -175,25 +202,25 @@ export default function SummariesPage() {
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<FileText className="h-5 w-5" />
-							Generated Summaries ({filteredSummaries.length})
+							Generated Summaries
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						{filteredSummaries.length === 0 ? (
+						{summaries.length === 0 ? (
 							<div className="text-center py-12">
 								<FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
 								<h3 className="text-lg font-semibold text-gray-900 mb-2">
 									No summaries found
 								</h3>
 								<p className="text-gray-600">
-									{(weekFilter && weekFilter !== "all") || userFilter
+									{weekFilter !== "all" || userFilter || repoFilter
 										? "No summaries match your current filters."
 										: "No summaries have been generated yet."}
 								</p>
 							</div>
 						) : (
 							<div className="space-y-4">
-								{filteredSummaries.map((summary) => (
+								{summaries.map((summary) => (
 									<div
 										className="flex items-center gap-4 p-4 border rounded-lg hover:bg-slate-50 transition-colors"
 										key={summary.id}
@@ -209,14 +236,23 @@ export default function SummariesPage() {
 												</p>
 												<Badge variant="secondary">{summary.week}</Badge>
 											</div>
-											<div className="flex items-center gap-2 text-sm text-muted-foreground">
-												<Calendar className="h-4 w-4" />
-												<span>
-													Generated on{" "}
-													{summary.createdAt
-														? new Date(summary.createdAt).toLocaleDateString()
-														: "Unknown date"}
-												</span>
+											<div className="flex items-center gap-4 text-sm text-muted-foreground">
+												<div className="flex items-center gap-1">
+													<Calendar className="h-4 w-4" />
+													<span>
+														{summary.createdAt
+															? new Date(summary.createdAt).toLocaleDateString()
+															: "Unknown date"}
+													</span>
+												</div>
+												{summary.repositoryName && (
+													<div className="flex items-center gap-1">
+														<Folder className="h-4 w-4" />
+														<span className="truncate">
+															{summary.repositoryName}
+														</span>
+													</div>
+												)}
 											</div>
 										</div>
 
@@ -263,6 +299,35 @@ export default function SummariesPage() {
 						)}
 					</CardContent>
 				</Card>
+
+				{/* Pagination */}
+				{totalPages > 1 && (
+					<div className="flex items-center justify-between">
+						<div className="text-sm text-muted-foreground">
+							Page {currentPage + 1} of {totalPages}
+						</div>
+						<div className="flex items-center gap-2">
+							<Button
+								disabled={currentPage === 0}
+								onClick={() => handlePageChange(currentPage - 1)}
+								size="sm"
+								variant="outline"
+							>
+								<ChevronLeft className="h-4 w-4" />
+								Previous
+							</Button>
+							<Button
+								disabled={currentPage >= totalPages - 1}
+								onClick={() => handlePageChange(currentPage + 1)}
+								size="sm"
+								variant="outline"
+							>
+								Next
+								<ChevronRight className="h-4 w-4" />
+							</Button>
+						</div>
+					</div>
+				)}
 			</div>
 		</div>
 	);

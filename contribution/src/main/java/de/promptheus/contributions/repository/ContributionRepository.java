@@ -41,5 +41,16 @@ public interface ContributionRepository extends JpaRepository<Contribution, Cont
 
     Page<Contribution> findByUsernameAndCreatedAtBetween(String username, Instant startDate, Instant endDate, Pageable pageable);
 
+    /**
+     * Find the oldest contribution date for a specific repository and user
+     */
+    @Query("SELECT MIN(c.createdAt) FROM Contribution c WHERE c.gitRepositoryId = :repositoryId AND c.username = :username")
+    Optional<Instant> findOldestContributionDate(@Param("repositoryId") Long repositoryId, @Param("username") String username);
+
+    /**
+     * Find the oldest contribution date across all repositories and users
+     */
+    @Query("SELECT MIN(c.createdAt) FROM Contribution c")
+    Optional<Instant> findOldestContributionDate();
 
 }

@@ -1,170 +1,216 @@
 {
-	"components": {
-		"schemas": {
-			"Summary": {
-				"properties": {
-					"analysis": {
-						"type": "string"
-					},
-					"areasForImprovement": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"commitsCount": {
-						"format": "int32",
-						"type": "integer"
-					},
-					"commitsSummary": {
-						"type": "string"
-					},
-					"createdAt": {
-						"format": "date-time",
-						"type": "string"
-					},
-					"gitRepositoryId": {
-						"format": "int64",
-						"type": "integer"
-					},
-					"id": {
-						"format": "int64",
-						"type": "integer"
-					},
-					"issuesCount": {
-						"format": "int32",
-						"type": "integer"
-					},
-					"issuesSummary": {
-						"type": "string"
-					},
-					"keyAchievements": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"overview": {
-						"type": "string"
-					},
-					"pullRequestsCount": {
-						"format": "int32",
-						"type": "integer"
-					},
-					"pullRequestsSummary": {
-						"type": "string"
-					},
-					"releasesCount": {
-						"format": "int32",
-						"type": "integer"
-					},
-					"releasesSummary": {
-						"type": "string"
-					},
-					"totalContributions": {
-						"format": "int32",
-						"type": "integer"
-					},
-					"username": {
-						"type": "string"
-					},
-					"week": {
-						"type": "string"
-					}
-				},
-				"type": "object"
-			}
-		}
-	},
-	"info": {
-		"title": "OpenAPI definition",
-		"version": "v0"
-	},
 	"openapi": "3.1.0",
+	"info": {
+		"title": "Prompteus Summary",
+		"license": { "name": "MIT", "url": "https://opensource.org/licenses/MIT" },
+		"version": "1.0.0"
+	},
+	"servers": [
+		{ "url": "https://prompteus.ai", "description": "Production server" }
+	],
+	"tags": [
+		{
+			"name": "summary-controller",
+			"description": "Summary management operations"
+		}
+	],
 	"paths": {
-		"/api/summaries": {
-			"get": {
-				"operationId": "getSummaries",
-				"parameters": [
-					{
-						"in": "query",
-						"name": "week",
-						"required": false,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"content": {
-							"*/*": {
-								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/Summary"
-									},
-									"type": "array"
-								}
-							}
-						},
-						"description": "OK"
-					}
-				},
-				"summary": "Get summaries",
-				"tags": ["summary-controller"]
-			}
-		},
 		"/api/summaries/{owner}/{repo}/{username}/{week}": {
 			"post": {
+				"tags": ["summary-controller"],
+				"summary": "Generate summary",
 				"operationId": "generateSummary",
 				"parameters": [
 					{
-						"in": "path",
 						"name": "owner",
+						"in": "path",
+						"description": "Repository owner/organization",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
-						"in": "path",
 						"name": "repo",
+						"in": "path",
+						"description": "Repository name",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
-						"in": "path",
 						"name": "username",
+						"in": "path",
+						"description": "Username to generate summary for",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
-						"in": "path",
 						"name": "week",
+						"in": "path",
+						"description": "Week in format YYYY-WXX",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": { "description": "Summary generation triggered successfully" },
+					"404": { "description": "Repository or user not found" },
+					"500": { "description": "Internal server error" }
+				}
+			}
+		},
+		"/api/summaries/backfill": {
+			"post": {
+				"tags": ["summary-controller"],
+				"summary": "Generate backfill summaries for all repositories and users",
+				"operationId": "generateBackfillSummaries",
+				"responses": {
+					"200": {
+						"description": "Backfill summary generation triggered successfully"
+					},
+					"500": { "description": "Internal server error" }
+				}
+			}
+		},
+		"/api/summaries": {
+			"get": {
+				"tags": ["summary-controller"],
+				"summary": "Get summaries with optional filters and pagination",
+				"description": "Retrieve summaries with filtering by week, username, and repository. Supports pagination and sorting. Returns enriched data with repository information.",
+				"operationId": "getSummaries",
+				"parameters": [
+					{
+						"name": "week",
+						"in": "query",
+						"description": "Optional week filter in format YYYY-WXX (e.g., 2024-W01)",
+						"required": false,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "username",
+						"in": "query",
+						"description": "Optional username filter",
+						"required": false,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "repository",
+						"in": "query",
+						"description": "Optional repository filter (supports full URL, owner/repo format, or partial name)",
+						"required": false,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "pageable",
+						"in": "query",
+						"description": "Pagination parameters - default page=0, size=20, sort by createdAt desc",
+						"required": true,
+						"schema": { "$ref": "#/components/schemas/Pageable" }
 					}
 				],
 				"responses": {
 					"200": {
-						"description": "OK"
+						"description": "Successfully retrieved summaries",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/PageSummaryDto" }
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request parameters",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/PageSummaryDto" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/PageSummaryDto" }
+							}
+						}
 					}
-				},
-				"summary": "Generate summary",
-				"tags": ["summary-controller"]
+				}
 			}
 		}
 	},
-	"servers": [
-		{
-			"description": "Generated server url",
-			"url": "http://localhost:8084"
+	"components": {
+		"schemas": {
+			"Pageable": {
+				"type": "object",
+				"properties": {
+					"page": { "type": "integer", "format": "int32", "minimum": 0 },
+					"size": { "type": "integer", "format": "int32", "minimum": 1 },
+					"sort": { "type": "array", "items": { "type": "string" } }
+				}
+			},
+			"PageSummaryDto": {
+				"type": "object",
+				"properties": {
+					"totalElements": { "type": "integer", "format": "int64" },
+					"totalPages": { "type": "integer", "format": "int32" },
+					"size": { "type": "integer", "format": "int32" },
+					"content": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/SummaryDto" }
+					},
+					"number": { "type": "integer", "format": "int32" },
+					"sort": { "$ref": "#/components/schemas/SortObject" },
+					"first": { "type": "boolean" },
+					"last": { "type": "boolean" },
+					"numberOfElements": { "type": "integer", "format": "int32" },
+					"pageable": { "$ref": "#/components/schemas/PageableObject" },
+					"empty": { "type": "boolean" }
+				}
+			},
+			"PageableObject": {
+				"type": "object",
+				"properties": {
+					"offset": { "type": "integer", "format": "int64" },
+					"sort": { "$ref": "#/components/schemas/SortObject" },
+					"paged": { "type": "boolean" },
+					"pageNumber": { "type": "integer", "format": "int32" },
+					"pageSize": { "type": "integer", "format": "int32" },
+					"unpaged": { "type": "boolean" }
+				}
+			},
+			"SortObject": {
+				"type": "object",
+				"properties": {
+					"empty": { "type": "boolean" },
+					"sorted": { "type": "boolean" },
+					"unsorted": { "type": "boolean" }
+				}
+			},
+			"SummaryDto": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer", "format": "int64" },
+					"gitRepositoryId": { "type": "integer", "format": "int64" },
+					"repositoryName": { "type": "string" },
+					"repositoryUrl": { "type": "string" },
+					"username": { "type": "string" },
+					"week": { "type": "string" },
+					"overview": { "type": "string" },
+					"commitsSummary": { "type": "string" },
+					"pullRequestsSummary": { "type": "string" },
+					"issuesSummary": { "type": "string" },
+					"releasesSummary": { "type": "string" },
+					"analysis": { "type": "string" },
+					"keyAchievements": { "type": "array", "items": { "type": "string" } },
+					"areasForImprovement": {
+						"type": "array",
+						"items": { "type": "string" }
+					},
+					"totalContributions": { "type": "integer", "format": "int32" },
+					"commitsCount": { "type": "integer", "format": "int32" },
+					"pullRequestsCount": { "type": "integer", "format": "int32" },
+					"issuesCount": { "type": "integer", "format": "int32" },
+					"releasesCount": { "type": "integer", "format": "int32" },
+					"createdAt": { "type": "string", "format": "date-time" }
+				}
+			}
 		}
-	]
+	}
 }

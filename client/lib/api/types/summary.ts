@@ -4,22 +4,6 @@
  */
 
 export type paths = {
-	readonly "/api/summaries": {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path?: never;
-			readonly cookie?: never;
-		};
-		readonly get: operations["getSummaries"];
-		readonly put?: never;
-		readonly post?: never;
-		readonly delete?: never;
-		readonly options?: never;
-		readonly head?: never;
-		readonly patch?: never;
-		readonly trace?: never;
-	};
 	readonly "/api/summaries/{owner}/{repo}/{username}/{week}": {
 		readonly parameters: {
 			readonly query?: never;
@@ -29,7 +13,45 @@ export type paths = {
 		};
 		readonly get?: never;
 		readonly put?: never;
+		/** Generate summary */
 		readonly post: operations["generateSummary"];
+		readonly delete?: never;
+		readonly options?: never;
+		readonly head?: never;
+		readonly patch?: never;
+		readonly trace?: never;
+	};
+	readonly "/api/summaries/backfill": {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path?: never;
+			readonly cookie?: never;
+		};
+		readonly get?: never;
+		readonly put?: never;
+		/** Generate backfill summaries for all repositories and users */
+		readonly post: operations["generateBackfillSummaries"];
+		readonly delete?: never;
+		readonly options?: never;
+		readonly head?: never;
+		readonly patch?: never;
+		readonly trace?: never;
+	};
+	readonly "/api/summaries": {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path?: never;
+			readonly cookie?: never;
+		};
+		/**
+		 * Get summaries with optional filters and pagination
+		 * @description Retrieve summaries with filtering by week, username, and repository. Supports pagination and sorting. Returns enriched data with repository information.
+		 */
+		readonly get: operations["getSummaries"];
+		readonly put?: never;
+		readonly post?: never;
 		readonly delete?: never;
 		readonly options?: never;
 		readonly head?: never;
@@ -40,33 +62,76 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
 	schemas: {
-		readonly Summary: {
-			readonly analysis?: string;
-			readonly areasForImprovement?: readonly string[];
+		readonly Pageable: {
 			/** Format: int32 */
-			readonly commitsCount?: number;
-			readonly commitsSummary?: string;
-			/** Format: date-time */
-			readonly createdAt?: string;
+			readonly page?: number;
+			/** Format: int32 */
+			readonly size?: number;
+			readonly sort?: readonly string[];
+		};
+		readonly PageSummaryDto: {
+			/** Format: int32 */
+			readonly totalPages?: number;
 			/** Format: int64 */
-			readonly gitRepositoryId?: number;
+			readonly totalElements?: number;
+			/** Format: int32 */
+			readonly size?: number;
+			readonly content?: readonly components["schemas"]["SummaryDto"][];
+			/** Format: int32 */
+			readonly number?: number;
+			readonly sort?: components["schemas"]["SortObject"];
+			/** Format: int32 */
+			readonly numberOfElements?: number;
+			readonly pageable?: components["schemas"]["PageableObject"];
+			readonly first?: boolean;
+			readonly last?: boolean;
+			readonly empty?: boolean;
+		};
+		readonly PageableObject: {
+			/** Format: int64 */
+			readonly offset?: number;
+			readonly sort?: components["schemas"]["SortObject"];
+			readonly paged?: boolean;
+			/** Format: int32 */
+			readonly pageNumber?: number;
+			/** Format: int32 */
+			readonly pageSize?: number;
+			readonly unpaged?: boolean;
+		};
+		readonly SortObject: {
+			readonly empty?: boolean;
+			readonly sorted?: boolean;
+			readonly unsorted?: boolean;
+		};
+		readonly SummaryDto: {
 			/** Format: int64 */
 			readonly id?: number;
-			/** Format: int32 */
-			readonly issuesCount?: number;
-			readonly issuesSummary?: string;
-			readonly keyAchievements?: readonly string[];
-			readonly overview?: string;
-			/** Format: int32 */
-			readonly pullRequestsCount?: number;
-			readonly pullRequestsSummary?: string;
-			/** Format: int32 */
-			readonly releasesCount?: number;
-			readonly releasesSummary?: string;
-			/** Format: int32 */
-			readonly totalContributions?: number;
+			/** Format: int64 */
+			readonly gitRepositoryId?: number;
+			readonly repositoryName?: string;
+			readonly repositoryUrl?: string;
 			readonly username?: string;
 			readonly week?: string;
+			readonly overview?: string;
+			readonly commitsSummary?: string;
+			readonly pullRequestsSummary?: string;
+			readonly issuesSummary?: string;
+			readonly releasesSummary?: string;
+			readonly analysis?: string;
+			readonly keyAchievements?: readonly string[];
+			readonly areasForImprovement?: readonly string[];
+			/** Format: int32 */
+			readonly totalContributions?: number;
+			/** Format: int32 */
+			readonly commitsCount?: number;
+			/** Format: int32 */
+			readonly pullRequestsCount?: number;
+			/** Format: int32 */
+			readonly issuesCount?: number;
+			/** Format: int32 */
+			readonly releasesCount?: number;
+			/** Format: date-time */
+			readonly createdAt?: string;
 		};
 	};
 	responses: never;
@@ -77,10 +142,83 @@ export type components = {
 };
 export type $defs = Record<string, never>;
 export interface operations {
+	readonly generateSummary: {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path: {
+				/** @description Repository owner/organization */
+				readonly owner: string;
+				/** @description Repository name */
+				readonly repo: string;
+				/** @description Username to generate summary for */
+				readonly username: string;
+				/** @description Week in format YYYY-WXX */
+				readonly week: string;
+			};
+			readonly cookie?: never;
+		};
+		readonly requestBody?: never;
+		readonly responses: {
+			/** @description Summary generation triggered successfully */
+			readonly 200: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Repository or user not found */
+			readonly 404: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Internal server error */
+			readonly 500: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	readonly generateBackfillSummaries: {
+		readonly parameters: {
+			readonly query?: never;
+			readonly header?: never;
+			readonly path?: never;
+			readonly cookie?: never;
+		};
+		readonly requestBody?: never;
+		readonly responses: {
+			/** @description Backfill summary generation triggered successfully */
+			readonly 200: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Internal server error */
+			readonly 500: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
 	readonly getSummaries: {
 		readonly parameters: {
-			readonly query?: {
+			readonly query: {
+				/** @description Optional week filter in format YYYY-WXX (e.g., 2024-W01) */
 				readonly week?: string;
+				/** @description Optional username filter */
+				readonly username?: string;
+				/** @description Optional repository filter (supports full URL, owner/repo format, or partial name) */
+				readonly repository?: string;
+				/** @description Pagination parameters - default page=0, size=20, sort by createdAt desc */
+				readonly pageable: components["schemas"]["Pageable"];
 			};
 			readonly header?: never;
 			readonly path?: never;
@@ -88,37 +226,32 @@ export interface operations {
 		};
 		readonly requestBody?: never;
 		readonly responses: {
-			/** @description OK */
+			/** @description Successfully retrieved summaries */
 			readonly 200: {
 				headers: {
 					readonly [name: string]: unknown;
 				};
 				content: {
-					readonly "*/*": readonly components["schemas"]["Summary"][];
+					readonly "*/*": components["schemas"]["PageSummaryDto"];
 				};
 			};
-		};
-	};
-	readonly generateSummary: {
-		readonly parameters: {
-			readonly query?: never;
-			readonly header?: never;
-			readonly path: {
-				readonly owner: string;
-				readonly repo: string;
-				readonly username: string;
-				readonly week: string;
-			};
-			readonly cookie?: never;
-		};
-		readonly requestBody?: never;
-		readonly responses: {
-			/** @description OK */
-			readonly 200: {
+			/** @description Invalid request parameters */
+			readonly 400: {
 				headers: {
 					readonly [name: string]: unknown;
 				};
-				content?: never;
+				content: {
+					readonly "*/*": components["schemas"]["PageSummaryDto"];
+				};
+			};
+			/** @description Internal server error */
+			readonly 500: {
+				headers: {
+					readonly [name: string]: unknown;
+				};
+				content: {
+					readonly "*/*": components["schemas"]["PageSummaryDto"];
+				};
 			};
 		};
 	};

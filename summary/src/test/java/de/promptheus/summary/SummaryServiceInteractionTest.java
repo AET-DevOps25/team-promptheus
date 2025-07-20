@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -78,13 +79,13 @@ class SummaryServiceInteractionTest {
         when(summaryRepository.findByUsernameAndWeek(eq(username), eq(week))).thenReturn(Collections.emptyList());
         when(contributionClient.getContributionsForUserAndWeek(eq(username), eq(week)))
                 .thenReturn(Mono.just(Collections.singletonList(contributionDto)));
-        when(genAiClient.generateSummaryAsync(any(ContributionsIngestRequest.class))).thenReturn(Mono.just(summaryResponse));
+        when(genAiClient.generateSummaryAsync(any(ContributionsIngestRequest.class), anyBoolean())).thenReturn(Mono.just(summaryResponse));
 
         // Execution
         summaryService.generateSummary(username, week, repository, "test-token");
 
         // Verification with timeout to wait for async operations
-        verify(genAiClient, timeout(2000)).generateSummaryAsync(any(ContributionsIngestRequest.class));
+        verify(genAiClient, timeout(2000)).generateSummaryAsync(any(ContributionsIngestRequest.class), anyBoolean());
         verify(summaryRepository, timeout(2000)).save(any(Summary.class));
     }
 
