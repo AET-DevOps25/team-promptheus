@@ -19,6 +19,6 @@ jobs:
           helm upgrade team-promptheus ./k8s \
             --namespace team-promptheus --create-namespace \
             --set secrets.postgresPassword="${{ secrets.POSTGRES_PASSWORD }}" \
-            --set secrets.meiliMasterKey="${{ secrets.MEILI_MASTER_KEY }}"
-            --set secrets.openaiApiKey="${{ secrets.OPENAI_API_KEY }}"
+            --set secrets.meiliMasterKey="${{ secrets.MEILI_MASTER_KEY }}" \
+            --set secrets.openaiApiKey="${{ secrets.OPENAI_API_KEY }}" \
             --set ingress.domain=prompteus.student.k8s.aet.cit.tum.de
