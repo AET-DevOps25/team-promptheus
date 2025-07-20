@@ -59,17 +59,17 @@ jobs:
       - name: Copy Docker Compose and Config Files
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ vars.EC2_PUBLIC_IP }}
-          username: ${{ vars.AWS_EC2_USER }}
+          host: ${{ secrets.EC2_PUBLIC_IP }}
+          username: ${{ secrets.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
           source: "./docker-compose.yml"
-          target: /home/${{ vars.AWS_EC2_USER }}/prompteus
+          target: /home/${{ secrets.AWS_EC2_USER }}/prompteus
 
       - name: Prepare Production Environment File
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ vars.EC2_PUBLIC_IP }}
-          username: ${{ vars.AWS_EC2_USER }}
+          host: ${{ secrets.EC2_PUBLIC_IP }}
+          username: ${{ secrets.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
           script: |
             cd prompteus
@@ -84,9 +84,9 @@ jobs:
             fi
 
             # Override URLs for production deployment using nip.io
-            echo "CLIENT_HOST=client.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
-            echo "SERVER_HOST=api.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
-            echo "PUBLIC_API_URL=https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+            echo "CLIENT_HOST=client.${{ secrets.EC2_PUBLIC_IP }}.nip.io" >> .env
+            echo "SERVER_HOST=api.${{ secrets.EC2_PUBLIC_IP }}.nip.io" >> .env
+            echo "PUBLIC_API_URL=https://api.${{ secrets.EC2_PUBLIC_IP }}.nip.io" >> .env
 
             if [ ! -z "${{ secrets.OPENAI_API_KEY }}" ]; then
               echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
@@ -97,8 +97,8 @@ jobs:
       - name: Deploy Prompteus Services
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ vars.EC2_PUBLIC_IP }}
-          username: ${{ vars.AWS_EC2_USER }}
+          host: ${{ secrets.EC2_PUBLIC_IP }}
+          username: ${{ secrets.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
           script: |
             cd prompteus
@@ -137,8 +137,8 @@ jobs:
       - name: Wait for Services Health Check
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ vars.EC2_PUBLIC_IP }}
-          username: ${{ vars.AWS_EC2_USER }}
+          host: ${{ secrets.EC2_PUBLIC_IP }}
+          username: ${{ secrets.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
           script: |
             cd prompteus
@@ -168,5 +168,5 @@ jobs:
             docker compose ps
             echo ""
             echo "🚀 Deployment complete!"
-            echo "Client URL: https://client.${{ vars.EC2_PUBLIC_IP }}.nip.io"
-            echo "API URL: https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io"
+            echo "Client URL: https://client.${{ secrets.EC2_PUBLIC_IP }}.nip.io"
+            echo "API URL: https://api.${{ secrets.EC2_PUBLIC_IP }}.nip.io"
