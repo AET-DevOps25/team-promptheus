@@ -16,9 +16,8 @@ jobs:
           kubeconfig: ${{ secrets.KUBE_CONFIG }}
       - uses: actions/checkout@v4
       - run: |
-          helm install team-promptheus ./k8s \
-            --namespace team-promptheus \
-            --create-namespace \
+          helm update --install team-promptheus ./k8s \
+            --namespace team-promptheus --create-namespace \
             --set secrets.postgresPassword="${{ secrets.POSTGRES_PASSWORD }}" \
             --set secrets.meiliMasterKey="${{ secrets.MEILI_MASTER_KEY }}"
             --set secrets.openaiApiKey="${{ secrets.OPENAI_API_KEY }}"
