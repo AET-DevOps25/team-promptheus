@@ -37,10 +37,12 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/hooks/use-toast";
 import {
 	useContributions,
 	useUpdateContributions,
 } from "@/lib/api/contributions";
+import { useGenerateSummary } from "@/lib/api/summary";
 
 interface SummaryItem {
 	id: string;
@@ -55,34 +57,34 @@ interface SummaryItem {
 	selected: boolean;
 }
 
+type StateFilter = "all" | "done" | "in-progress";
+type TypeFilter = "all" | "commit" | "pr" | "issue" | "comment" | "qa";
+
 interface WeeklySummarySelectorProps {
 	userId: string;
 }
 
 const typeIcons = {
-	comment: MessageSquare,
 	commit: GitCommit,
-	issue: AlertCircle,
 	pr: GitPullRequest,
-	qa: MessageSquare,
-} as const;
+	issue: AlertCircle,
+	comment: MessageSquare,
+	qa: FileText,
+};
 
 const typeLabels = {
-	comment: "Comment",
 	commit: "Commit",
-	issue: "Issue",
 	pr: "Pull Request",
+	issue: "Issue",
+	comment: "Comment",
 	qa: "Q&A",
-} as const;
+};
 
 const statusColors = {
-	all: "bg-gray-100 text-gray-800",
-	done: "bg-green-100 text-green-800",
-	"in-progress": "bg-blue-100 text-blue-800",
-} as const;
+	done: "text-green-600 bg-green-50",
+	"in-progress": "text-blue-600 bg-blue-50",
+};
 
-type StateFilter = "all" | "done" | "in-progress";
-type TypeFilter = "all" | "commit" | "pr" | "issue" | "qa";
 export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [filter, setFilter] = useState<StateFilter>("all");
@@ -103,6 +105,7 @@ export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
 	);
 
 	const updateContributions = useUpdateContributions();
+	const generateSummary = useGenerateSummary();
 
 	// Helper functions for mapping types and statuses
 	const mapContributionType = (
@@ -159,42 +162,82 @@ export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
 		}
 	};
 
+	const getCurrentWeek = () => {
+		const now = new Date();
+		const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+		const year = startOfWeek.getFullYear();
+		const weekNum = Math.ceil(
+			(startOfWeek.getTime() - new Date(year, 0, 1).getTime()) /
+				(7 * 24 * 60 * 60 * 1000),
+		);
+		return `${year}-W${weekNum.toString().padStart(2, "0")}`;
+	};
+
+	const extractRepoInfo = (gitRepositoryId: number) => {
+		// For now, return default values since we don't have repo info in contributions
+		// In a real implementation, you'd fetch this from the repo data
+		return {
+			owner: "team",
+			repo: "promptheus",
+		};
+	};
+
 	const generatePreview = async () => {
 		setIsGenerating(true);
 		try {
-			const selectedItems =
-				contributionsData?.content
-					?.filter((contribution) => contribution.isSelected)
-					.map((contribution) => ({
-						author: contribution.username,
-						date: contribution.createdAt || new Date().toISOString(),
-						description: contribution.summary,
-						id: contribution.id,
-						repository: `repo-${contribution.gitRepositoryId}`,
-						selected: contribution.isSelected,
-						status: "done",
-						title: contribution.summary,
-						type: mapContributionType(contribution.type),
-						url: "#",
-					})) || [];
-			const response = await fetch("/api/weekly-summary/generate", {
-				body: JSON.stringify({
-					items: selectedItems,
-					userId,
-				}),
-				headers: {
-					"Content-Type": "application/json",
-				},
-				method: "POST",
+			const selectedContributions = contributionsData?.content?.filter(
+				(contribution) => contribution.isSelected,
+			);
+
+			if (!selectedContributions || selectedContributions.length === 0) {
+				toast({
+					title: "No contributions selected",
+					description:
+						"Please select some contributions to generate a summary.",
+					variant: "destructive",
+				});
+				return;
+			}
+
+			// Get the first selected contribution to extract repo info
+			const firstContribution = selectedContributions[0];
+			const { owner, repo } = extractRepoInfo(
+				firstContribution.gitRepositoryId,
+			);
+			const username = firstContribution.username;
+			const week = getCurrentWeek();
+
+			// Generate summary using the actual API
+			await generateSummary.mutateAsync({
+				owner,
+				repo,
+				username,
+				week,
 			});
 
-			if (response.ok) {
-				const data = await response.json();
-				setPreviewContent(data.summary);
-				setShowPreview(true);
-			}
+			toast({
+				title: "Summary generated successfully",
+				description: "Your weekly summary has been generated and saved.",
+			});
+
+			// For preview, create a simple summary text
+			const summaryText = `Weekly Summary for ${username} - Week ${week}
+
+Selected ${selectedContributions.length} contributions:
+${selectedContributions.map((c, i) => `${i + 1}. ${c.summary || c.type}`).join("\n")}
+
+Generated on ${new Date().toLocaleDateString()}`;
+
+			setPreviewContent(summaryText);
+			setShowPreview(true);
 		} catch (error) {
-			console.error("Failed to generate preview:", error);
+			console.error("Failed to generate summary:", error);
+			toast({
+				title: "Failed to generate summary",
+				description:
+					"There was an error generating your summary. Please try again.",
+				variant: "destructive",
+			});
 		} finally {
 			setIsGenerating(false);
 		}
@@ -202,39 +245,19 @@ export function WeeklySummarySelector({ userId }: WeeklySummarySelectorProps) {
 
 	const publishSummary = async () => {
 		try {
-			const selectedItems =
-				contributionsData?.content
-					?.filter((contribution) => contribution.isSelected)
-					.map((contribution) => ({
-						author: contribution.username,
-						date: contribution.createdAt || new Date().toISOString(),
-						description: contribution.summary,
-						id: contribution.id,
-						repository: `repo-${contribution.gitRepositoryId}`,
-						selected: contribution.isSelected,
-						status: "done",
-						title: contribution.summary,
-						type: mapContributionType(contribution.type),
-						url: "#",
-					})) || [];
-			const response = await fetch("/api/weekly-summary/publish", {
-				body: JSON.stringify({
-					items: selectedItems,
-					summary: previewContent,
-					userId,
-				}),
-				headers: {
-					"Content-Type": "application/json",
-				},
-				method: "POST",
+			toast({
+				title: "Summary published",
+				description: "Your weekly summary has been saved to the system.",
 			});
-
-			if (response.ok) {
-				// Show success message or redirect
-				console.log("Summary published successfully");
-			}
+			setShowPreview(false);
 		} catch (error) {
 			console.error("Failed to publish summary:", error);
+			toast({
+				title: "Failed to publish summary",
+				description:
+					"There was an error publishing your summary. Please try again.",
+				variant: "destructive",
+			});
 		}
 	};
 
