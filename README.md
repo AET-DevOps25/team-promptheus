@@ -22,10 +22,128 @@ TBD
 
 ### High level systems architecture diagram
 
-> [!TIP]
-> The architecture digagram is [also avaliable as a pdf](docs/components.pdf)
-
-![High level systems architecture diagram](docs/components.png)
+```mermaid
+graph TB
+    %% Users Layer
+    Users[USERS]
+    
+    %% Client Layer
+    subgraph Client ["CLIENT (Frontend)"]
+        Dashboard[Dashboard Components]
+        QA[Q&A Interface]
+        Search[Search Interface]
+        Framework[Next.js 15 + React 19 + TypeScript<br/>URL Rewrites for Service Routing]
+    end
+    
+    %% Microservices Layer
+    subgraph Microservices ["MICROSERVICES LAYER<br/>(Direct Client Communication)"]
+        subgraph ServerService ["SERVER SERVICE<br/>:8080<br/>Spring Boot"]
+            RepoMgmt[Repository Management]
+            UserPAT[User & PAT Management]
+        end
+        
+        subgraph GenAIService ["GENAI SERVICE<br/>:3003<br/>FastAPI"]
+            LangChain[LangChain/LangGraph]
+            AISummary[AI Summary & Q&A]
+        end
+        
+        subgraph SearchService ["SEARCH SERVICE<br/>:8070<br/>Spring Boot"]
+            SemanticSearch[Semantic Search]
+            VectorEmbed[Vector Embeddings]
+        end
+        
+        subgraph ContribService ["CONTRIBUTION SERVICE<br/>:8082<br/>Spring Boot"]
+            GitHubAPI[GitHub API Integration]
+            Scheduler[Scheduler & Fetcher]
+        end
+        
+        subgraph SummaryService ["SUMMARY SERVICE<br/>:8084<br/>Spring Boot"]
+            WorkflowOrch[Workflow Orchestration]
+            SummaryMgmt[Summary Management]
+        end
+    end
+    
+    %% Data Layer
+    subgraph DataLayer ["DATA LAYER"]
+        subgraph PostgreSQL ["POSTGRESQL"]
+            Repositories[Repositories]
+            UsersData[Users & PATs]
+            Contributions[Contributions]
+            Questions[Questions]
+            Summaries[Summaries]
+        end
+        
+        subgraph MeiliSearch ["MEILISEARCH"]
+            SearchIndex[Semantic Search Index]
+            VectorStore[Vector Store]
+        end
+        
+        subgraph Ollama ["OLLAMA<br/>(LLM Service)"]
+            LLMModels[Local/Remote LLM Models]
+        end
+    end
+    
+    %% External Services
+    subgraph ExternalServices ["EXTERNAL SERVICES"]
+        subgraph GitHubExt ["GITHUB API"]
+            GitRepos[Repositories]
+            Commits[Commits]
+            PullRequests[Pull Requests]
+            Issues[Issues]
+        end
+        
+        subgraph OpenAI ["OPENAI API<br/>(Optional)"]
+            Embeddings[Embeddings]
+            OpenAIModels[LLM Models]
+        end
+        
+        subgraph Monitoring ["MONITORING"]
+            Prometheus[Prometheus]
+            Grafana[Grafana]
+            OpenTelemetry[OpenTelemetry]
+        end
+    end
+    
+    %% User connections
+    Users -->|HTTPS| Client
+    
+    %% Client to Services connections
+    Client -->|:8080| ServerService
+    Client -->|:3003| GenAIService
+    Client -->|:8070| SearchService
+    Client -->|:8082| ContribService
+    Client -->|:8084| SummaryService
+    
+    %% Inter-Service Communication
+    SummaryService <-->|Orchestration| ContribService
+    SummaryService <-->|AI Processing| GenAIService
+    GenAIService <-->|Search Queries| SearchService
+    
+    %% Services to Data Layer
+    ServerService --> PostgreSQL
+    GenAIService --> Ollama
+    SearchService --> MeiliSearch
+    ContribService --> PostgreSQL
+    SummaryService --> PostgreSQL
+    
+    %% External Service connections
+    ContribService --> GitHubExt
+    GenAIService --> OpenAI
+    GenAIService --> Ollama
+    
+    %% Styling
+    classDef userLayer fill:#e1f5fe
+    classDef clientLayer fill:#f3e5f5
+    classDef serviceLayer fill:#e8f5e8
+    classDef dataLayer fill:#fff3e0
+    classDef externalLayer fill:#fce4ec
+    
+    class Users userLayer
+    class Client,Dashboard,QA,Search,Framework clientLayer
+    class ServerService,GenAIService,SearchService,ContribService,SummaryService serviceLayer
+    class PostgreSQL,MeiliSearch,Ollama dataLayer
+    class GitHubExt,OpenAI,Monitoring externalLayer
+```
 
 ### Usecase diagram
 
@@ -95,14 +213,38 @@ docker compose exec genai python scripts/demo.py --user <your-username> --repo <
 ```
 
 The demo showcases:
-- 📥 **GitHub Integration**: Fetch contributions automatically via GitHub API
-- 🤖 **AI Summary Generation**: Live streaming summaries of your weekly work
-- 💬 **Interactive Q&A**: Ask questions about your contributions with evidence-based answers
-- 📊 **Rich Analytics**: Detailed contribution analysis and insights
+- **GitHub Integration**: Fetch contributions automatically via GitHub API
+- **AI Summary Generation**: Live streaming summaries of your weekly work
+- **Interactive Q&A**: Ask questions about your contributions with evidence-based answers
+- **Rich Analytics**: Detailed contribution analysis and insights
 
 **Coming Soon**: Conversational Q&A sessions with context retention and broader insights beyond evidence.
 
 See [`genai/README.md`](genai/README.md) for detailed API documentation and configuration options.
+
+## CI/CD Pipeline
+
+GitHub Actions workflows handle continuous integration and deployment for all microservices:
+
+### Service Workflows
+- [`genai-cicd.yml`](.github/workflows/genai-cicd.yml) - AI/ML service with LLM testing
+- [`client-cicd.yml`](.github/workflows/client-cicd.yml) - Frontend application
+- [`server-cicd.yml`](.github/workflows/server-cicd.yml) - Main backend API
+- [`search-cicd.yml`](.github/workflows/search-cicd.yml) - Search microservice
+- [`summary-cicd.yml`](.github/workflows/summary-cicd.yml) - Summary generation
+- [`contribution-cicd.yml`](.github/workflows/contribution-cicd.yml) - GitHub collector
+
+### Deployment
+- [`compose-check.yml`](.github/workflows/compose-check.yml) - Integration testing
+- [`cd-ase.yml`](.github/workflows/cd-ase.yml) - Kubernetes deployment (Helm)
+- [`aws-deploy.yml`](.github/workflows/aws-deploy.yml) - AWS EC2 deployment
+
+Each pipeline includes type checking, testing, Docker builds, and OpenAPI generation.
+For instructions on how to deploy the application for prodcution, please refer to [`k8s`](k8s/README.md) directory.
+
+### Monitoring
+- Prometheus: [prometheus-prompteus.student.k8s.aet.cit.tum.de](https://prometheus-prompteus.student.k8s.aet.cit.tum.de/)
+- Grafana: [grafana-prompteus.student.k8s.aet.cit.tum.de](https://grafana-prompteus.student.k8s.aet.cit.tum.de/) (admin/admin)
 
 ### Linting
 
