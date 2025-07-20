@@ -20,6 +20,8 @@ spec:
                   ports:
                       - containerPort: 7700
                   env:
+                      - name: MEILI_EXPERIMENTAL_ENABLE_METRICS
+                        value: "true"
                       - name: MEILI_ENV
                         value: production
                       # secrets
