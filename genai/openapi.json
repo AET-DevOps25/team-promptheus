@@ -3,17 +3,10 @@
 	"info": {
 		"title": "Prompteus GenAI Service",
 		"description": "AI-powered service for ingesting GitHub contributions and providing Q&A for user weekly summaries",
-		"license": {
-			"name": "MIT",
-			"url": "https://opensource.org/licenses/MIT"
-		},
+		"license": { "name": "MIT", "url": "https://opensource.org/licenses/MIT" },
 		"version": "1.0.0"
 	},
-	"servers": [
-		{
-			"url": "/api/genai"
-		}
-	],
+	"servers": [{ "url": "/api/genai" }],
 	"paths": {
 		"/contributions": {
 			"post": {
@@ -35,9 +28,7 @@
 						"description": "Successful Response",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/IngestTaskResponse"
-								}
+								"schema": { "$ref": "#/components/schemas/IngestTaskResponse" }
 							}
 						}
 					},
@@ -45,9 +36,7 @@
 						"description": "Validation Error",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/HTTPValidationError"
-								}
+								"schema": { "$ref": "#/components/schemas/HTTPValidationError" }
 							}
 						}
 					}
@@ -77,9 +66,7 @@
 						"description": "Successful Response",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/IngestTaskStatus"
-								}
+								"schema": { "$ref": "#/components/schemas/IngestTaskStatus" }
 							}
 						}
 					},
@@ -87,9 +74,7 @@
 						"description": "Validation Error",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/HTTPValidationError"
-								}
+								"schema": { "$ref": "#/components/schemas/HTTPValidationError" }
 							}
 						}
 					}
@@ -129,9 +114,7 @@
 					"required": true,
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/QuestionRequest"
-							}
+							"schema": { "$ref": "#/components/schemas/QuestionRequest" }
 						}
 					}
 				},
@@ -140,9 +123,7 @@
 						"description": "Successful Response",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/QuestionResponse"
-								}
+								"schema": { "$ref": "#/components/schemas/QuestionResponse" }
 							}
 						}
 					},
@@ -150,9 +131,7 @@
 						"description": "Validation Error",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/HTTPValidationError"
-								}
+								"schema": { "$ref": "#/components/schemas/HTTPValidationError" }
 							}
 						}
 					}
@@ -164,17 +143,9 @@
 		"schemas": {
 			"ContributionMetadata": {
 				"properties": {
-					"type": {
-						"$ref": "#/components/schemas/ContributionType"
-					},
-					"id": {
-						"type": "string",
-						"title": "Id"
-					},
-					"selected": {
-						"type": "boolean",
-						"title": "Selected"
-					}
+					"type": { "$ref": "#/components/schemas/ContributionType" },
+					"id": { "type": "string", "title": "Id" },
+					"selected": { "type": "boolean", "title": "Selected" }
 				},
 				"type": "object",
 				"required": ["type", "id", "selected"],
@@ -189,29 +160,15 @@
 			},
 			"ContributionsIngestRequest": {
 				"properties": {
-					"user": {
-						"type": "string",
-						"title": "User"
-					},
-					"week": {
-						"type": "string",
-						"title": "Week"
-					},
-					"repository": {
-						"type": "string",
-						"title": "Repository"
-					},
+					"user": { "type": "string", "title": "User" },
+					"week": { "type": "string", "title": "Week" },
+					"repository": { "type": "string", "title": "Repository" },
 					"contributions": {
-						"items": {
-							"$ref": "#/components/schemas/ContributionMetadata"
-						},
+						"items": { "$ref": "#/components/schemas/ContributionMetadata" },
 						"type": "array",
 						"title": "Contributions"
 					},
-					"github_pat": {
-						"type": "string",
-						"title": "Github Pat"
-					}
+					"github_pat": { "type": "string", "title": "Github Pat" }
 				},
 				"type": "object",
 				"required": [
@@ -227,9 +184,7 @@
 			"HTTPValidationError": {
 				"properties": {
 					"detail": {
-						"items": {
-							"$ref": "#/components/schemas/ValidationError"
-						},
+						"items": { "$ref": "#/components/schemas/ValidationError" },
 						"type": "array",
 						"title": "Detail"
 					}
@@ -239,22 +194,10 @@
 			},
 			"IngestTaskResponse": {
 				"properties": {
-					"task_id": {
-						"type": "string",
-						"title": "Task Id"
-					},
-					"user": {
-						"type": "string",
-						"title": "User"
-					},
-					"week": {
-						"type": "string",
-						"title": "Week"
-					},
-					"repository": {
-						"type": "string",
-						"title": "Repository"
-					},
+					"task_id": { "type": "string", "title": "Task Id" },
+					"user": { "type": "string", "title": "User" },
+					"week": { "type": "string", "title": "Week" },
+					"repository": { "type": "string", "title": "Repository" },
 					"status": {
 						"$ref": "#/components/schemas/TaskStatus",
 						"default": "queued"
@@ -264,14 +207,7 @@
 						"title": "Total Contributions"
 					},
 					"summary_id": {
-						"anyOf": [
-							{
-								"type": "string"
-							},
-							{
-								"type": "null"
-							}
-						],
+						"anyOf": [{ "type": "string" }, { "type": "null" }],
 						"title": "Summary Id"
 					},
 					"created_at": {
@@ -294,67 +230,29 @@
 			},
 			"IngestTaskStatus": {
 				"properties": {
-					"task_id": {
-						"type": "string",
-						"title": "Task Id"
-					},
-					"user": {
-						"type": "string",
-						"title": "User"
-					},
-					"week": {
-						"type": "string",
-						"title": "Week"
-					},
-					"repository": {
-						"type": "string",
-						"title": "Repository"
-					},
-					"status": {
-						"$ref": "#/components/schemas/TaskStatus"
-					},
+					"task_id": { "type": "string", "title": "Task Id" },
+					"user": { "type": "string", "title": "User" },
+					"week": { "type": "string", "title": "Week" },
+					"repository": { "type": "string", "title": "Repository" },
+					"status": { "$ref": "#/components/schemas/TaskStatus" },
 					"total_contributions": {
 						"type": "integer",
 						"title": "Total Contributions"
 					},
-					"ingested_count": {
-						"type": "integer",
-						"title": "Ingested Count"
-					},
-					"failed_count": {
-						"type": "integer",
-						"title": "Failed Count"
-					},
+					"ingested_count": { "type": "integer", "title": "Ingested Count" },
+					"failed_count": { "type": "integer", "title": "Failed Count" },
 					"embedding_job_id": {
-						"anyOf": [
-							{
-								"type": "string"
-							},
-							{
-								"type": "null"
-							}
-						],
+						"anyOf": [{ "type": "string" }, { "type": "null" }],
 						"title": "Embedding Job Id"
 					},
 					"summary": {
 						"anyOf": [
-							{
-								"$ref": "#/components/schemas/SummaryResponse"
-							},
-							{
-								"type": "null"
-							}
+							{ "$ref": "#/components/schemas/SummaryResponse" },
+							{ "type": "null" }
 						]
 					},
 					"error_message": {
-						"anyOf": [
-							{
-								"type": "string"
-							},
-							{
-								"type": "null"
-							}
-						],
+						"anyOf": [{ "type": "string" }, { "type": "null" }],
 						"title": "Error Message"
 					},
 					"created_at": {
@@ -364,37 +262,20 @@
 					},
 					"started_at": {
 						"anyOf": [
-							{
-								"type": "string",
-								"format": "date-time"
-							},
-							{
-								"type": "null"
-							}
+							{ "type": "string", "format": "date-time" },
+							{ "type": "null" }
 						],
 						"title": "Started At"
 					},
 					"completed_at": {
 						"anyOf": [
-							{
-								"type": "string",
-								"format": "date-time"
-							},
-							{
-								"type": "null"
-							}
+							{ "type": "string", "format": "date-time" },
+							{ "type": "null" }
 						],
 						"title": "Completed At"
 					},
 					"processing_time_ms": {
-						"anyOf": [
-							{
-								"type": "integer"
-							},
-							{
-								"type": "null"
-							}
-						],
+						"anyOf": [{ "type": "integer" }, { "type": "null" }],
 						"title": "Processing Time Ms"
 					}
 				},
@@ -416,9 +297,7 @@
 			"QuestionContext": {
 				"properties": {
 					"focus_areas": {
-						"items": {
-							"type": "string"
-						},
+						"items": { "type": "string" },
 						"type": "array",
 						"title": "Focus Areas"
 					},
@@ -443,21 +322,12 @@
 			},
 			"QuestionEvidence": {
 				"properties": {
-					"title": {
-						"type": "string",
-						"title": "Title"
-					},
-					"contribution_id": {
-						"type": "string",
-						"title": "Contribution Id"
-					},
+					"title": { "type": "string", "title": "Title" },
+					"contribution_id": { "type": "string", "title": "Contribution Id" },
 					"contribution_type": {
 						"$ref": "#/components/schemas/ContributionType"
 					},
-					"excerpt": {
-						"type": "string",
-						"title": "Excerpt"
-					},
+					"excerpt": { "type": "string", "title": "Excerpt" },
 					"relevance_score": {
 						"type": "number",
 						"maximum": 1.0,
@@ -484,32 +354,14 @@
 			},
 			"QuestionRequest": {
 				"properties": {
-					"question": {
-						"type": "string",
-						"title": "Question"
-					},
-					"repository": {
-						"type": "string",
-						"title": "Repository"
-					},
+					"question": { "type": "string", "title": "Question" },
+					"repository": { "type": "string", "title": "Repository" },
 					"summary": {
-						"anyOf": [
-							{
-								"type": "string"
-							},
-							{
-								"type": "null"
-							}
-						],
+						"anyOf": [{ "type": "string" }, { "type": "null" }],
 						"title": "Summary"
 					},
-					"context": {
-						"$ref": "#/components/schemas/QuestionContext"
-					},
-					"github_pat": {
-						"type": "string",
-						"title": "Github Pat"
-					}
+					"context": { "$ref": "#/components/schemas/QuestionContext" },
+					"github_pat": { "type": "string", "title": "Github Pat" }
 				},
 				"type": "object",
 				"required": ["question", "repository", "github_pat"],
@@ -518,26 +370,11 @@
 			},
 			"QuestionResponse": {
 				"properties": {
-					"question_id": {
-						"type": "string",
-						"title": "Question Id"
-					},
-					"user": {
-						"type": "string",
-						"title": "User"
-					},
-					"week": {
-						"type": "string",
-						"title": "Week"
-					},
-					"question": {
-						"type": "string",
-						"title": "Question"
-					},
-					"answer": {
-						"type": "string",
-						"title": "Answer"
-					},
+					"question_id": { "type": "string", "title": "Question Id" },
+					"user": { "type": "string", "title": "User" },
+					"week": { "type": "string", "title": "Week" },
+					"question": { "type": "string", "title": "Question" },
+					"answer": { "type": "string", "title": "Answer" },
 					"confidence": {
 						"type": "number",
 						"maximum": 1.0,
@@ -545,23 +382,17 @@
 						"title": "Confidence"
 					},
 					"evidence": {
-						"items": {
-							"$ref": "#/components/schemas/QuestionEvidence"
-						},
+						"items": { "$ref": "#/components/schemas/QuestionEvidence" },
 						"type": "array",
 						"title": "Evidence"
 					},
 					"reasoning_steps": {
-						"items": {
-							"type": "string"
-						},
+						"items": { "type": "string" },
 						"type": "array",
 						"title": "Reasoning Steps"
 					},
 					"suggested_actions": {
-						"items": {
-							"type": "string"
-						},
+						"items": { "type": "string" },
 						"type": "array",
 						"title": "Suggested Actions"
 					},
@@ -575,14 +406,7 @@
 						"title": "Response Time Ms"
 					},
 					"conversation_id": {
-						"anyOf": [
-							{
-								"type": "string"
-							},
-							{
-								"type": "null"
-							}
-						],
+						"anyOf": [{ "type": "string" }, { "type": "null" }],
 						"title": "Conversation Id"
 					}
 				},
@@ -612,33 +436,19 @@
 						"type": "integer",
 						"title": "Total Contributions"
 					},
-					"commits_count": {
-						"type": "integer",
-						"title": "Commits Count"
-					},
+					"commits_count": { "type": "integer", "title": "Commits Count" },
 					"pull_requests_count": {
 						"type": "integer",
 						"title": "Pull Requests Count"
 					},
-					"issues_count": {
-						"type": "integer",
-						"title": "Issues Count"
-					},
-					"releases_count": {
-						"type": "integer",
-						"title": "Releases Count"
-					},
+					"issues_count": { "type": "integer", "title": "Issues Count" },
+					"releases_count": { "type": "integer", "title": "Releases Count" },
 					"repositories": {
-						"items": {
-							"type": "string"
-						},
+						"items": { "type": "string" },
 						"type": "array",
 						"title": "Repositories"
 					},
-					"time_period": {
-						"type": "string",
-						"title": "Time Period"
-					},
+					"time_period": { "type": "string", "title": "Time Period" },
 					"generated_at": {
 						"type": "string",
 						"format": "date-time",
@@ -661,59 +471,29 @@
 			},
 			"SummaryResponse": {
 				"properties": {
-					"summary_id": {
-						"type": "string",
-						"title": "Summary Id"
-					},
-					"user": {
-						"type": "string",
-						"title": "User"
-					},
-					"week": {
-						"type": "string",
-						"title": "Week"
-					},
-					"overview": {
-						"type": "string",
-						"title": "Overview"
-					},
-					"commits_summary": {
-						"type": "string",
-						"title": "Commits Summary"
-					},
+					"summary_id": { "type": "string", "title": "Summary Id" },
+					"user": { "type": "string", "title": "User" },
+					"week": { "type": "string", "title": "Week" },
+					"overview": { "type": "string", "title": "Overview" },
+					"commits_summary": { "type": "string", "title": "Commits Summary" },
 					"pull_requests_summary": {
 						"type": "string",
 						"title": "Pull Requests Summary"
 					},
-					"issues_summary": {
-						"type": "string",
-						"title": "Issues Summary"
-					},
-					"releases_summary": {
-						"type": "string",
-						"title": "Releases Summary"
-					},
-					"analysis": {
-						"type": "string",
-						"title": "Analysis"
-					},
+					"issues_summary": { "type": "string", "title": "Issues Summary" },
+					"releases_summary": { "type": "string", "title": "Releases Summary" },
+					"analysis": { "type": "string", "title": "Analysis" },
 					"key_achievements": {
-						"items": {
-							"type": "string"
-						},
+						"items": { "type": "string" },
 						"type": "array",
 						"title": "Key Achievements"
 					},
 					"areas_for_improvement": {
-						"items": {
-							"type": "string"
-						},
+						"items": { "type": "string" },
 						"type": "array",
 						"title": "Areas For Improvement"
 					},
-					"metadata": {
-						"$ref": "#/components/schemas/SummaryMetadata"
-					},
+					"metadata": { "$ref": "#/components/schemas/SummaryMetadata" },
 					"generated_at": {
 						"type": "string",
 						"format": "date-time",
@@ -748,27 +528,12 @@
 			"ValidationError": {
 				"properties": {
 					"loc": {
-						"items": {
-							"anyOf": [
-								{
-									"type": "string"
-								},
-								{
-									"type": "integer"
-								}
-							]
-						},
+						"items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
 						"type": "array",
 						"title": "Location"
 					},
-					"msg": {
-						"type": "string",
-						"title": "Message"
-					},
-					"type": {
-						"type": "string",
-						"title": "Error Type"
-					}
+					"msg": { "type": "string", "title": "Message" },
+					"type": { "type": "string", "title": "Error Type" }
 				},
 				"type": "object",
 				"required": ["loc", "msg", "type"],
