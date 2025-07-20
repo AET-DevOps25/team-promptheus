@@ -23,60 +23,51 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useCreateFromPAT } from "@/lib/api/server";
 
 export default function HomePage() {
 	const [repoLink, setRepoLink] = useState("");
 	const [pat, setPat] = useState("");
-	const [isLoading, setIsLoading] = useState(false);
 	const repoLinkId = useId();
 	const patId = useId();
+
+	// Use TanStack Query mutation for PAT submission
+	const createFromPATMutation = useCreateFromPAT();
+
+	// Get loading and error states from the mutation
+	const isLoading = createFromPATMutation.isPending;
+	const error = createFromPATMutation.error;
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!repoLink.trim() || !pat.trim()) return;
 
-		setIsLoading(true);
 		try {
-			// In a real app, this would make an API call to set up the repository
-			await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API call
+			// Use the TanStack Query mutation
+			const patData = {
+				repolink: repoLink.trim(),
+				pat: pat.trim(),
+			};
 
-			// For demo purposes, just redirect to a demo dashboard
-			const userCode = repoLink.split("/").pop() || "demo";
+			const response = await createFromPATMutation.mutateAsync(patData);
+
+			// Extract the developer view link and use it as the usercode
+			const developerLink = response.developerview;
+			const userCode = developerLink.split("/").pop() || "demo";
+
+			// Store the usercode in localStorage for the user context
 			localStorage.setItem("usercode", userCode);
+
+			// Redirect to the dashboard
 			window.location.href = "/dashboard";
 		} catch (error) {
 			console.error("Setup error:", error);
-		} finally {
-			setIsLoading(false);
+			// Error handling is managed by TanStack Query
 		}
 	};
 
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-			{/* Header */}
-			<header className="border-b bg-white/80 backdrop-blur-sm">
-				<div className="container mx-auto px-4 py-4">
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-4">
-							<div className="flex items-center gap-2">
-								<div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-									<Zap className="h-5 w-5 text-white" />
-								</div>
-								<span className="text-xl font-bold text-slate-900">
-									Prompteus
-								</span>
-							</div>
-						</div>
-						<Button asChild size="sm" variant="outline">
-							<a href="/login">
-								<Users className="h-4 w-4 mr-2" />
-								Sign In
-							</a>
-						</Button>
-					</div>
-				</div>
-			</header>
-
 			<main className="container mx-auto px-4 py-16 max-w-6xl">
 				<div className="space-y-24">
 					{/* Hero Section */}
@@ -215,6 +206,13 @@ export default function HomePage() {
 											</>
 										)}
 									</Button>
+									{error && (
+										<p className="text-red-500 text-sm mt-4">
+											{error instanceof Error
+												? error.message
+												: "Failed to set up repository. Please check your repository link and PAT."}
+										</p>
+									)}
 								</form>
 
 								<div className="mt-6 p-4 bg-green-50 rounded-lg">
@@ -273,17 +271,6 @@ export default function HomePage() {
 					</section>
 				</div>
 			</main>
-
-			{/* Footer */}
-			<footer className="border-t bg-white/80 backdrop-blur-sm mt-24">
-				<div className="container mx-auto px-4 py-8">
-					<div className="text-center text-sm text-slate-500">
-						<p>
-							© 2024 Prompteus. Making GitHub management effortless with AI.
-						</p>
-					</div>
-				</div>
-			</footer>
 		</div>
 	);
 }

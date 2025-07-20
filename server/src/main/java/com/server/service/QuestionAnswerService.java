@@ -9,7 +9,9 @@ import com.server.genai.model.QuestionResponse;
 import com.server.genai.model.QuestionContext;
 import com.server.genai.model.ReasoningDepth;
 import com.server.summary.api.SummaryControllerApi;
-import com.server.summary.model.Summary;
+import com.server.summary.model.SummaryDto;
+import com.server.summary.model.PageSummaryDto;
+import com.server.summary.model.Pageable;
 import com.server.persistence.entity.*;
 import com.server.persistence.repository.*;
 import org.slf4j.Logger;
@@ -22,8 +24,6 @@ import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.List;
@@ -213,31 +213,49 @@ public class QuestionAnswerService {
         try {
             logger.info("Fetching summary for {}/{} user {} week {}", owner, repo, username, weekId);
 
-            // First generate/trigger summary if it doesn't exist
-            summaryApi.generateSummary(owner, repo, username, weekId).block();
+            // Use the generated client to fetch summaries with proper parameters
+            Pageable pageable = new Pageable()
+                    .page(0)
+                    .size(20)
+                    .addSortItem("createdAt,desc");
 
-            // Then fetch summaries for the week
-            List<Summary> summaries = summaryApi.getSummaries(weekId).collectList().block();
+            String repositoryFilter = owner + "/" + repo;
 
-            if (summaries != null && !summaries.isEmpty()) {
-                // Find summary for the specific user
-                Optional<Summary> userSummary = summaries.stream()
-                    .filter(s -> username.equals(s.getUsername()))
-                    .findFirst();
+            PageSummaryDto page = summaryApi.getSummaries(pageable, weekId, username, repositoryFilter)
+                    .block();
 
-                if (userSummary.isPresent()) {
-                    Summary summary = userSummary.get();
-                    return String.format("Summary for %s (week %s): %s",
-                                       username, weekId, summary.getOverview());
-                }
+            if (page == null || page.getContent() == null || page.getContent().isEmpty()) {
+                logger.warn("No summaries found for user {} week {} repository {}", username, weekId, repositoryFilter);
+                return null;
             }
 
-            logger.info("No summary found for user {} week {}", username, weekId);
-            return null;
+            // Get the first summary (should be filtered by username already)
+            SummaryDto summary = page.getContent().get(0);
+            logger.info("Found summary for user {} week {}", username, weekId);
+
+            // Build a comprehensive summary context from all available fields
+            StringBuilder summaryContext = new StringBuilder();
+            if (summary.getOverview() != null) {
+                summaryContext.append("Overview: ").append(summary.getOverview()).append("\n");
+            }
+            if (summary.getAnalysis() != null) {
+                summaryContext.append("Analysis: ").append(summary.getAnalysis()).append("\n");
+            }
+            if (summary.getCommitsSummary() != null) {
+                summaryContext.append("Commits: ").append(summary.getCommitsSummary()).append("\n");
+            }
+            if (summary.getPullRequestsSummary() != null) {
+                summaryContext.append("Pull Requests: ").append(summary.getPullRequestsSummary()).append("\n");
+            }
+            if (summary.getIssuesSummary() != null) {
+                summaryContext.append("Issues: ").append(summary.getIssuesSummary()).append("\n");
+            }
+
+            return summaryContext.length() > 0 ? summaryContext.toString() : null;
 
         } catch (WebClientResponseException e) {
             if (e.getStatusCode().value() == 404) {
-                logger.info("Summary not found for user {} week {} (404 - this is OK)", username, weekId);
+                logger.warn("Summary service returned 404 for week {} - no summaries available", weekId);
             } else {
                 logger.warn("Error fetching summary for user {} week {}: {}", username, weekId, e.getMessage());
             }

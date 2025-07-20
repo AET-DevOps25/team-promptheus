@@ -13,7 +13,20 @@ logger = structlog.get_logger()
 
 
 class LLMService:
-    """Service for managing and configuring different LLM providers."""
+    """Centralized service for language model configuration and initialization."""
+
+    @staticmethod
+    def get_llm_provider() -> str:
+        """Get the LLM provider."""
+        openai_api_key = os.getenv("OPENAI_API_KEY")
+        ollama_api_key = os.getenv("OLLAMA_API_KEY")
+        ollama_base_url = os.getenv("OLLAMA_BASE_URL")
+
+        if openai_api_key:
+            return "OpenAI"
+        if ollama_api_key or ollama_base_url:
+            return "Ollama"
+        return "none"
 
     @staticmethod
     def create_llm(

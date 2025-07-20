@@ -77,11 +77,21 @@ export default function SingleSummaryPage() {
 	// Get user context for usercode
 	const { userId } = useUser();
 
-	// Fetch all summaries and find the one with matching ID
-	const { data: summaries, isLoading, error } = useSummaries();
+	// Fetch summaries with a large page size to get all available summaries
+	// This is not ideal for large datasets but works for now
+	const {
+		data: summariesPage,
+		isLoading,
+		error,
+	} = useSummaries({
+		size: 1000, // Large page size to get most summaries
+		sort: ["createdAt,desc"],
+	});
 
-	// Get the summary data
-	const summary = summaries?.find((s) => s.id?.toString() === summaryId);
+	// Get the summary data from the paginated response
+	const summary = summariesPage?.content?.find(
+		(s) => s.id?.toString() === summaryId,
+	);
 
 	// Fetch Q&A data if we have the summary
 	const { data: questionsAndAnswers, isLoading: qaLoading } =

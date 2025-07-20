@@ -207,6 +207,8 @@ async def application_lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 def create_application() -> FastAPI:
+    logger.info("LLM provider configured", provider=LLMService.get_llm_provider())
+
     """Factory function to create FastAPI application with proper configuration."""
     app = FastAPI(
         title=APP_TITLE,
@@ -319,6 +321,8 @@ async def start_contributions_ingestion_task(
             week=request.week,
             repository=request.repository,
             contributions_count=len(request.contributions),
+            # if given, just print the first 10 characters
+            github_pat=request.github_pat[:10] if request.github_pat else "not provided",
         )
 
         result = await service.start_ingestion_task(request)

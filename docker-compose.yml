@@ -16,12 +16,18 @@ services:
       start_period: 1s
       start_interval: 100ms
   meilisearch-setup:
+    build:
+      context: .
+      dockerfile: Dockerfile.meiliinit
     image: ghcr.io/aet-devops25/promptheus-ms-init:main
     environment:
       - MEILISEARCH_URL=http://meilisearch:7700
       - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-CHANGE_ME_CHANGE_ME}
       - OLLAMA_BASE_URL=https://gpu.aet.cit.tum.de/ollama
       - OLLAMA_EMBEDDING_MODEL=tinyllama:latest
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+      - OPENAI_EMBEDDING_DIMENSIONS=1536
     env_file:
       - ".env"
     depends_on:
@@ -183,6 +189,8 @@ services:
       - OTEL_LOGS_EXPORTER=otlp
       - OTEL_METRICS_EXEMPLAR_FILTER=always_on
       - OTEL_LOG_LEVEL="debug"
+    env_file:
+      - .env
     command: uvicorn app:app --host 0.0.0.0 --port ${GENAI_PORT:-3003} --reload
     develop:
       watch:
