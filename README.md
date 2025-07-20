@@ -95,14 +95,38 @@ docker compose exec genai python scripts/demo.py --user <your-username> --repo <
 ```
 
 The demo showcases:
-- 📥 **GitHub Integration**: Fetch contributions automatically via GitHub API
-- 🤖 **AI Summary Generation**: Live streaming summaries of your weekly work
-- 💬 **Interactive Q&A**: Ask questions about your contributions with evidence-based answers
-- 📊 **Rich Analytics**: Detailed contribution analysis and insights
+- **GitHub Integration**: Fetch contributions automatically via GitHub API
+- **AI Summary Generation**: Live streaming summaries of your weekly work
+- **Interactive Q&A**: Ask questions about your contributions with evidence-based answers
+- **Rich Analytics**: Detailed contribution analysis and insights
 
 **Coming Soon**: Conversational Q&A sessions with context retention and broader insights beyond evidence.
 
 See [`genai/README.md`](genai/README.md) for detailed API documentation and configuration options.
+
+## CI/CD Pipeline
+
+GitHub Actions workflows handle continuous integration and deployment for all microservices:
+
+### Service Workflows
+- [`genai-cicd.yml`](.github/workflows/genai-cicd.yml) - AI/ML service with LLM testing
+- [`client-cicd.yml`](.github/workflows/client-cicd.yml) - Frontend application
+- [`server-cicd.yml`](.github/workflows/server-cicd.yml) - Main backend API
+- [`search-cicd.yml`](.github/workflows/search-cicd.yml) - Search microservice
+- [`summary-cicd.yml`](.github/workflows/summary-cicd.yml) - Summary generation
+- [`contribution-cicd.yml`](.github/workflows/contribution-cicd.yml) - GitHub collector
+
+### Deployment
+- [`compose-check.yml`](.github/workflows/compose-check.yml) - Integration testing
+- [`cd-ase.yml`](.github/workflows/cd-ase.yml) - Kubernetes deployment (Helm)
+- [`aws-deploy.yml`](.github/workflows/aws-deploy.yml) - AWS EC2 deployment
+
+Each pipeline includes type checking, testing, Docker builds, and OpenAPI generation.
+For instructions on how to deploy the application for prodcution, please refer to [`k8s`](k8s/README.md) directory.
+
+### Monitoring
+- Prometheus: [prometheus-prompteus.student.k8s.aet.cit.tum.de](https://prometheus-prompteus.student.k8s.aet.cit.tum.de/)
+- Grafana: [grafana-prompteus.student.k8s.aet.cit.tum.de](https://grafana-prompteus.student.k8s.aet.cit.tum.de/) (admin/admin)
 
 ### Linting
 
