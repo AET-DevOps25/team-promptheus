@@ -92,7 +92,7 @@ export default function HomePage() {
 						</div>
 
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
-							<Button className="text-lg px-8 py-6" size="lg">
+							<Button className="text-lg px-8 py-6" size="lg" asChild>
 								<Link href={`#${setupFormId}`}>
 									<Github className="h-5 w-5 mr-2" />
 									Start Free Trial
