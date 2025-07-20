@@ -1,9 +1,3 @@
-# Ignore dashboard JSON files to prevent Helm template parsing
-templates/configs/grafana-dashboards/*.json
-files/dashboards/*.json
-dashboards/*.json
-
 # Ignore other files that shouldn't be templated
-*.json
 *.md
 *.txt

@@ -207,7 +207,7 @@ metadata:
     app: grafana
 data:
   team-promptheus-app.json: |
-    {{ .Files.Get "k8s/files/dashboards/team-promptheus-app.json" | nindent 4 }}
+    {{ .Files.Get "dashboards/team-promptheus-app.json" | nindent 4 }}
   postgres-monitoring.json: |
-    {{ .Files.Get "k8s/files/dashboards/postgres-monitoring.json" | nindent 4 }}
+    {{ .Files.Get "dashboards/postgres-monitoring.json" | nindent 4 }}
 {{- end }}

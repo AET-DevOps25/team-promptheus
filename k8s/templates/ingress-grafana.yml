@@ -12,7 +12,7 @@ spec:
   tls:
   - hosts:
     - grafana-{{ $hostName }}
-    secretName: team-promptheus-tls
+    secretName: grafana-team-promptheus-tls
   rules:
   - host: grafana-{{ $hostName }}
     http:
