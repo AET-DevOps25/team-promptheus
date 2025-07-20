@@ -42,7 +42,7 @@ on:
       - "Contribution CI/CD"
     types:
       - completed
-    branches: [main, finalize]
+    branches: [main, finalize-aws]
 
 jobs:
   deploy:
