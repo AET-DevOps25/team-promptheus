@@ -173,9 +173,15 @@ data:
         remote_write:
           - url: http://prometheus-operated.{{ .Release.Namespace }}.svc.cluster.local:9090/api/v1/write
             send_exemplars: true
+        processor:
+          local_blocks:
+            flush_check_period: 10s
+            trace_idle_period: 30s
+            max_block_duration: 5m
+            max_block_bytes: 1000000
 
     overrides:
       defaults:
         metrics_generator:
-          processors: [service-graphs, span-metrics]
+          processors: [service-graphs, span-metrics, local-blocks]
 {{- end }}
