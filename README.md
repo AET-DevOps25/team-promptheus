@@ -16,7 +16,7 @@ further progress reports starting at week 2 are available [on confluence](https:
 
 ## Screenshots
 
-TBD
+<img src="docs/dashboard.png" width="50%"/><img src="docs/demo-summary.png" width="50%"/>
 
 ## Architecture of the systems
 
@@ -152,14 +152,26 @@ graph TB
 ### database layout diagram
 
 > [!TIP]
-> You can view the DBML diagram interactively here:
-<https://www.dbdiagram.io/d/681e071a5b2fc4582fec9d54>
+> You can view the DBML diagram interactively [here](https://www.dbdiagram.io/d/687d568df413ba3508c4348b).
 
 ![database layout diagram](docs/dbml_diagram.png)
 
 ## Getting Started
 
-To get a local demo environment running, you can run
+Create a `.env` file in the root directory with the following content:
+
+```shell
+OPENAPI_API_KEY=your_api_key_here
+```
+
+Alternative, you can use a remote OLLAPI service by setting the `OPENAPI_API_KEY` environment variable.
+
+```
+OLLAMA_API_URL=http://gpu...
+OLLAMA_API_KEY=your_ollama_api_key_here
+```
+
+To get a local environment running, you can run
 
 ```shell
 COMPOSE_BAKE=true docker compose up
@@ -170,7 +182,7 @@ The Backends API is documented at [`http://localhost:8080/docs`](http://localhos
 
 ### Running with Local LLM Models
 
-By default, the system uses remote Ollama services. If you want to run LLM models locally (requires NVIDIA GPU*), you can use the `llm-local` profile:
+By default, the system can use remote Ollama services. If you want to run LLM models locally (requires NVIDIA GPU*), you can use the `llm-local` profile:
 
 ```shell
 # Run with local Ollama service (requires NVIDIA GPU)
@@ -198,7 +210,7 @@ OLLAMA_BASE_URL=http://ollama:11434
 For contributing, we provide a [docker compose-watch](https://docs.docker.com/compose/how-tos/file-watch/) compatible setup.
 
 ```shell
-COMPOSE_BAKE=true docker compose watch
+COMPOSE_BAKE=true docker compose up --build --watch
 ```
 ### Demo Script
 
