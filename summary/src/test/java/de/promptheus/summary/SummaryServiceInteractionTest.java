@@ -18,6 +18,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -75,11 +76,21 @@ class SummaryServiceInteractionTest {
         contributionDto.setType("commit");
         contributionDto.setId("test-id");
 
+        // Create a mock saved Summary with ID
+        Summary savedSummary = new Summary();
+        savedSummary.setId(123L);
+        savedSummary.setUsername(username);
+        savedSummary.setWeek(week);
+        savedSummary.setOverview("Test overview");
+
         // Mocks
-        when(summaryRepository.findByUsernameAndWeek(eq(username), eq(week))).thenReturn(Collections.emptyList());
+        when(summaryRepository.findByUsernameAndWeekAndGitRepositoryId(eq(username), eq(week), eq(repository.getId())))
+                .thenReturn(Optional.empty());
         when(contributionClient.getContributionsForUserAndWeek(eq(username), eq(week)))
                 .thenReturn(Mono.just(Collections.singletonList(contributionDto)));
-        when(genAiClient.generateSummaryAsync(any(ContributionsIngestRequest.class), anyBoolean())).thenReturn(Mono.just(summaryResponse));
+        when(genAiClient.generateSummaryAsync(any(ContributionsIngestRequest.class), anyBoolean()))
+                .thenReturn(Mono.just(summaryResponse));
+        when(summaryRepository.save(any(Summary.class))).thenReturn(savedSummary);
 
         // Execution
         summaryService.generateSummary(username, week, repository, "test-token");
@@ -100,14 +111,14 @@ class SummaryServiceInteractionTest {
         repository.setCreatedAt(Instant.now());
 
         // Mocks
-        when(summaryRepository.findByUsernameAndWeek(eq(username), eq(week))).thenReturn(Collections.emptyList());
-        when(contributionClient.getContributionsForUserAndWeek(eq(username), eq(week))).thenReturn(Mono.just(Collections.emptyList()));
+        when(contributionClient.getContributionsForUserAndWeek(eq(username), eq(week)))
+                .thenReturn(Mono.just(Collections.emptyList()));
 
         // Execution
         summaryService.generateSummary(username, week, repository, "test-token");
 
         // Verification
-        verify(genAiClient, never()).generateSummaryAsync(any(ContributionsIngestRequest.class));
+        verify(genAiClient, never()).generateSummaryAsync(any(ContributionsIngestRequest.class), anyBoolean());
         verify(summaryRepository, never()).save(any(Summary.class));
     }
 }

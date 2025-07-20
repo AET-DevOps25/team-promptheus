@@ -336,14 +336,13 @@ public class SummaryService {
         log.info("Starting summary generation for user: {}, week: {}, repository: {} (ID: {}) (backfill: {})",
                 username, week, repository.getRepositoryLink(), repository.getId(), isBackfill);
 
-        // Check if summary already exists for this user, week, and repository
-        List<Summary> existingSummaries = summaryRepository.findByUsernameAndWeek(username, week);
-        boolean summaryExists = existingSummaries.stream()
-                .anyMatch(s -> s.getGitRepositoryId() != null && s.getGitRepositoryId().equals(repository.getId()));
-
-        if (summaryExists) {
-            log.info("Summary already exists for user: {}, week: {}, repository: {} - skipping generation", username, week, repository.getRepositoryLink());
-            return;
+        // For backfill, we don't want to regenerate existing summaries, so check and skip
+        if (isBackfill) {
+            Optional<Summary> existingSummary = summaryRepository.findByUsernameAndWeekAndGitRepositoryId(username, week, repository.getId());
+            if (existingSummary.isPresent()) {
+                log.info("Summary already exists for user: {}, week: {}, repository: {} - skipping backfill generation", username, week, repository.getRepositoryLink());
+                return;
+            }
         }
 
         // Step 1: Fetch contributions for the specific user and week
@@ -398,15 +397,32 @@ public class SummaryService {
                 })
                 .subscribe(
                     summaryResponse -> {
-                        // Step 5: Save the summary to database
+                        // Step 5: Upsert the summary to database
                         try {
-                            Summary summary = new Summary();
-                            summary.setUsername(username);
-                            summary.setWeek(week);
-                            summary.setGitRepositoryId(repository.getId());
-                            summary.setCreatedAt(LocalDateTime.now());
+                            // Check if summary already exists for this exact combination
+                            Optional<Summary> existingSummaryOpt = summaryRepository.findByUsernameAndWeekAndGitRepositoryId(username, week, repository.getId());
 
-                            // Map from DTO to entity
+                            Summary summary;
+                            boolean isUpdate = false;
+
+                            if (existingSummaryOpt.isPresent()) {
+                                // Update existing summary
+                                summary = existingSummaryOpt.get();
+                                isUpdate = true;
+                                log.info("Updating existing summary with ID {} for user: {}, week: {}, repository: {}",
+                                        summary.getId(), username, week, repository.getRepositoryLink());
+                            } else {
+                                // Create new summary
+                                summary = new Summary();
+                                summary.setUsername(username);
+                                summary.setWeek(week);
+                                summary.setGitRepositoryId(repository.getId());
+                                summary.setCreatedAt(LocalDateTime.now());
+                                log.info("Creating new summary for user: {}, week: {}, repository: {}",
+                                        username, week, repository.getRepositoryLink());
+                            }
+
+                            // Map from DTO to entity (same for both create and update)
                             summary.setOverview(summaryResponse.getOverview());
                             summary.setCommitsSummary(summaryResponse.getCommitsSummary());
                             summary.setPullRequestsSummary(summaryResponse.getPullRequestsSummary());
@@ -428,10 +444,9 @@ public class SummaryService {
                                 summary.setReleasesCount(summaryResponse.getMetadata().getReleasesCount());
                             }
 
-
                             Summary savedSummary = summaryRepository.save(summary);
-                            log.info("Successfully generated and saved summary with ID {} for user: {}, week: {}, repository: {}",
-                                    savedSummary.getId(), username, week, repository.getRepositoryLink());
+                            log.info("Successfully {} summary with ID {} for user: {}, week: {}, repository: {}",
+                                    isUpdate ? "updated" : "created", savedSummary.getId(), username, week, repository.getRepositoryLink());
                         } catch (Exception e) {
                             log.error("Failed to save summary for user: {}, week: {}, repository: {}", username, week, repository.getRepositoryLink(), e);
                         }

@@ -2,6 +2,7 @@
 
 import { Calendar } from "lucide-react";
 import Link from "next/link";
+import { SummaryBackfillPrompt } from "@/components/summary-backfill-prompt";
 import {
 	Card,
 	CardContent,
@@ -180,10 +181,17 @@ export function SummariesTimeline() {
 				) : (
 					<div className="text-center py-8">
 						<Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-						<p className="text-muted-foreground">No summaries in timeline</p>
-						<p className="text-xs text-muted-foreground mt-1">
+						<p className="text-muted-foreground mb-4">
+							No summaries in timeline
+						</p>
+						<p className="text-xs text-muted-foreground mb-4">
 							Generated summaries will appear here chronologically
 						</p>
+						<SummaryBackfillPrompt
+							message="No summaries in timeline yet, but we found existing contributions."
+							variant="outline"
+							size="sm"
+						/>
 					</div>
 				)}
 			</CardContent>

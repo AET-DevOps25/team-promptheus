@@ -1,15 +1,9 @@
 "use client";
 
-import {
-	Calendar,
-	Clock,
-	Download,
-	FileText,
-	Loader2,
-	Users,
-} from "lucide-react";
+import { Calendar, Download, FileText, Loader2, Send } from "lucide-react";
 import Link from "next/link";
-import { Suspense } from "react";
+import { useRouter } from "next/navigation";
+import React, { Suspense, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -18,10 +12,301 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { WeeklySummaryServer } from "@/components/weekly-summary-server";
+import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useUser } from "@/contexts/user-context";
 import { toast } from "@/hooks/use-toast";
+import { useContributions } from "@/lib/api/contributions";
+import { useGitRepoInformation } from "@/lib/api/server";
 import { useGenerateSummary, useSummaries } from "@/lib/api/summary";
+import type { components } from "@/lib/api/types/contribution";
+
+type ContributionDto = components["schemas"]["ContributionDto"];
+
+function WeeklySummaryForm({ userId }: { userId: string }) {
+	const router = useRouter();
+	const [selectedWeek, setSelectedWeek] = useState<Date | undefined>(
+		new Date(),
+	);
+	const [selectedUser, setSelectedUser] = useState<string>("");
+	const [isGenerating, setIsGenerating] = useState(false);
+
+	// Generate unique IDs for form elements
+	const weekSelectorId = useId();
+	const userSelectId = useId();
+
+	// Fetch repository information using the userId (usercode)
+	const { data: repoInfo, isLoading: repoLoading } =
+		useGitRepoInformation(userId);
+
+	// Hook for generating summaries
+	const generateSummary = useGenerateSummary();
+
+	// Fetch contributions to get available users
+	const { data: contributionsData, isLoading: contributionsLoading } =
+		useContributions({
+			pageable: {
+				page: 0,
+				size: 1000, // Get a large number to capture all unique users
+			},
+		});
+
+	// Extract unique users from contributions data
+	const availableUsers = React.useMemo(() => {
+		if (!contributionsData?.content) return [];
+		const contributions = contributionsData.content as ContributionDto[];
+		const users = Array.from(new Set(contributions.map((c) => c.username)))
+			.filter(Boolean)
+			.sort();
+		return users;
+	}, [contributionsData]);
+
+	// Extract repository name and owner/repo from repoLink
+	const repositoryInfo = React.useMemo(() => {
+		if (!repoInfo?.repoLink) return { name: "Loading...", owner: "", repo: "" };
+		try {
+			// Parse GitHub URL to get organization/repository
+			const url = new URL(repoInfo.repoLink);
+			const pathParts = url.pathname.split("/").filter(Boolean);
+			if (pathParts.length >= 2) {
+				const owner = pathParts[0];
+				const repo = pathParts[1];
+				return {
+					name: `${owner}/${repo}`,
+					owner,
+					repo,
+				};
+			}
+			return { name: repoInfo.repoLink, owner: "", repo: "" };
+		} catch {
+			return { name: repoInfo.repoLink, owner: "", repo: "" };
+		}
+	}, [repoInfo]);
+
+	// Format date to week string (YYYY-WMM)
+	const formatToWeek = (date: Date) => {
+		const year = date.getFullYear();
+		const startOfYear = new Date(year, 0, 1);
+		const days = Math.floor(
+			(date.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000),
+		);
+		const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
+		return `${year}-W${weekNumber.toString().padStart(2, "0")}`;
+	};
+
+	const handleGenerateWeeklySummary = async () => {
+		if (!selectedWeek || !selectedUser) {
+			toast({
+				title: "Missing selections",
+				description: "Please select both a week and a user",
+				variant: "destructive",
+			});
+			return;
+		}
+
+		if (!repositoryInfo.owner || !repositoryInfo.repo) {
+			toast({
+				title: "Repository information missing",
+				description: "Unable to determine repository details",
+				variant: "destructive",
+			});
+			return;
+		}
+
+		setIsGenerating(true);
+
+		try {
+			const week = formatToWeek(selectedWeek);
+
+			// Make the actual API call to generate summary
+			await generateSummary.mutateAsync({
+				owner: repositoryInfo.owner,
+				repo: repositoryInfo.repo,
+				username: selectedUser,
+				week: week,
+			});
+
+			toast({
+				title: "Summary generation started!",
+				description: `Generating weekly summary for ${selectedUser} in week ${week}. You'll be redirected to the dashboard where it will appear soon.`,
+			});
+
+			// Redirect to dashboard after brief delay
+			setTimeout(() => {
+				router.push("/dashboard");
+			}, 1500);
+		} catch (error) {
+			console.error("Failed to generate summary:", error);
+			toast({
+				title: "Failed to generate summary",
+				description:
+					"There was an error generating your weekly summary. Please try again.",
+				variant: "destructive",
+			});
+		} finally {
+			setIsGenerating(false);
+		}
+	};
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2">
+					<Calendar className="h-5 w-5" />
+					Generate Weekly Summary
+				</CardTitle>
+				<CardDescription>
+					Select a week and user to generate a comprehensive summary of their
+					contributions
+				</CardDescription>
+			</CardHeader>
+			<CardContent className="space-y-6">
+				{/* Week Selection */}
+				<div className="space-y-2">
+					<Label htmlFor="week-selector" className="text-sm font-medium">
+						Select Week
+					</Label>
+					<div className="border rounded-lg p-3">
+						<div className="flex items-center justify-between mb-3">
+							<div className="text-sm text-muted-foreground">
+								Choose any week to generate a summary for
+							</div>
+							{selectedWeek && (
+								<div className="text-sm font-medium text-blue-600">
+									Week: {formatToWeek(selectedWeek)}
+								</div>
+							)}
+						</div>
+						<div className="flex justify-center">
+							<div className="w-fit">
+								<input
+									id={weekSelectorId}
+									type="week"
+									value={
+										selectedWeek
+											? selectedWeek
+													.toISOString()
+													.slice(0, 10)
+													.replace(/\d{2}$/, "01")
+											: ""
+									}
+									onChange={(e) => {
+										if (e.target.value) {
+											const [year, week] = e.target.value.split("-W");
+											const date = new Date(
+												parseInt(year),
+												0,
+												1 + (parseInt(week) - 1) * 7,
+											);
+											setSelectedWeek(date);
+										}
+									}}
+									className="w-full p-2 border rounded"
+								/>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				{/* Repository Display (Read-only) */}
+				<div className="space-y-2">
+					<Label className="text-sm font-medium">Repository</Label>
+					<div className="w-full p-3 border rounded-lg bg-slate-50 text-slate-700">
+						{repoLoading ? (
+							<div className="flex items-center gap-2">
+								<Loader2 className="h-4 w-4 animate-spin" />
+								Loading repository information...
+							</div>
+						) : (
+							<div className="flex items-center gap-2">
+								<FileText className="h-4 w-4 text-slate-500" />
+								{repositoryInfo.name}
+							</div>
+						)}
+					</div>
+				</div>
+
+				{/* User Selection */}
+				<div className="space-y-2">
+					<Label htmlFor={userSelectId} className="text-sm font-medium">
+						Select Developer
+					</Label>
+					<Select value={selectedUser} onValueChange={setSelectedUser}>
+						<SelectTrigger id={userSelectId}>
+							<SelectValue
+								placeholder={
+									contributionsLoading
+										? "Loading developers..."
+										: "Choose a developer"
+								}
+							/>
+						</SelectTrigger>
+						<SelectContent>
+							{contributionsLoading ? (
+								<SelectItem value="loading" disabled>
+									Loading developers...
+								</SelectItem>
+							) : availableUsers.length > 0 ? (
+								availableUsers.map((user) => (
+									<SelectItem key={user} value={user}>
+										{user}
+									</SelectItem>
+								))
+							) : (
+								<SelectItem value="no-users" disabled>
+									No developers found
+								</SelectItem>
+							)}
+						</SelectContent>
+					</Select>
+				</div>
+
+				{/* Generate Button */}
+				<Button
+					onClick={handleGenerateWeeklySummary}
+					disabled={
+						isGenerating ||
+						!selectedWeek ||
+						!selectedUser ||
+						contributionsLoading ||
+						repoLoading
+					}
+					className="w-full"
+					size="lg"
+				>
+					{isGenerating ? (
+						<>
+							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							Generating Summary...
+						</>
+					) : (
+						<>
+							<Send className="mr-2 h-4 w-4" />
+							Generate Weekly Summary
+						</>
+					)}
+				</Button>
+
+				{isGenerating && (
+					<div className="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
+						<p className="text-green-800 font-medium">
+							✨ Generating weekly summary...
+						</p>
+						<p className="text-sm text-green-700 mt-1">
+							This will take a moment and you'll be redirected to the dashboard!
+						</p>
+					</div>
+				)}
+			</CardContent>
+		</Card>
+	);
+}
 
 function RecentSummaries() {
 	// Fetch actual summaries from the API
@@ -334,83 +619,6 @@ function SummariesTimeline() {
 	);
 }
 
-function QuickActions() {
-	const generateSummary = useGenerateSummary();
-
-	const getCurrentWeek = () => {
-		const now = new Date();
-		const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-		const year = startOfWeek.getFullYear();
-		const weekNum = Math.ceil(
-			(startOfWeek.getTime() - new Date(year, 0, 1).getTime()) /
-				(7 * 24 * 60 * 60 * 1000),
-		);
-		return `${year}-W${weekNum.toString().padStart(2, "0")}`;
-	};
-
-	const handleGenerateWeeklySummary = async () => {
-		try {
-			// For demo purposes, using placeholder values
-			// In a real implementation, these would come from user context or repository selection
-			await generateSummary.mutateAsync({
-				owner: "team",
-				repo: "promptheus",
-				username: "developer", // This should come from user context
-				week: getCurrentWeek(),
-			});
-
-			toast({
-				title: "Summary generation started",
-				description:
-					"Your weekly summary is being generated in the background.",
-			});
-		} catch (error) {
-			console.error("Failed to generate weekly summary:", error);
-			toast({
-				title: "Failed to generate summary",
-				description:
-					"There was an error generating your weekly summary. Please try again.",
-				variant: "destructive",
-			});
-		}
-	};
-
-	return (
-		<Card>
-			<CardHeader>
-				<CardTitle className="text-lg">Quick Actions</CardTitle>
-			</CardHeader>
-			<CardContent className="space-y-3">
-				<Button
-					className="w-full justify-start"
-					variant="outline"
-					onClick={handleGenerateWeeklySummary}
-					disabled={generateSummary.isPending}
-				>
-					{generateSummary.isPending ? (
-						<Loader2 className="h-4 w-4 mr-2 animate-spin" />
-					) : (
-						<Clock className="h-4 w-4 mr-2" />
-					)}
-					Generate This Week's Summary
-				</Button>
-				<Button className="w-full justify-start" variant="outline" disabled>
-					<Users className="h-4 w-4 mr-2" />
-					Team Performance Report
-				</Button>
-				<Button className="w-full justify-start" variant="outline" disabled>
-					<FileText className="h-4 w-4 mr-2" />
-					Export All Summaries
-				</Button>
-				<Button className="w-full justify-start" variant="outline" disabled>
-					<Calendar className="h-4 w-4 mr-2" />
-					Schedule Auto-Summary
-				</Button>
-			</CardContent>
-		</Card>
-	);
-}
-
 export default function WeeklySummaryPage() {
 	const { userId } = useUser();
 
@@ -457,67 +665,15 @@ export default function WeeklySummaryPage() {
 			</header>
 
 			<main className="container mx-auto px-4 py-8 max-w-6xl">
-				<div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+				<div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
 					{/* Main Content - Summary Builder */}
 					<div className="xl:col-span-2">
-						<WeeklySummaryServer userId={userId} />
+						<WeeklySummaryForm userId={userId} />
 					</div>
 
 					{/* Timeline - Recent Summaries */}
-					<div className="xl:col-span-1">
-						<SummariesTimeline />
-					</div>
-
-					{/* Sidebar - Actions and Quick Access */}
 					<div className="xl:col-span-1 space-y-6">
-						<Suspense
-							fallback={
-								<Card>
-									<CardHeader>
-										<div className="h-5 w-24 bg-slate-200 rounded animate-pulse" />
-									</CardHeader>
-									<CardContent className="space-y-3">
-										<div className="h-9 bg-slate-100 rounded animate-pulse" />
-										<div className="h-9 bg-slate-100 rounded animate-pulse" />
-										<div className="h-9 bg-slate-100 rounded animate-pulse" />
-										<div className="h-9 bg-slate-100 rounded animate-pulse" />
-									</CardContent>
-								</Card>
-							}
-						>
-							<QuickActions />
-						</Suspense>
-
-						<Card>
-							<CardHeader>
-								<CardTitle className="text-lg">Summary Templates</CardTitle>
-								<CardDescription>
-									Choose from pre-built templates
-								</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<div className="space-y-3">
-									<div className="p-3 border rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
-										<p className="font-medium text-sm">Executive Summary</p>
-										<p className="text-xs text-muted-foreground">
-											High-level overview for leadership
-										</p>
-									</div>
-									<div className="p-3 border rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
-										<p className="font-medium text-sm">Technical Report</p>
-										<p className="text-xs text-muted-foreground">
-											Detailed technical progress
-										</p>
-									</div>
-									<div className="p-3 border rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
-										<p className="font-medium text-sm">Team Standup</p>
-										<p className="text-xs text-muted-foreground">
-											Quick team update format
-										</p>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
+						<SummariesTimeline />
 
 						<Suspense
 							fallback={
