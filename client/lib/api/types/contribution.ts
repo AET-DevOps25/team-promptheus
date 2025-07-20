@@ -108,11 +108,11 @@ export type components = {
 			/** Format: int32 */
 			readonly number?: number;
 			readonly sort?: components["schemas"]["SortObject"];
+			readonly first?: boolean;
+			readonly last?: boolean;
 			/** Format: int32 */
 			readonly numberOfElements?: number;
 			readonly pageable?: components["schemas"]["PageableObject"];
-			readonly first?: boolean;
-			readonly last?: boolean;
 			readonly empty?: boolean;
 		};
 		readonly PageableObject: {
@@ -142,11 +142,11 @@ export type components = {
 			/** Format: int32 */
 			readonly number?: number;
 			readonly sort?: components["schemas"]["SortObject"];
+			readonly first?: boolean;
+			readonly last?: boolean;
 			/** Format: int32 */
 			readonly numberOfElements?: number;
 			readonly pageable?: components["schemas"]["PageableObject"];
-			readonly first?: boolean;
-			readonly last?: boolean;
 			readonly empty?: boolean;
 		};
 	};
