@@ -116,7 +116,7 @@ data:
       - name: Prometheus
         type: prometheus
         access: proxy
-        url: http://prometheus-service:9090
+        url: http://prometheus-service.team-promptheus.svc.cluster.local:9090
         isDefault: true
         editable: true
         jsonData:
@@ -135,7 +135,7 @@ data:
       - name: Tempo
         type: tempo
         uid: tempo
-        url: http://tempo-service:3200
+        url: http://tempo-service.team-promptheus.svc.cluster.local:3200
         editable: true
         jsonData:
           tracesToLogsV2:
@@ -157,7 +157,7 @@ data:
       - name: Loki
         type: loki
         uid: loki
-        url: http://loki-service:3100
+        url: http://loki-service.team-promptheus.svc.cluster.local:3100
         editable: true
         jsonData:
           derivedFields:
@@ -171,7 +171,7 @@ data:
       - name: Pyroscope
         type: grafana-pyroscope-datasource
         uid: pyroscope
-        url: http://pyroscope-service:4040
+        url: http://pyroscope-service.team-promptheus.svc.cluster.local:4040
         editable: true
 
 ---
