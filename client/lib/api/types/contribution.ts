@@ -108,28 +108,28 @@ export type components = {
 			/** Format: int32 */
 			readonly number?: number;
 			readonly sort?: components["schemas"]["SortObject"];
+			readonly first?: boolean;
+			readonly last?: boolean;
 			/** Format: int32 */
 			readonly numberOfElements?: number;
 			readonly pageable?: components["schemas"]["PageableObject"];
-			readonly first?: boolean;
-			readonly last?: boolean;
 			readonly empty?: boolean;
 		};
 		readonly PageableObject: {
 			/** Format: int64 */
 			readonly offset?: number;
 			readonly sort?: components["schemas"]["SortObject"];
-			readonly unpaged?: boolean;
 			readonly paged?: boolean;
 			/** Format: int32 */
 			readonly pageNumber?: number;
 			/** Format: int32 */
 			readonly pageSize?: number;
+			readonly unpaged?: boolean;
 		};
 		readonly SortObject: {
 			readonly empty?: boolean;
-			readonly unsorted?: boolean;
 			readonly sorted?: boolean;
+			readonly unsorted?: boolean;
 		};
 		readonly PageContributionDto: {
 			/** Format: int64 */
@@ -142,11 +142,11 @@ export type components = {
 			/** Format: int32 */
 			readonly number?: number;
 			readonly sort?: components["schemas"]["SortObject"];
+			readonly first?: boolean;
+			readonly last?: boolean;
 			/** Format: int32 */
 			readonly numberOfElements?: number;
 			readonly pageable?: components["schemas"]["PageableObject"];
-			readonly first?: boolean;
-			readonly last?: boolean;
 			readonly empty?: boolean;
 		};
 	};
