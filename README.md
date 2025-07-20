@@ -22,10 +22,128 @@ TBD
 
 ### High level systems architecture diagram
 
-> [!TIP]
-> The architecture digagram is [also avaliable as a pdf](docs/components.pdf)
-
-![High level systems architecture diagram](docs/components.png)
+```mermaid
+graph TB
+    %% Users Layer
+    Users[USERS]
+    
+    %% Client Layer
+    subgraph Client ["CLIENT (Frontend)"]
+        Dashboard[Dashboard Components]
+        QA[Q&A Interface]
+        Search[Search Interface]
+        Framework[Next.js 15 + React 19 + TypeScript<br/>URL Rewrites for Service Routing]
+    end
+    
+    %% Microservices Layer
+    subgraph Microservices ["MICROSERVICES LAYER<br/>(Direct Client Communication)"]
+        subgraph ServerService ["SERVER SERVICE<br/>:8080<br/>Spring Boot"]
+            RepoMgmt[Repository Management]
+            UserPAT[User & PAT Management]
+        end
+        
+        subgraph GenAIService ["GENAI SERVICE<br/>:3003<br/>FastAPI"]
+            LangChain[LangChain/LangGraph]
+            AISummary[AI Summary & Q&A]
+        end
+        
+        subgraph SearchService ["SEARCH SERVICE<br/>:8070<br/>Spring Boot"]
+            SemanticSearch[Semantic Search]
+            VectorEmbed[Vector Embeddings]
+        end
+        
+        subgraph ContribService ["CONTRIBUTION SERVICE<br/>:8082<br/>Spring Boot"]
+            GitHubAPI[GitHub API Integration]
+            Scheduler[Scheduler & Fetcher]
+        end
+        
+        subgraph SummaryService ["SUMMARY SERVICE<br/>:8084<br/>Spring Boot"]
+            WorkflowOrch[Workflow Orchestration]
+            SummaryMgmt[Summary Management]
+        end
+    end
+    
+    %% Data Layer
+    subgraph DataLayer ["DATA LAYER"]
+        subgraph PostgreSQL ["POSTGRESQL"]
+            Repositories[Repositories]
+            UsersData[Users & PATs]
+            Contributions[Contributions]
+            Questions[Questions]
+            Summaries[Summaries]
+        end
+        
+        subgraph MeiliSearch ["MEILISEARCH"]
+            SearchIndex[Semantic Search Index]
+            VectorStore[Vector Store]
+        end
+        
+        subgraph Ollama ["OLLAMA<br/>(LLM Service)"]
+            LLMModels[Local/Remote LLM Models]
+        end
+    end
+    
+    %% External Services
+    subgraph ExternalServices ["EXTERNAL SERVICES"]
+        subgraph GitHubExt ["GITHUB API"]
+            GitRepos[Repositories]
+            Commits[Commits]
+            PullRequests[Pull Requests]
+            Issues[Issues]
+        end
+        
+        subgraph OpenAI ["OPENAI API<br/>(Optional)"]
+            Embeddings[Embeddings]
+            OpenAIModels[LLM Models]
+        end
+        
+        subgraph Monitoring ["MONITORING"]
+            Prometheus[Prometheus]
+            Grafana[Grafana]
+            OpenTelemetry[OpenTelemetry]
+        end
+    end
+    
+    %% User connections
+    Users -->|HTTPS| Client
+    
+    %% Client to Services connections
+    Client -->|:8080| ServerService
+    Client -->|:3003| GenAIService
+    Client -->|:8070| SearchService
+    Client -->|:8082| ContribService
+    Client -->|:8084| SummaryService
+    
+    %% Inter-Service Communication
+    SummaryService <-->|Orchestration| ContribService
+    SummaryService <-->|AI Processing| GenAIService
+    GenAIService <-->|Search Queries| SearchService
+    
+    %% Services to Data Layer
+    ServerService --> PostgreSQL
+    GenAIService --> Ollama
+    SearchService --> MeiliSearch
+    ContribService --> PostgreSQL
+    SummaryService --> PostgreSQL
+    
+    %% External Service connections
+    ContribService --> GitHubExt
+    GenAIService --> OpenAI
+    GenAIService --> Ollama
+    
+    %% Styling
+    classDef userLayer fill:#e1f5fe
+    classDef clientLayer fill:#f3e5f5
+    classDef serviceLayer fill:#e8f5e8
+    classDef dataLayer fill:#fff3e0
+    classDef externalLayer fill:#fce4ec
+    
+    class Users userLayer
+    class Client,Dashboard,QA,Search,Framework clientLayer
+    class ServerService,GenAIService,SearchService,ContribService,SummaryService serviceLayer
+    class PostgreSQL,MeiliSearch,Ollama dataLayer
+    class GitHubExt,OpenAI,Monitoring externalLayer
+```
 
 ### Usecase diagram
 
