@@ -119,3 +119,8 @@ It can also be run manually:
 ```shell
 pre-commit run --all-files
 ```
+
+## Operations/ Monitoring
+
+We provide a [prometheus interface here](https://prometheus-prompteus.student.k8s.aet.cit.tum.de/) and grafana (admin/admin) [here](https://grafana-prompteus.student.k8s.aet.cit.tum.de/).
+For further details, how the rest of the system (tracing, profiling, logs) is set up, please see [these docs](MONITORING.md)
