@@ -11,6 +11,7 @@ import {
 	Users,
 	Zap,
 } from "lucide-react";
+import Link from "next/link";
 import { useId, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,16 +49,7 @@ export default function HomePage() {
 
 			// Extract usercode from the developerview URL
 			if (result.developerview) {
-				const url = new URL(result.developerview);
-				const usercode = url.pathname.split("/").pop();
-				if (usercode) {
-					localStorage.setItem("usercode", usercode);
-					window.location.href = "/dashboard";
-				} else {
-					setError(
-						"Failed to extract repository code from response. Please try again.",
-					);
-				}
+				window.location.href = result.developerview;
 			} else {
 				setError("Invalid response from server. Please try again.");
 			}
@@ -93,13 +85,22 @@ export default function HomePage() {
 					</div>
 
 					<div className="flex flex-col sm:flex-row gap-4 justify-center">
-						<Button className="text-lg px-8 py-6" size="lg">
-							<Github className="h-5 w-5 mr-2" />
-							Get Started Free
+						<Button asChild className="text-lg px-8 py-6" size="lg">
+							<Link href="#setup-form">
+								<Github className="h-5 w-5 mr-2" />
+								Get Started Free
+							</Link>
 						</Button>
-						<Button className="text-lg px-8 py-6" size="lg" variant="outline">
-							<MessageSquare className="h-5 w-5 mr-2" />
-							See Demo
+						<Button
+							asChild
+							className="text-lg px-8 py-6"
+							size="lg"
+							variant="outline"
+						>
+							<Link href="/login/">
+								<MessageSquare className="h-5 w-5 mr-2" />
+								See Demo
+							</Link>
 						</Button>
 					</div>
 				</section>
@@ -141,7 +142,7 @@ export default function HomePage() {
 				</section>
 
 				{/* Setup Form */}
-				<section className="max-w-2xl mx-auto">
+				<section className="max-w-2xl mx-auto" id="setup-form">
 					<Card>
 						<CardHeader className="text-center">
 							<CardTitle className="text-2xl">
@@ -269,9 +270,11 @@ export default function HomePage() {
 						Join thousands of developers who use Prompteus to stay aligned and
 						productive. Start your free trial today.
 					</p>
-					<Button className="text-lg px-8 py-6" size="lg">
-						<Github className="h-5 w-5 mr-2" />
-						Start Free Trial
+					<Button asChild className="text-lg px-8 py-6" size="lg">
+						<Link href="#setup-form">
+							<Github className="h-5 w-5 mr-2" />
+							Start Free Trial
+						</Link>
 					</Button>
 				</section>
 			</div>
