@@ -42,12 +42,11 @@ export default function HomePage() {
 		e.preventDefault();
 		if (!repoLink.trim() || !pat.trim()) return;
 
-
 		try {
 			// Use the TanStack Query mutation
 			const patData = {
-				repolink: repoLink.trim(),
 				pat: pat.trim(),
+				repolink: repoLink.trim(),
 			};
 
 			const response = await createFromPATMutation.mutateAsync(patData);
@@ -93,60 +92,60 @@ export default function HomePage() {
 
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
 							<Button className="text-lg px-8 py-6" size="lg">
-							<Link href="#setup-form">
-								<Github className="h-5 w-5 mr-2" />
-								Get Started Free
-							</Link>
-						</Button>
-						<Button
-							asChild
-							className="text-lg px-8 py-6"
-							size="lg"
-							variant="outline"
-						>
-							<Link href="/login/">
-								<MessageSquare className="h-5 w-5 mr-2" />
-								See Demo
-							</Link>
-						</Button>
-					</div>
-				</section>
+								<Link href="#setup-form">
+									<Github className="h-5 w-5 mr-2" />
+									Start Free Trial
+								</Link>
+							</Button>
+							<Button
+								asChild
+								className="text-lg px-8 py-6"
+								size="lg"
+								variant="outline"
+							>
+								<Link href="/login/">
+									<MessageSquare className="h-5 w-5 mr-2" />
+									See Demo
+								</Link>
+							</Button>
+						</div>
+					</section>
 
-				{/* Features Grid */}
-				<section className="grid md:grid-cols-3 gap-8">
-					<Card className="text-center">
-						<CardHeader>
-							<TrendingUp className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-							<CardTitle>Smart Summaries</CardTitle>
-							<CardDescription>
-								AI-generated weekly summaries of repository activity, pull
-								requests, and team progress.
-							</CardDescription>
-						</CardHeader>
-					</Card>
+					{/* Features Grid */}
+					<section className="grid md:grid-cols-3 gap-8">
+						<Card className="text-center">
+							<CardHeader>
+								<TrendingUp className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+								<CardTitle>Smart Summaries</CardTitle>
+								<CardDescription>
+									AI-generated weekly summaries of repository activity, pull
+									requests, and team progress.
+								</CardDescription>
+							</CardHeader>
+						</Card>
 
-					<Card className="text-center">
-						<CardHeader>
-							<Search className="h-12 w-12 text-green-600 mx-auto mb-4" />
-							<CardTitle>Intelligent Q&A</CardTitle>
-							<CardDescription>
-								Ask questions about your codebase and get instant, context-aware
-								answers powered by AI.
-							</CardDescription>
-						</CardHeader>
-					</Card>
+						<Card className="text-center">
+							<CardHeader>
+								<Search className="h-12 w-12 text-green-600 mx-auto mb-4" />
+								<CardTitle>Intelligent Q&A</CardTitle>
+								<CardDescription>
+									Ask questions about your codebase and get instant,
+									context-aware answers powered by AI.
+								</CardDescription>
+							</CardHeader>
+						</Card>
 
-					<Card className="text-center">
-						<CardHeader>
-							<Users className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-							<CardTitle>Team Alignment</CardTitle>
-							<CardDescription>
-								Keep everyone informed about changes, decisions, and progress
-								across multiple repositories.
-							</CardDescription>
-						</CardHeader>
-					</Card>
-				</section>
+						<Card className="text-center">
+							<CardHeader>
+								<Users className="h-12 w-12 text-purple-600 mx-auto mb-4" />
+								<CardTitle>Team Alignment</CardTitle>
+								<CardDescription>
+									Keep everyone informed about changes, decisions, and progress
+									across multiple repositories.
+								</CardDescription>
+							</CardHeader>
+						</Card>
+					</section>
 
 					{/* Setup Form */}
 					<section className="max-w-2xl mx-auto" id="setup-form">
@@ -225,66 +224,66 @@ export default function HomePage() {
 									)}
 								</form>
 
-							{error && (
-								<div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-									<p className="text-red-700 text-sm">{error}</p>
-								</div>
-							)}
+								{error && (
+									<div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+										<p className="text-red-700 text-sm">{error}</p>
+									</div>
+								)}
 
-							<div className="mt-6 p-4 bg-green-50 rounded-lg">
-								<div className="flex items-center gap-2 text-green-800 mb-2">
-									<CheckCircle className="h-5 w-5" />
-									<span className="font-medium">What happens next?</span>
+								<div className="mt-6 p-4 bg-green-50 rounded-lg">
+									<div className="flex items-center gap-2 text-green-800 mb-2">
+										<CheckCircle className="h-5 w-5" />
+										<span className="font-medium">What happens next?</span>
+									</div>
+									<ul className="text-sm text-green-700 space-y-1 ml-7">
+										<li>
+											• We'll analyze your repository structure and recent
+											activity
+										</li>
+										<li>• Generate your first AI summary within minutes</li>
+										<li>• Set up intelligent Q&A for your codebase</li>
+										<li>• Create your personalized dashboard</li>
+									</ul>
 								</div>
-								<ul className="text-sm text-green-700 space-y-1 ml-7">
-									<li>
-										• We'll analyze your repository structure and recent
-										activity
-									</li>
-									<li>• Generate your first AI summary within minutes</li>
-									<li>• Set up intelligent Q&A for your codebase</li>
-									<li>• Create your personalized dashboard</li>
-								</ul>
+							</CardContent>
+						</Card>
+					</section>
+
+					{/* Trust Indicators */}
+					<section className="text-center space-y-8">
+						<h2 className="text-2xl font-bold text-slate-900">
+							Trusted by Development Teams
+						</h2>
+						<div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+							<div className="space-y-2">
+								<div className="text-3xl font-bold text-blue-600">10k+</div>
+								<p className="text-slate-600">Repositories Analyzed</p>
 							</div>
-						</CardContent>
-					</Card>
-				</section>
+							<div className="space-y-2">
+								<div className="text-3xl font-bold text-green-600">50k+</div>
+								<p className="text-slate-600">AI Summaries Generated</p>
+							</div>
+							<div className="space-y-2">
+								<div className="text-3xl font-bold text-purple-600">99.9%</div>
+								<p className="text-slate-600">Uptime Reliability</p>
+							</div>
+						</div>
+					</section>
 
-				{/* Trust Indicators */}
-				<section className="text-center space-y-8">
-					<h2 className="text-2xl font-bold text-slate-900">
-						Trusted by Development Teams
-					</h2>
-					<div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-						<div className="space-y-2">
-							<div className="text-3xl font-bold text-blue-600">10k+</div>
-							<p className="text-slate-600">Repositories Analyzed</p>
-						</div>
-						<div className="space-y-2">
-							<div className="text-3xl font-bold text-green-600">50k+</div>
-							<p className="text-slate-600">AI Summaries Generated</p>
-						</div>
-						<div className="space-y-2">
-							<div className="text-3xl font-bold text-purple-600">99.9%</div>
-							<p className="text-slate-600">Uptime Reliability</p>
-						</div>
-					</div>
-				</section>
-
-				{/* CTA Section */}
-				<section className="text-center space-y-6 py-16 bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl">
-					<h2 className="text-3xl font-bold text-slate-900">
-						Ready to transform your team's workflow?
-					</h2>
-					<p className="text-lg text-slate-600 max-w-2xl mx-auto">
-						Join thousands of developers who use Prompteus to stay aligned and
-						productive. Start your free trial today.
-					</p>
-					<Button asChild className="text-lg px-8 py-6" size="lg">
-						<Link href="#setup-form">
-							<Github className="h-5 w-5 mr-2" />
-							Start Free Trial
-						</Link>
+					{/* CTA Section */}
+					<section className="text-center space-y-6 py-16 bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl">
+						<h2 className="text-3xl font-bold text-slate-900">
+							Ready to transform your team's workflow?
+						</h2>
+						<p className="text-lg text-slate-600 max-w-2xl mx-auto">
+							Join thousands of developers who use Prompteus to stay aligned and
+							productive. Start your free trial today.
+						</p>
+						<Button asChild className="text-lg px-8 py-6" size="lg">
+							<Link href="#setup-form">
+								<Github className="h-5 w-5 mr-2" />
+								Start Free Trial
+							</Link>
 						</Button>
 					</section>
 				</div>
