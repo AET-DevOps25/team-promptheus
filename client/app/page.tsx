@@ -9,7 +9,6 @@ import {
 	Search,
 	TrendingUp,
 	Users,
-	Zap,
 } from "lucide-react";
 import { useId, useState } from "react";
 import { Badge } from "@/components/ui/badge";
